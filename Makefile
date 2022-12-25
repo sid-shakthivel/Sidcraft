@@ -1,0 +1,2 @@
+all:
+	/usr/bin/clang++ -std=c++17 -fdiagnostics-color=always -Wall -g -I/Users/siddharth/Code/C++/GameEngine/dependencies/include -L/Users/siddharth/Code/C++/GameEngine/dependencies/lib /Users/siddharth/Code/C++/GameEngine/dependencies/lib/libglfw.3.3.dylib /Users/siddharth/Code/C++/GameEngine/*.cpp /Users/siddharth/Code/C++/GameEngine/glad.c -o /Users/siddharth/Code/C++/GameEngine/GameEngine -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -framework CoreFoundation -Wno-deprecated && ./GameEngine
