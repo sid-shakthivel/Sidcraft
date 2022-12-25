@@ -14,10 +14,11 @@ protected:
         programId = glCreateProgram();
     }
 
-    unsigned int programId;
     std::vector<unsigned int> shaderIdentifiers;
 
 public:
+    unsigned int programId;
+
     Shader(Shader &other) = delete;          // Singletons should not be cloneable
     void operator=(const Shader &) = delete; // Singletons should not be assignabl
 
@@ -34,6 +35,18 @@ public:
         unsigned int shaderNumber = glCreateShader(shaderType);
         glShaderSource(shaderNumber, 1, &fileContents, NULL); // Second parameter specifies number of strings which are source code
         glCompileShader(shaderNumber);
+
+        char infoLog[512];
+        int success;
+        glGetProgramiv(shaderNumber, GL_LINK_STATUS, &success);
+
+        if (!success)
+        {
+            glGetProgramInfoLog(shaderNumber, 512, NULL, infoLog);
+            // std::cout << infoLog;
+            std::cout << "Error when loading shaders!\n";
+        }
+
         shaderIdentifiers.push_back(shaderNumber);
     }
 
