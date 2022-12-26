@@ -181,8 +181,8 @@ public:
     // Creates a transformation matrix (opengl style) in which last column gets set to a vector
     void Translate(Vector3f Vec)
     {
-        if (Vec.Size > Size)
-            return;
+        // if (Vec.Size > Size)
+        //     return;
 
         elements[0][Size - 1] = Vec.x;
 
@@ -193,15 +193,6 @@ public:
             elements[2][Size - 1] = Vec.z;
 
         ConvertToColumnMajorOrder();
-    }
-
-    // For 2D rotations
-    void Rotate(double Degrees)
-    {
-        elements[0][0] = cos(Degrees);
-        elements[0][1] = -sin(Degrees);
-        elements[1][0] = sin(Degrees);
-        elements[1][1] = cos(Degrees);
     }
 
     void Print()
@@ -286,3 +277,28 @@ public:
 typedef SquareMatrix<float, 4> Matrix4f;
 typedef SquareMatrix<float, 3> Matrix3f;
 typedef SquareMatrix<float, 2> Matrix2f;
+
+Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, float Far)
+{
+    Matrix4f ProjectionMatrix = Matrix4f(0);
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            ProjectionMatrix.elements[i][j] = 0;
+
+    // ProjectionMatrix.elements[0][0] = Aspect * (1.0f / tan(Fov / 2.0f));
+    // ProjectionMatrix.elements[1][1] = 1.0f / tan(Fov / 2.0f);
+    // ProjectionMatrix.elements[2][2] = Far / (Far - Near);
+    // ProjectionMatrix.elements[2][3] = (-Far * Near) / (Far - Near);
+    // ProjectionMatrix.elements[3][2] = 1.0f;
+
+    ProjectionMatrix.elements[0][0] = 1.0f / tan(Fov / 2.0f) / Aspect;
+    ProjectionMatrix.elements[1][1] = 1.0f / tan(Fov / 2.0f);
+    ProjectionMatrix.elements[2][2] = (Far + Near) / (Near - Far);
+    ProjectionMatrix.elements[2][3] = -1.0f;
+    ProjectionMatrix.elements[3][2] = (2 * Far * Near) / (Near - Far);
+
+    // ProjectionMatrix.ConvertToColumnMajorOrder();
+
+    return ProjectionMatrix;
+}

@@ -41,6 +41,8 @@ int main()
 
     glViewport(0, 0, 800, 600); // Set size of window for rendering
 
+    glEnable(GL_DEPTH_TEST);
+
     // Load image and create texture
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -54,9 +56,9 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("chess.jpg", &width, &height, &nrChannels, 0);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -66,14 +68,48 @@ int main()
     singleton_->GetInstance()->AddShader("shader.fs", GL_FRAGMENT_SHADER);
     singleton_->GetInstance()->LinkShader();
 
-    // Format is position, colour
     float vertices[] = {
-        // positions          // colors           // texture coords
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,   // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f   // top left
-    };
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
 
     unsigned int indices[] = {
         0, 1, 3, // first triangle
@@ -91,30 +127,31 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    unsigned int EBO;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // unsigned int EBO;
+    // glGenBuffers(1, &EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Setup the vertex attribute pointers which specify how data is read
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0); // Setup position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0); // Setup position attribute
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float))); // Setup colour attribute
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float))); // Setup colour attribute
+    // glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float))); // Setup texture coordinates
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float))); // Setup texture coordinates
-    glEnableVertexAttribArray(2);
+    // Create model matrix
+    Matrix4f ModelMatrix = Matrix4f(1);
 
-    // Create transformations and set the matrix
-    // Set transformation matrix
-    Matrix4f transform = Matrix4f(1);
-    Matrix4f *test = &transform;
-    // transform.Scale(Vector3f(0.5f, 0.5f, 0.5f));
-    // transform.Translate(Vector3f(0.5f, -0.5f, 0));
-    transform.Rotate(ConvertToRadians(90), Axis::Z_AXIS);
+    // ModelMatrix.Print();
+    // std::cout << "\n";
 
-    transform.Print();
+    Matrix4f ViewMatrix = Matrix4f(1);
+    ViewMatrix.Translate(Vector3f(0.0f, 0.0f, -4.0f));
+
+    Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -122,19 +159,31 @@ int main()
         // Input
         processInput(window);
 
+        // Render
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
         // Bind textures
-        // glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, texture);
 
         singleton_->GetInstance()->Use();
-        // glUniform1i(glGetUniformLocation(singleton_->GetInstance()->programId, "chessTexture"), 0);
+        glUniform1i(glGetUniformLocation(singleton_->GetInstance()->programId, "chessTexture"), 0);
 
-        unsigned int transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)test);
+        ModelMatrix.Rotate(ConvertToRadians((float)glfwGetTime() * 50.0f), Axis::Y_AXIS);
+        // ModelMatrix.Rotate(ConvertToRadians((float)glfwGetTime() * 50.0f), Axis::X_AXIS);
+
+        unsigned int transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "model");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ModelMatrix));
+
+        transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "view");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ViewMatrix));
+
+        transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "projection");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ProjectionMatrix));
 
         // Render
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
