@@ -5,11 +5,19 @@
 #include <iostream>
 #include "shader.h"
 #include "stb_image.h"
+#include "vector.h"
+#include "matrix.h"
 
 void processInput(GLFWwindow *window);
 
 int main()
 {
+    Matrix4f mat1 = Matrix4f(1);
+    Matrix4f mat2 = Matrix4f(2);
+    mat1.Add(mat2);
+
+    return 0;
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Provides ability to set hints for createNewWindow
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
