@@ -5,19 +5,17 @@
 #include <iostream>
 #include "shader.h"
 #include "stb_image.h"
-#include "vector.h"
 #include "matrix.h"
 
 void processInput(GLFWwindow *window);
 
+float ConvertToRadians(float Degrees)
+{
+    return Degrees * 3.14159 / 180;
+}
+
 int main()
 {
-    Matrix4f mat1 = Matrix4f(1);
-    Matrix4f mat2 = Matrix4f(2);
-    mat1.Add(mat2);
-
-    return 0;
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Provides ability to set hints for createNewWindow
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -56,9 +54,9 @@ int main()
     stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("chess.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);
@@ -108,18 +106,33 @@ int main()
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float))); // Setup texture coordinates
     glEnableVertexAttribArray(2);
 
+    // Create transformations and set the matrix
+    // Set transformation matrix
+    Matrix4f transform = Matrix4f(1);
+    Matrix4f *test = &transform;
+    // transform.Scale(Vector3f(0.5f, 0.5f, 0.5f));
+    // transform.Translate(Vector3f(0.5f, -0.5f, 0));
+    transform.Rotate(ConvertToRadians(90), Axis::Z_AXIS);
+
+    transform.Print();
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         // Input
         processInput(window);
 
-        // Rendering
-        singleton_->GetInstance()->Use();
-        glUniform1i(glGetUniformLocation(singleton_->GetInstance()->programId, "chessTexture"), 0);
-
-        glActiveTexture(GL_TEXTURE0);
+        // Bind textures
+        // glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+
+        singleton_->GetInstance()->Use();
+        // glUniform1i(glGetUniformLocation(singleton_->GetInstance()->programId, "chessTexture"), 0);
+
+        unsigned int transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)test);
+
+        // Render
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

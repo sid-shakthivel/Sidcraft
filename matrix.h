@@ -2,14 +2,102 @@
 
 #include <math.h>
 #include <iostream>
-#include "vector.h"
 
 enum Axis
 {
     X_AXIS,
     Y_AXIS,
     Z_AXIS
-}
+};
+
+template <class T, unsigned int N>
+class Vector
+{
+private:
+public:
+    static constexpr auto Size = N;
+
+    T x;
+    T y;
+    T z;
+
+    Vector(T _x, T _y)
+    {
+        x = _x;
+        y = _y;
+    }
+
+    Vector(T _x, T _y, T _z)
+    {
+        x = _x;
+        y = _y;
+        z = _z;
+    }
+
+    T GetMagnitude()
+    {
+        sqrt(pow(x, 2) + pow(y, 2) + pow(z, 0));
+    }
+
+    void Add(Vector VecB)
+    {
+        x += VecB.x;
+        y += VecB.y;
+        z += VecB.z;
+    }
+
+    void Add(T Scalar)
+    {
+        x, y, z += Scalar;
+    }
+
+    void Sub(Vector VecB)
+    {
+        if (VecB.Size == Size)
+        {
+            x -= VecB.x;
+            y -= VecB.y;
+            z -= VecB.z;
+        }
+    }
+
+    void Sub(T Scalar)
+    {
+        x, y, z -= Scalar;
+    }
+
+    T DotProduct()
+    {
+    }
+
+    T CrossProduct()
+    {
+    }
+
+    void Normalise()
+    {
+        T magnitude = GetMagnitude();
+        x /= magnitude;
+        y /= magnitude;
+        z /= magnitude;
+    }
+
+    // void Multiply(SquareMatrix Matrix)
+    // {
+    //     if (Matrix.Size != Size)
+    //         return;
+
+    //     // TODO: Work on this...
+    //     T finalX, finalY, finalZ = 0;
+
+    //     for (int i = 0; i < Size; i++)
+    //         for (int j = 0; j < Size; j++)
+    //             finalX += x * Matrix.elements[i][j];
+    // }
+};
+
+typedef Vector<float, 3> Vector3f;
+typedef Vector<float, 2> Vector2f;
 
 template <class T, unsigned int N>
 class SquareMatrix
@@ -20,11 +108,19 @@ private:
 public:
     T elements[N][N];
 
-    SquareMatrix(unsigned int base_val)
+    SquareMatrix(T base_val)
     {
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < Size; i++)
         {
-            elements[i][i] = base_val;
+            for (int j = 0; j < Size; j++)
+            {
+                if (i == Size - 1 && j == i)
+                    elements[i][j] = 1;
+                else if (j == i)
+                    elements[i][j] = base_val;
+                else
+                    elements[i][j] = 0;
+            }
         }
     }
 
@@ -66,49 +162,77 @@ public:
     }
 
     // Scale a matrix by a vector
-    void Scale(Vector Vec)
+    void Scale(Vector3f Vec)
     {
-        if (Matrix.Size != Size)
-            return;
-
-        Matrix.elements[0][0] *= x;
-        Matrix.elements[1][1] *= y;
-        Matrix.elements[2][2] *= z;
+        elements[0][0] *= Vec.x;
+        elements[1][1] *= Vec.y;
+        elements[2][2] *= Vec.z;
     }
 
-    // Creates a transformation matrix (opengl style) in which last column gets set to a vector
-    void Translate(Vector Vec)
+    void Scale(Vector2f Vec)
     {
         if (Vec.Size != Size)
             return;
 
-        elements[Size - 1][0] += Vec.x;
+        elements[0][0] *= Vec.x;
+        elements[1][1] *= Vec.y;
+    }
+
+    // Creates a transformation matrix (opengl style) in which last column gets set to a vector
+    void Translate(Vector3f Vec)
+    {
+        if (Vec.Size > Size)
+            return;
+
+        elements[0][Size - 1] = Vec.x;
 
         if (Size > 0)
-            elements[Size - 1][1] += Vec.y;
+            elements[1][Size - 1] = Vec.y;
 
         if (Size > 1)
-            elements[Size - 1][2] += Vec.z;
+            elements[2][Size - 1] = Vec.z;
+
+        ConvertToColumnMajorOrder();
     }
 
     // For 2D rotations
     void Rotate(double Degrees)
     {
-        if (Vec.Size != 2)
-            return;
-
         elements[0][0] = cos(Degrees);
         elements[0][1] = -sin(Degrees);
         elements[1][0] = sin(Degrees);
         elements[1][1] = cos(Degrees);
     }
 
+    void Print()
+    {
+        for (int i = 0; i < Size; i++)
+        {
+            for (int j = 0; j < Size; j++)
+            {
+                std::cout << elements[i][j];
+                std::cout << " ";
+            }
+            std::cout << "\n";
+        }
+    }
+
+    void ConvertToColumnMajorOrder()
+    {
+        T test[Size][Size];
+
+        for (int i = 0; i < Size; i++)
+            for (int j = 0; j < Size; j++)
+                test[i][j] = elements[j][i];
+
+        for (int i = 0; i < Size; i++)
+            for (int j = 0; j < Size; j++)
+                elements[i][j] = test[i][j];
+    }
+
     // For 3D rotations
     void Rotate(double Degrees, Axis RotationAxis)
     {
-        if (Vec.Size < 3)
-            return;
-
         switch (RotationAxis)
         {
         case X_AXIS:
@@ -152,9 +276,13 @@ public:
             elements[2][1] = 0;
             elements[2][2] = 1;
 
+            // ConvertToColumnMajorOrder();
+
             break;
         }
     }
 };
 
 typedef SquareMatrix<float, 4> Matrix4f;
+typedef SquareMatrix<float, 3> Matrix3f;
+typedef SquareMatrix<float, 2> Matrix2f;
