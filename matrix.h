@@ -98,18 +98,10 @@ public:
         return Vector(x * Scalar, y * Scalar, z * Scalar);
     }
 
-    // void Multiply(SquareMatrix Matrix)
-    // {
-    //     if (Matrix.Size != Size)
-    //         return;
-
-    //     // TODO: Work on this...
-    //     T finalX, finalY, finalZ = 0;
-
-    //     for (int i = 0; i < Size; i++)
-    //         for (int j = 0; j < Size; j++)
-    //             finalX += x * Matrix.elements[i][j];
-    // }
+    Vector Mutiply(Vector VecB)
+    {
+        return Vector(x * VecB.x, y * VecB.y, z * VecB.z);
+    }
 };
 
 typedef Vector<float, 3> Vector3f;

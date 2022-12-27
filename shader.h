@@ -6,23 +6,20 @@
 #include <sstream>
 #include <vector>
 
+#include "matrix.h"
+
 class Shader
 {
 protected:
+    std::vector<unsigned int> shaderIdentifiers;
+
+public:
     Shader()
     {
         programId = glCreateProgram();
     }
 
-    std::vector<unsigned int> shaderIdentifiers;
-
-public:
     unsigned int programId;
-
-    Shader(Shader &other) = delete;          // Singletons should not be cloneable
-    void operator=(const Shader &) = delete; // Singletons should not be assignabl
-
-    static Shader *GetInstance();
 
     void AddShader(const char *filepath, GLenum shaderType)
     {
@@ -44,7 +41,7 @@ public:
         {
             glGetProgramInfoLog(shaderNumber, 512, NULL, infoLog);
             // std::cout << infoLog;
-            std::cout << "Error when loading shaders!\n";
+            // std::cout << "Error when loading shaders!\n";
         }
 
         shaderIdentifiers.push_back(shaderNumber);
@@ -63,19 +60,14 @@ public:
             glDeleteShader(value); // Cleares memory (free's memory)
     }
 
-    void SetBool(const std::string &name, bool value) const
+    void SetMatrix4f(const std::string &name, const float *Value) const
     {
-        glUniform1i(glGetUniformLocation(programId, name.c_str()), (int)value);
+        glUniformMatrix4fv(glGetUniformLocation(programId, name.c_str()), 1, GL_FALSE, Value);
     }
 
-    void SetInt(const std::string &name, int value) const
+    void SetVector3f(const std::string &name, Vector3f *Vec) const
     {
-        glUniform1i(glGetUniformLocation(programId, name.c_str()), value);
-    }
-
-    void SetFloat(const std::string &name, float value) const
-    {
-        glUniform1f(glGetUniformLocation(programId, name.c_str()), value);
+        glUniform3f(glGetUniformLocation(programId, name.c_str()), Vec->x, Vec->y, Vec->z);
     }
 
     void Use()
@@ -83,15 +75,3 @@ public:
         glUseProgram(programId);
     }
 };
-
-Shader *singleton_ = nullptr;
-
-// Static methods are defined outside
-Shader *Shader::GetInstance()
-{
-    if (singleton_ == nullptr)
-    {
-        singleton_ = new Shader();
-    }
-    return singleton_;
-}

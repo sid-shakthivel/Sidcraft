@@ -1,12 +1,10 @@
 #version 330 core
 
-// in vec4 vertexColour;
-in vec2 textureCoordinate;
-
 out vec4 FragColour;
-uniform sampler2D chessTexture;
+
+uniform vec3 ObjectColour;
+uniform vec3 LightColour;
 
 void main() {
-    FragColour = texture(chessTexture, textureCoordinate);
-    // FragColour = vec4(1, 0, 0, 1);
+    FragColour = vec4(ObjectColour * LightColour, 1);
 }
