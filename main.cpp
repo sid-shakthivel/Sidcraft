@@ -8,6 +8,7 @@
 #include "camera.h" // Includes matrix.h itself
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController);
+void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -16,6 +17,8 @@ float ConvertToRadians(float Degrees)
 {
     return Degrees * 3.14159 / 180;
 }
+
+static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -45,6 +48,9 @@ int main()
     glViewport(0, 0, 800, 600); // Set size of window for rendering
 
     glEnable(GL_DEPTH_TEST);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, MouseCallback);
 
     // Load image and create texture
     unsigned int texture;
@@ -145,9 +151,6 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float))); // Setup texture coordinates
     glEnableVertexAttribArray(1);
 
-    // Setup Camera
-    Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
-
     // Setup matrices
     Matrix4f ModelMatrix = Matrix4f(1);
     Matrix4f ViewMatrix = Matrix4f(1);
@@ -200,6 +203,52 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+
+float LastX = 400;
+float LastY = 300;
+float Yaw = -90.0f;
+float Pitch = 0;
+
+bool firstMouse = true;
+
+void MouseCallback(GLFWwindow *window, double XPos, double YPos)
+{
+
+    if (firstMouse) // initially set to true
+    {
+        LastX = XPos;
+        LastY = YPos;
+        firstMouse = false;
+    }
+
+    // Calculate offset
+    float XOffset = XPos - LastX;
+    float YOffset = LastY - YPos;
+    LastX = XPos;
+    LastY = YPos;
+
+    float sensitivity = 0.1f;
+    XOffset *= sensitivity;
+    YOffset *= sensitivity;
+
+    Yaw += XOffset;
+    Pitch += YOffset;
+
+    // Constrain the value
+    if (Pitch > 89.0f)
+        Pitch = 89.0f;
+    if (Pitch < -89.0f)
+        Pitch = -89.0f;
+
+    float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
+    float y = sin(ConvertToRadians(Pitch));
+    float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
+
+    Vector3f Direction = Vector3f(x, y, z);
+    Direction.Normalise();
+
+    CameraController.CameraFront = Direction;
 }
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)
