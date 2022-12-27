@@ -5,9 +5,12 @@
 #include <iostream>
 #include "shader.h"
 #include "stb_image.h"
-#include "matrix.h"
+#include "camera.h" // Includes matrix.h itself
 
-void processInput(GLFWwindow *window);
+void ProcessInput(GLFWwindow *window, Camera *CameraController);
+
+float deltaTime = 0.0f; // Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
 
 float ConvertToRadians(float Degrees)
 {
@@ -142,35 +145,41 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float))); // Setup texture coordinates
     glEnableVertexAttribArray(1);
 
-    // Create model matrix
+    // Setup Camera
+    Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
+
+    // Setup matrices
     Matrix4f ModelMatrix = Matrix4f(1);
-
-    // ModelMatrix.Print();
-    // std::cout << "\n";
-
     Matrix4f ViewMatrix = Matrix4f(1);
-    ViewMatrix.Translate(Vector3f(0.0f, 0.0f, -4.0f));
+
+    // ViewMatrix.Translate(Vector3f(0.0f, 0.0f, -3.0f));
 
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
+
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // Input
-        processInput(window);
+        ProcessInput(window, &CameraController);
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         // Bind textures
         glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         singleton_->GetInstance()->Use();
         glUniform1i(glGetUniformLocation(singleton_->GetInstance()->programId, "chessTexture"), 0);
 
-        ModelMatrix.Rotate(ConvertToRadians((float)glfwGetTime() * 50.0f), Axis::Y_AXIS);
-        // ModelMatrix.Rotate(ConvertToRadians((float)glfwGetTime() * 50.0f), Axis::X_AXIS);
+        // ModelMatrix.Rotate(ConvertToRadians((float)glfwGetTime() * 50.0f), Axis::Y_AXIS);
+
+        ViewMatrix = CameraController.RetrieveLookAt();
 
         unsigned int transformLoc = glGetUniformLocation(singleton_->GetInstance()->programId, "model");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ModelMatrix));
@@ -193,12 +202,28 @@ int main()
     return 0;
 }
 
-void processInput(GLFWwindow *window)
+void ProcessInput(GLFWwindow *window, Camera *CameraController)
 {
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    float CameraSpeed = deltaTime * 0.5f;
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        std::cout << "A pressed";
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(CameraController->CameraFront.Multiply(CameraSpeed)));
+    }
+    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(CameraController->CameraFront.Multiply(CameraSpeed)));
+    }
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        Vector3f Direction = CameraController->CameraFront.CrossProduct(CameraController->CameraFront, CameraController->Up);
+        Direction.Normalise();
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(Direction.Multiply(CameraSpeed)));
+    }
+    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        Vector3f Direction = CameraController->CameraFront.CrossProduct(CameraController->CameraFront, CameraController->Up);
+        Direction.Normalise();
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(Direction.Multiply(CameraSpeed)));
     }
 }

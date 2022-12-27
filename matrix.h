@@ -34,16 +34,21 @@ public:
         z = _z;
     }
 
-    T GetMagnitude()
+    float GetMagnitude()
     {
-        sqrt(pow(x, 2) + pow(y, 2) + pow(z, 0));
+        return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
     }
 
-    void Add(Vector VecB)
+    Vector Add(Vector VecB)
     {
-        x += VecB.x;
-        y += VecB.y;
-        z += VecB.z;
+        return Vector(x + VecB.x, y + VecB.y, z + VecB.z);
+    }
+
+    void NegateVector()
+    {
+        x = -x;
+        y = -y;
+        z = -z;
     }
 
     void Add(T Scalar)
@@ -51,14 +56,9 @@ public:
         x, y, z += Scalar;
     }
 
-    void Sub(Vector VecB)
+    Vector Sub(Vector VecB)
     {
-        if (VecB.Size == Size)
-        {
-            x -= VecB.x;
-            y -= VecB.y;
-            z -= VecB.z;
-        }
+        return Vector(x - VecB.x, y - VecB.y, z - VecB.z);
     }
 
     void Sub(T Scalar)
@@ -70,16 +70,32 @@ public:
     {
     }
 
-    T CrossProduct()
+    Vector CrossProduct(Vector VecA, Vector VecB)
     {
+        T CrossX = (VecA.y * VecB.z) - (VecA.z * VecB.y);
+        T CrossY = (VecA.z * VecB.x) - (VecA.x * VecB.z);
+        T CrossZ = (VecA.x * VecB.y) - (VecA.y * VecB.x);
+
+        return Vector(CrossX, CrossY, CrossZ);
     }
 
     void Normalise()
     {
-        T magnitude = GetMagnitude();
+        float magnitude = GetMagnitude();
+
         x /= magnitude;
         y /= magnitude;
         z /= magnitude;
+    }
+
+    void Print()
+    {
+        std::cout << "Vector: " << x << " " << y << " " << z << "\n\n";
+    }
+
+    Vector Multiply(T Scalar)
+    {
+        return Vector(x * Scalar, y * Scalar, z * Scalar);
     }
 
     // void Multiply(SquareMatrix Matrix)
@@ -146,12 +162,19 @@ public:
 
     void Multiply(SquareMatrix MatrixB)
     {
-        if (MatrixB.Size != Size)
-            return;
+        T elementsCopy[Size][Size];
 
         for (int i = 0; i < Size; i++)
             for (int j = 0; j < Size; j++)
-                elements[i][j] *= MatrixB.elements[j][i];
+            {
+                elementsCopy[i][j] = 0;
+                for (int k = 0; k < Size; k++)
+                    elementsCopy[i][j] += elements[i][k] * MatrixB.elements[k][j];
+            }
+
+        for (int i = 0; i < Size; i++)
+            for (int j = 0; j < Size; j++)
+                elements[i][j] = elementsCopy[i][j];
     }
 
     void Multiply(T Scalar)
@@ -206,19 +229,20 @@ public:
             }
             std::cout << "\n";
         }
+        std::cout << "\n";
     }
 
     void ConvertToColumnMajorOrder()
     {
-        T test[Size][Size];
+        T elementsCopy[Size][Size];
 
         for (int i = 0; i < Size; i++)
             for (int j = 0; j < Size; j++)
-                test[i][j] = elements[j][i];
+                elementsCopy[i][j] = elements[j][i];
 
         for (int i = 0; i < Size; i++)
             for (int j = 0; j < Size; j++)
-                elements[i][j] = test[i][j];
+                elements[i][j] = elementsCopy[i][j];
     }
 
     // For 3D rotations
@@ -286,19 +310,52 @@ Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, 
         for (int j = 0; j < 4; j++)
             ProjectionMatrix.elements[i][j] = 0;
 
-    // ProjectionMatrix.elements[0][0] = Aspect * (1.0f / tan(Fov / 2.0f));
-    // ProjectionMatrix.elements[1][1] = 1.0f / tan(Fov / 2.0f);
-    // ProjectionMatrix.elements[2][2] = Far / (Far - Near);
-    // ProjectionMatrix.elements[2][3] = (-Far * Near) / (Far - Near);
-    // ProjectionMatrix.elements[3][2] = 1.0f;
-
     ProjectionMatrix.elements[0][0] = 1.0f / tan(Fov / 2.0f) / Aspect;
     ProjectionMatrix.elements[1][1] = 1.0f / tan(Fov / 2.0f);
     ProjectionMatrix.elements[2][2] = (Far + Near) / (Near - Far);
     ProjectionMatrix.elements[2][3] = -1.0f;
     ProjectionMatrix.elements[3][2] = (2 * Far * Near) / (Near - Far);
 
-    // ProjectionMatrix.ConvertToColumnMajorOrder();
-
     return ProjectionMatrix;
+}
+
+Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
+{
+    Matrix4f MatrixA = Matrix4f(1);
+
+    Vector3f DirectionVector = TargetVector.Sub(PositionVector);
+    DirectionVector.Normalise();
+
+    Vector3f RightVector = DirectionVector.CrossProduct(UpVector, DirectionVector);
+    RightVector.Normalise();
+
+    Vector3f RelativeUpVector = RightVector.CrossProduct(DirectionVector, RightVector);
+
+    MatrixA.elements[0][0] = RightVector.x;
+    MatrixA.elements[0][1] = RelativeUpVector.x;
+    MatrixA.elements[0][2] = DirectionVector.x;
+    MatrixA.elements[0][3] = 0;
+
+    MatrixA.elements[1][0] = RightVector.y;
+    MatrixA.elements[1][1] = RelativeUpVector.y;
+    MatrixA.elements[1][2] = DirectionVector.y;
+    MatrixA.elements[1][3] = 0;
+
+    MatrixA.elements[2][0] = RightVector.z;
+    MatrixA.elements[2][1] = RelativeUpVector.z;
+    MatrixA.elements[2][2] = DirectionVector.z;
+    MatrixA.elements[2][3] = 0;
+
+    MatrixA.elements[3][0] = 0;
+    MatrixA.elements[3][1] = 0;
+    MatrixA.elements[3][2] = 0;
+    MatrixA.elements[3][3] = 1;
+
+    Matrix4f MatrixB = Matrix4f(1);
+    PositionVector.NegateVector();
+    MatrixB.Translate(PositionVector);
+
+    MatrixA.Multiply(MatrixB);
+
+    return MatrixA;
 }
