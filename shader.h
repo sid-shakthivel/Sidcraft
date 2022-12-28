@@ -66,7 +66,7 @@ public:
 
         if (result < 0)
         {
-            std::cout << "Failed to create uniform";
+            std::cout << "Failed to create uniform matrix\n";
         }
 
         glUniformMatrix4fv(result, 1, GL_FALSE, Value);
@@ -78,7 +78,7 @@ public:
 
         if (result < 0)
         {
-            std::cout << "Failed to create uniform";
+            std::cout << "Failed to create uniform vec3\n";
         }
 
         glUniform3f(result, Vec->x, Vec->y, Vec->z);

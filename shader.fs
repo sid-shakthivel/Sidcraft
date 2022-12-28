@@ -1,9 +1,8 @@
 #version 330 core
 
 struct MaterialProperties {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    sampler2D diffuse;
+    sampler2D specular;
 };
 
 struct LightProperties {
@@ -21,22 +20,23 @@ uniform LightProperties Light;
 
 in vec3 Normal;
 in vec3 FragmentPosition;
+in vec2 TexCoords;
 
 void main() {
     // Ambient
-    vec3 ambient = Material.ambient * Light.ambient;
+    vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * Light.ambient;
 
-    // Diffuse
+    // // Diffuse
     vec3 LightDirection = normalize(Light.position - FragmentPosition);
     vec3 Norm = normalize(Normal);
     float diff = max(dot(LightDirection, Norm), 0.0);
-    vec3 diffuse = (diff * Material.diffuse) * Light.diffuse;
+    vec3 diffuse = diff * Light.diffuse * vec3(texture(Material.diffuse, TexCoords));
 
-    // Specular
-    vec3 viewDir = normalize(ViewPosition - FragmentPosition);
+    // // Specular
+    vec3 viewDir = normalize(FragmentPosition - ViewPosition);
     vec3 reflectDir = reflect(-LightDirection, Norm);  
     float spec = max(dot(viewDir, reflectDir), 0.0);
-    vec3 specular = Light.specular * (pow(spec, 1) * Material.specular);  
+    vec3 specular = Light.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords)));  
 
     vec3 finalColour = (specular + ambient + diffuse);
     FragColour = vec4(finalColour, 1);
