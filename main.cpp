@@ -18,7 +18,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(-1.0f, 1.25f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 10.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -146,6 +146,18 @@ int main()
         -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 
+    Vector3f cubePositions[] = {
+        Vector3f(0.0f, 0.0f, 0.0f),
+        Vector3f(2.0f, 5.0f, -15.0f),
+        Vector3f(-1.5f, -2.2f, -2.5f),
+        Vector3f(-3.8f, -2.0f, -12.3f),
+        Vector3f(2.4f, -0.4f, -3.5f),
+        Vector3f(-1.7f, 3.0f, -7.5f),
+        Vector3f(1.3f, -2.0f, -2.5f),
+        Vector3f(1.5f, 2.0f, -2.5f),
+        Vector3f(1.5f, 0.2f, -1.5f),
+        Vector3f(-1.3f, 1.0f, -1.5f)};
+
     // Create and bind VAO
     unsigned int VAO;
     glGenVertexArrays(1, &VAO); // First argument specifies how many objects need to be generated
@@ -168,36 +180,30 @@ int main()
     glEnableVertexAttribArray(2);
 
     // Create and bind VAO
-    unsigned int LightVAO;
-    glGenVertexArrays(1, &LightVAO); // First argument specifies how many objects need to be generated
-    glBindVertexArray(LightVAO);     // Binds a VAO which means all subsequent VBO, VertexAttributePointer are stored within the bound VAO
+    // unsigned int LightVAO;
+    // glGenVertexArrays(1, &LightVAO); // First argument specifies how many objects need to be generated
+    // glBindVertexArray(LightVAO);     // Binds a VAO which means all subsequent VBO, VertexAttributePointer are stored within the bound VAO
 
-    // Copy vertices array into a buffer for OpenGL
-    unsigned int LightVBO;
-    glGenBuffers(1, &LightVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, LightVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // // Copy vertices array into a buffer for OpenGL
+    // unsigned int LightVBO;
+    // glGenBuffers(1, &LightVBO);
+    // glBindBuffer(GL_ARRAY_BUFFER, LightVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Setup the vertex attribute pointers which specify how data is read
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0); // Setup position attribute
-    glEnableVertexAttribArray(0);
-
-    Vector3f ObjectColour = Vector3f(1.0f, 0.0f, 0.0f);
-    Vector3f LightColour = Vector3f(1.0f, 1.0f, 1.0f);
+    // // Setup the vertex attribute pointers which specify how data is read
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0); // Setup position attribute
+    // glEnableVertexAttribArray(0);
 
     // Setup matrices
-    Matrix4f ModelMatrix = Matrix4f(1);
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
-
-    ViewMatrix = CameraController.RetrieveLookAt();
 
     Matrix4f LightModelMatrix = Matrix4f(1);
     Vector3f LightPos = Vector3f(2.0f, 3.0f, 2.0f);
     LightModelMatrix.Translate(LightPos);
     LightModelMatrix.Scale(Vector2f(0.2f, 0.2f));
 
-    Vector3f ViewPosition = Vector3f(2.0f, 1.25f, 3.0f);
+    Vector3f ViewPosition = CameraController.GetCameraPos();
 
     Vector3f Ambient = Vector3f(1.0f, 0.5f, 0.31f);
     Vector3f Diffuse = Vector3f(1.0f, 0.5f, 0.31f);
@@ -206,6 +212,8 @@ int main()
     Vector3f LightingAmbient = Vector3f(0.2f, 0.2f, 0.2f);
     Vector3f LightingDiffuse = Vector3f(0.5f, 0.5f, 0.5f);
     Vector3f LightingSpecular = Vector3f(1.0f, 1.0f, 1.0f);
+
+    Vector3f LightingDirection = Vector3f(-0.2f, -1.0f, -0.3f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -216,28 +224,14 @@ int main()
         lastFrame = currentFrame;
 
         // Input
-        // ProcessInput(window, &CameraController);
+        ProcessInput(window, &CameraController);
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+        ViewMatrix = CameraController.RetrieveLookAt();
+
         // Bind textures
-        CubeShader.Use();
-
-        unsigned int transformLoc = glGetUniformLocation(CubeShader.programId, "model");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ModelMatrix));
-        transformLoc = glGetUniformLocation(CubeShader.programId, "view");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ViewMatrix));
-        transformLoc = glGetUniformLocation(CubeShader.programId, "projection");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ProjectionMatrix));
-
-        CubeShader.SetVector3f("ViewPosition", &ViewPosition);
-
-        CubeShader.SetVector3f("Light.position", &LightPos);
-        CubeShader.SetVector3f("Light.ambient", &LightingAmbient);
-        CubeShader.SetVector3f("Light.diffuse", &LightingDiffuse);
-        CubeShader.SetVector3f("Light.specular", &LightingSpecular);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
         glUniform1i(glGetUniformLocation(CubeShader.programId, "Material.diffuse"), 0);
@@ -247,20 +241,41 @@ int main()
         glUniform1i(glGetUniformLocation(CubeShader.programId, "Material.specular"), 1);
 
         // Render
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            Matrix4f ModelMatrix = Matrix4f(1);
 
-        LightingShader.Use();
+            ModelMatrix.Translate(cubePositions[i]);
+            float angle = 20.0f * i;
+            // ModelMatrix.Rotate(ConvertToRadians(angle), Vector3f(1.0f, 0.3f, 0.5f));
 
-        transformLoc = glGetUniformLocation(LightingShader.programId, "model");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&LightModelMatrix));
-        transformLoc = glGetUniformLocation(LightingShader.programId, "view");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ViewMatrix));
-        transformLoc = glGetUniformLocation(LightingShader.programId, "projection");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ProjectionMatrix));
+            CubeShader.Use();
 
-        glBindVertexArray(LightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+            CubeShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
+            CubeShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+            CubeShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+
+            CubeShader.SetVector3f("ViewPosition", &ViewPosition);
+
+            CubeShader.SetVector3f("Light.position", &LightPos);
+            // CubeShader.SetVector3f("Light.direction", &LightingDirection);
+            CubeShader.SetVector3f("Light.ambient", &LightingAmbient);
+            CubeShader.SetVector3f("Light.diffuse", &LightingDiffuse);
+            CubeShader.SetVector3f("Light.specular", &LightingSpecular);
+            CubeShader.SetFloat("Light.constant", 1.0f);
+            CubeShader.SetFloat("Light.linear", 0.09f);
+            CubeShader.SetFloat("Light.quadratic", 0.032f);
+
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        // LightingShader.Use();
+        // LightingShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
+        // LightingShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+        // LightingShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        // glBindVertexArray(LightVAO);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -318,7 +333,7 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)
 {
-    float CameraSpeed = deltaTime * 0.5f;
+    float CameraSpeed = deltaTime * 2.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -339,5 +354,19 @@ void ProcessInput(GLFWwindow *window, Camera *CameraController)
         Vector3f Direction = CameraController->CameraFront.CrossProduct(CameraController->CameraFront, CameraController->Up);
         Direction.Normalise();
         CameraController->SetCameraPos(CameraController->GetCameraPos().Add(Direction.Multiply(CameraSpeed)));
+    }
+    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        Vector3f Direction = CameraController->Up;
+        Direction.Normalise();
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(Direction.Multiply(CameraSpeed)));
+    }
+
+    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        // Vector3f Direction = Vector3f(0, -1.0, 0);
+        Vector3f Direction = CameraController->Up;
+        Direction.Normalise();
+        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(Direction.Multiply(CameraSpeed)));
     }
 }

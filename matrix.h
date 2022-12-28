@@ -238,55 +238,50 @@ public:
     }
 
     // For 3D rotations
-    void Rotate(double Degrees, Axis RotationAxis)
+    void Rotate(double Degrees, Vector3f Direction)
     {
-        switch (RotationAxis)
-        {
-        case X_AXIS:
-            elements[0][0] = 1;
-            elements[0][1] = 0;
-            elements[0][2] = 0;
+        for (int i = 0; i < Size; i++)
+            for (int j = 0; j < Size; j++)
+                elements[i][j] = 0;
 
-            elements[1][0] = 0;
-            elements[1][1] = cos(Degrees);
-            elements[1][2] = -sin(Degrees);
+        // X Axis
+        elements[0][0] += 1 * Direction.x;
+        elements[0][1] += 0 * Direction.x;
+        elements[0][2] += 0 * Direction.x;
 
-            elements[2][0] = 0;
-            elements[2][1] = sin(Degrees);
-            elements[2][2] = cos(Degrees);
+        elements[1][0] += 0 * Direction.x;
+        elements[1][1] += cos(Degrees) * Direction.x;
+        elements[1][2] += -sin(Degrees) * Direction.x;
 
-            break;
-        case Y_AXIS:
-            elements[0][0] = cos(Degrees);
-            elements[0][1] = 0;
-            elements[0][2] = sin(Degrees);
+        elements[2][0] += 0 * Direction.x;
+        elements[2][1] += sin(Degrees) * Direction.x;
+        elements[2][2] += cos(Degrees) * Direction.x;
 
-            elements[1][0] = 0;
-            elements[1][1] = 1;
-            elements[1][2] = 0;
+        // Y Axis
+        elements[0][0] += cos(Degrees) * Direction.y;
+        elements[0][1] += 0 * Direction.y;
+        elements[0][2] += sin(Degrees) * Direction.y;
 
-            elements[2][0] = -sin(Degrees);
-            elements[2][1] = 0;
-            elements[2][2] = cos(Degrees);
+        elements[1][0] += 0 * Direction.y;
+        elements[1][1] += 1 * Direction.y;
+        elements[1][2] += 0 * Direction.y;
 
-            break;
-        case Z_AXIS:
-            elements[0][0] = cos(Degrees);
-            elements[0][1] = -sin(Degrees);
-            elements[0][2] = 0;
+        elements[2][0] += -sin(Degrees) * Direction.y;
+        elements[2][1] += 0 * Direction.y;
+        elements[2][2] += cos(Degrees) * Direction.y;
 
-            elements[1][0] = sin(Degrees);
-            elements[1][1] = cos(Degrees);
-            elements[1][2] = 0;
+        // Z Axis
+        elements[0][0] += cos(Degrees) * Direction.z;
+        elements[0][1] += -sin(Degrees) * Direction.z;
+        elements[0][2] += 0 * Direction.z;
 
-            elements[2][0] = 0;
-            elements[2][1] = 0;
-            elements[2][2] = 1;
+        elements[1][0] += sin(Degrees) * Direction.z;
+        elements[1][1] += cos(Degrees) * Direction.z;
+        elements[1][2] += 0 * Direction.z;
 
-            // ConvertToColumnMajorOrder();
-
-            break;
-        }
+        elements[2][0] += 0 * Direction.z;
+        elements[2][1] += 0 * Direction.z;
+        elements[2][2] += 1 * Direction.z;
     }
 };
 

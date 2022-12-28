@@ -7,9 +7,14 @@ struct MaterialProperties {
 
 struct LightProperties {
     vec3 position;
+    // vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 out vec4 FragColour;
@@ -26,8 +31,9 @@ void main() {
     // Ambient
     vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * Light.ambient;
 
-    // // Diffuse
+    // Diffuse
     vec3 LightDirection = normalize(Light.position - FragmentPosition);
+    // vec3 LightDirection = normalize(-Light.direction);
     vec3 Norm = normalize(Normal);
     float diff = max(dot(LightDirection, Norm), 0.0);
     vec3 diffuse = diff * Light.diffuse * vec3(texture(Material.diffuse, TexCoords));
