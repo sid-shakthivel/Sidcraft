@@ -18,7 +18,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(-1.0f, 1.25f, 3.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -28,7 +28,7 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core gives access to smaller subset of features
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Just for MacOS to work
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "GameEngine", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(800, 600, "GameEngine - SAD", NULL, NULL);
 
     if (window == NULL)
     {
@@ -84,47 +84,47 @@ int main()
     LightingShader.LinkShader();
 
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 
-        -0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
 
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
 
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
 
-        -0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, -0.5f,
-        0.5f, 0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, 0.5f,
-        -0.5f, 0.5f, -0.5f};
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f};
 
     // Create and bind VAO
     unsigned int VAO;
@@ -138,8 +138,11 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Setup the vertex attribute pointers which specify how data is read
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0); // Setup position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Setup position attribute
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Setup normal attribute
+    glEnableVertexAttribArray(1);
 
     // Create and bind VAO
     unsigned int LightVAO;
@@ -153,7 +156,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Setup the vertex attribute pointers which specify how data is read
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0); // Setup position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Setup position attribute
     glEnableVertexAttribArray(0);
 
     Vector3f ObjectColour = Vector3f(1.0f, 0.0f, 0.0f);
@@ -167,9 +170,19 @@ int main()
     ViewMatrix = CameraController.RetrieveLookAt();
 
     Matrix4f LightModelMatrix = Matrix4f(1);
-    Vector3f LightPos = Vector3f(1.2f, 1.0f, 2.0f);
+    Vector3f LightPos = Vector3f(2.0f, 3.0f, 2.0f);
     LightModelMatrix.Translate(LightPos);
     LightModelMatrix.Scale(Vector2f(0.2f, 0.2f));
+
+    Vector3f ViewPosition = Vector3f(2.0f, 1.25f, 3.0f);
+
+    Vector3f Ambient = Vector3f(1.0f, 0.5f, 0.31f);
+    Vector3f Diffuse = Vector3f(1.0f, 0.5f, 0.31f);
+    Vector3f Specular = Vector3f(1.0f, 0.5f, 0.31f);
+
+    Vector3f LightingAmbient = Vector3f(0.2f, 0.2f, 0.2f);
+    Vector3f LightingDiffuse = Vector3f(0.5f, 0.5f, 0.5f);
+    Vector3f LightingSpecular = Vector3f(1.0f, 1.0f, 1.0f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -198,8 +211,17 @@ int main()
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ViewMatrix));
         transformLoc = glGetUniformLocation(CubeShader.programId, "projection");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const float *)(&ProjectionMatrix));
-        CubeShader.SetVector3f("ObjectColour", &ObjectColour);
-        CubeShader.SetVector3f("LightColour", &LightColour);
+
+        CubeShader.SetVector3f("ViewPosition", &ViewPosition);
+
+        CubeShader.SetVector3f("Light.position", &LightPos);
+        CubeShader.SetVector3f("Light.ambient", &LightingAmbient);
+        CubeShader.SetVector3f("Light.diffuse", &LightingDiffuse);
+        CubeShader.SetVector3f("Light.specular", &LightingSpecular);
+
+        CubeShader.SetVector3f("Material.ambient", &Ambient);
+        CubeShader.SetVector3f("Material.diffuse", &Diffuse);
+        CubeShader.SetVector3f("Material.specular", &Specular);
 
         // Render
         glBindVertexArray(VAO);

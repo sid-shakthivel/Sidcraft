@@ -62,12 +62,26 @@ public:
 
     void SetMatrix4f(const std::string &name, const float *Value) const
     {
-        glUniformMatrix4fv(glGetUniformLocation(programId, name.c_str()), 1, GL_FALSE, Value);
+        int result = glGetUniformLocation(programId, name.c_str());
+
+        if (result < 0)
+        {
+            std::cout << "Failed to create uniform";
+        }
+
+        glUniformMatrix4fv(result, 1, GL_FALSE, Value);
     }
 
     void SetVector3f(const std::string &name, Vector3f *Vec) const
     {
-        glUniform3f(glGetUniformLocation(programId, name.c_str()), Vec->x, Vec->y, Vec->z);
+        int result = glGetUniformLocation(programId, name.c_str());
+
+        if (result < 0)
+        {
+            std::cout << "Failed to create uniform";
+        }
+
+        glUniform3f(result, Vec->x, Vec->y, Vec->z);
     }
 
     void Use()
