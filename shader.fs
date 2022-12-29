@@ -11,7 +11,6 @@ struct LightProperties {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-
     float constant;
     float linear;
     float quadratic;
@@ -28,6 +27,9 @@ in vec3 FragmentPosition;
 in vec2 TexCoords;
 
 void main() {
+    float dist = length(Light.position - FragmentPosition);
+    float attenuation = 1.0 / (Light.constant + Light.linear * dist + Light.quadratic * (dist * dist));
+
     // Ambient
     vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * Light.ambient;
 
@@ -44,6 +46,8 @@ void main() {
     float spec = max(dot(viewDir, reflectDir), 0.0);
     vec3 specular = Light.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords)));  
 
-    vec3 finalColour = (specular + ambient + diffuse);
+    vec3 finalColour = ((specular * attenuation) + (ambient * attenuation) + (diffuse * attenuation));
+
+    // vec3 finalColour = vec3(1, 0, 1);
     FragColour = vec4(finalColour, 1);
 }

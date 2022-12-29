@@ -199,7 +199,7 @@ int main()
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
 
     Matrix4f LightModelMatrix = Matrix4f(1);
-    Vector3f LightPos = Vector3f(2.0f, 3.0f, 2.0f);
+    Vector3f LightPos = Vector3f(-1.3f, 1.0f, -2.5f);
     LightModelMatrix.Translate(LightPos);
     LightModelMatrix.Scale(Vector2f(0.2f, 0.2f));
 
