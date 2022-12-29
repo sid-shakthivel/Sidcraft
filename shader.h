@@ -84,6 +84,14 @@ public:
         glUniform1f(result, value);
     }
 
+    void SetInt(const std::string &name, int value)
+    {
+        int result = glGetUniformLocation(programId, name.c_str());
+        if (result < 0)
+            std::cout << "Failed to create uniform float\n";
+        glUniform1i(result, value);
+    }
+
     void Use()
     {
         glUseProgram(programId);

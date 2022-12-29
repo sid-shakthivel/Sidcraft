@@ -1,53 +1,126 @@
 #version 330 core
 
-struct MaterialProperties {
-    sampler2D diffuse;
-    sampler2D specular;
-};
-
-struct LightProperties {
-    vec3 position;
-    // vec3 direction;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-    float constant;
-    float linear;
-    float quadratic;
-};
-
-out vec4 FragColour;
-
-uniform vec3 ViewPosition; 
-uniform MaterialProperties Material;
-uniform LightProperties Light;
-
 in vec3 Normal;
 in vec3 FragmentPosition;
 in vec2 TexCoords;
 
-void main() {
-    float dist = length(Light.position - FragmentPosition);
-    float attenuation = 1.0 / (Light.constant + Light.linear * dist + Light.quadratic * (dist * dist));
+uniform vec3 ViewPosition;
 
-    // Ambient
-    vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * Light.ambient;
+out vec4 FragColour;
 
-    // Diffuse
-    vec3 LightDirection = normalize(Light.position - FragmentPosition);
-    // vec3 LightDirection = normalize(-Light.direction);
+struct MaterialProperties {
+    sampler2D diffuse;
+    sampler2D specular;
+};
+uniform MaterialProperties Material;
+
+// struct DirectionalLightProperties {
+//     vec3 direction;
+  
+//     vec3 ambient;
+//     vec3 diffuse;
+//     vec3 specular;
+// };  
+// uniform DirectionalLightProperties DirectionalLight;
+
+// struct PointLightProperties {
+//     vec3 position;
+  
+//     vec3 ambient;
+//     vec3 diffuse;
+//     vec3 specular;
+
+//     float constant;
+//     float linear;
+//     float quadratic;  
+// };  
+// uniform PointLightProperties PointLight;
+
+struct SpotlightProperties {
+    vec3 position;
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float cutOff;
+};
+uniform SpotlightProperties SpotLight;
+
+// Each light consists of ambient, diffuse and specular
+vec3 CalculateSpotlight() 
+{
+    vec3 LightDirection = normalize(SpotLight.position - FragmentPosition);
     vec3 Norm = normalize(Normal);
-    float diff = max(dot(LightDirection, Norm), 0.0);
-    vec3 diffuse = diff * Light.diffuse * vec3(texture(Material.diffuse, TexCoords));
+    float theta = dot(LightDirection, normalize(-SpotLight.direction));
 
-    // // Specular
-    vec3 viewDir = normalize(FragmentPosition - ViewPosition);
-    vec3 reflectDir = reflect(-LightDirection, Norm);  
-    float spec = max(dot(viewDir, reflectDir), 0.0);
-    vec3 specular = Light.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords)));  
+    vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * SpotLight.ambient;
 
-    vec3 finalColour = ((specular * attenuation) + (ambient * attenuation) + (diffuse * attenuation));
+    if (theta > SpotLight.cutOff) {
+        float diff = max(dot(LightDirection, Norm), 0.0);
+        vec3 diffuse = diff * SpotLight.diffuse * vec3(texture(Material.diffuse, TexCoords));
 
-    // vec3 finalColour = vec3(1, 0, 1);
-    FragColour = vec4(finalColour, 1);
+        vec3 viewDir = normalize(FragmentPosition - ViewPosition);
+        vec3 reflectDir = reflect(-LightDirection, Norm);  
+
+        float spec = max(dot(viewDir, reflectDir), 0.0);
+        vec3 specular = SpotLight.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords))); 
+
+        return vec3(ambient + diffuse + specular);
+    } else {
+        return ambient;
+    }
 }
+
+void main() {
+    vec3 outputVec = vec3(0);
+
+    // output += CalculateDirectionalLight();
+
+    // output += CalculatePointLight();
+
+    // outputVec += ;
+
+    FragColour = vec4(CalculateSpotlight(), 1);
+}
+
+// vec3 CalculateDirectionalLight() 
+// {
+//     vec3 Norm = normalize(Normal);
+//     vec3 LightDirection = normalize(-DirectionalLight.position);
+
+//     vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * DirectionalLight.ambient;
+
+//     float diff = max(dot(LightDirection, Norm), 0.0);
+//     vec3 diffuse = diff * DirectionalLight.diffuse * vec3(texture(Material.diffuse, TexCoords));
+
+//     vec3 viewDir = normalize(FragmentPosition - ViewPosition);
+//     vec3 reflectDir = reflect(-LightDirection, Norm);  
+//     float spec = max(dot(viewDir, reflectDir), 0.0);
+//     vec3 specular = DirectionalLight.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords))); 
+
+//     return diffuse + ambient + specular;
+// }
+
+// vec3 CalculatePointLight() 
+// {
+//     vec3 Norm = normalize(Normal);
+//     float dist = length(PointLight.position - FragmentPosition);
+//     float attenuation = 1.0 / (Light.constant + Light.linear * dist + Light.quadratic * (dist * dist));
+
+//     vec3 LightDirection = normalize(PointLight.position - FragmentPosition);
+
+//     vec3 ambient = vec3(texture(Material.diffuse, TexCoords)) * DirectionalLight.ambient;
+
+//     float diff = max(dot(LightDirection, Norm), 0.0);
+//     vec3 diffuse = diff * DirectionalLight.diffuse * vec3(texture(Material.diffuse, TexCoords));
+
+//     vec3 viewDir = normalize(FragmentPosition - ViewPosition);
+//     vec3 reflectDir = reflect(-LightDirection, Norm);  
+//     float spec = max(dot(viewDir, reflectDir), 0.0);
+//     vec3 specular = DirectionalLight.specular * (pow(spec, 1) * vec3(texture(Material.specular, TexCoords))); 
+
+//     return (diffuse + ambient + specular) * attenuation;
+// }
+
+ 
+

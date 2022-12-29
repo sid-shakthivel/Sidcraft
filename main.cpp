@@ -203,17 +203,13 @@ int main()
     LightModelMatrix.Translate(LightPos);
     LightModelMatrix.Scale(Vector2f(0.2f, 0.2f));
 
-    Vector3f ViewPosition = CameraController.GetCameraPos();
-
     Vector3f Ambient = Vector3f(1.0f, 0.5f, 0.31f);
     Vector3f Diffuse = Vector3f(1.0f, 0.5f, 0.31f);
     Vector3f Specular = Vector3f(1.0f, 0.5f, 0.31f);
 
     Vector3f LightingAmbient = Vector3f(0.2f, 0.2f, 0.2f);
-    Vector3f LightingDiffuse = Vector3f(0.5f, 0.5f, 0.5f);
+    Vector3f LightingDiffuse = Vector3f(0.75f, 0.75f, 0.75f);
     Vector3f LightingSpecular = Vector3f(1.0f, 1.0f, 1.0f);
-
-    Vector3f LightingDirection = Vector3f(-0.2f, -1.0f, -0.3f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -240,6 +236,11 @@ int main()
         glBindTexture(GL_TEXTURE_2D, specularTexture);
         glUniform1i(glGetUniformLocation(CubeShader.programId, "Material.specular"), 1);
 
+        Vector3f LightingDirection = CameraController.CameraFront;
+        LightPos = CameraController.GetCameraPos();
+
+        Vector3f ViewPosition = CameraController.GetCameraPos();
+
         // Render
         for (unsigned int i = 0; i < 10; i++)
         {
@@ -257,14 +258,12 @@ int main()
 
             CubeShader.SetVector3f("ViewPosition", &ViewPosition);
 
-            CubeShader.SetVector3f("Light.position", &LightPos);
-            // CubeShader.SetVector3f("Light.direction", &LightingDirection);
-            CubeShader.SetVector3f("Light.ambient", &LightingAmbient);
-            CubeShader.SetVector3f("Light.diffuse", &LightingDiffuse);
-            CubeShader.SetVector3f("Light.specular", &LightingSpecular);
-            CubeShader.SetFloat("Light.constant", 1.0f);
-            CubeShader.SetFloat("Light.linear", 0.09f);
-            CubeShader.SetFloat("Light.quadratic", 0.032f);
+            CubeShader.SetVector3f("SpotLight.position", &LightPos);
+            CubeShader.SetVector3f("SpotLight.direction", &LightingDirection);
+            CubeShader.SetVector3f("SpotLight.ambient", &LightingAmbient);
+            CubeShader.SetVector3f("SpotLight.diffuse", &LightingDiffuse);
+            CubeShader.SetVector3f("SpotLight.specular", &LightingSpecular);
+            CubeShader.SetFloat("SpotLight.cutOff", cos(ConvertToRadians(30.5f)));
 
             glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
