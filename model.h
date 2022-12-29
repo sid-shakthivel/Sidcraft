@@ -1,6 +1,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <iostream>
 
 #include "matrix.h"
 #include "stb_image.h"
@@ -17,6 +18,10 @@ private:
     void ProcessNodes(aiNode *Node, const aiScene *Scene)
     {
         // Process nodes of mesh
+
+        // std::cout << Node->mNumMeshes << std::endl;
+        // std::cout << Node->mNumChildren << std::endl;
+
         for (unsigned int i = 0; i < Node->mNumMeshes; i++)
         {
             aiMesh *mesh = Scene->mMeshes[Node->mMeshes[i]];
@@ -25,11 +30,13 @@ private:
 
         // Process nodes of children
         for (unsigned int i = 0; i < Node->mNumChildren; i++)
+        {
             ProcessNodes(Node->mChildren[i], Scene);
+        }
     }
 
     // If is_rgb = false, assumed it's a png
-    unsigned int LoadTextureFromFile(const str::string &filepath, bool is_rgb)
+    unsigned int LoadTextureFromFile(const std::string &filepath, bool is_rgb)
     {
         unsigned int texture;
         glGenTextures(1, &texture);
@@ -43,13 +50,15 @@ private:
         stbi_set_flip_vertically_on_load(true);
 
         int width, height, nrChannels;
-        unsigned char *data = stbi_load(filepath, &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(("backpack/" + filepath).c_str(), &width, &height, &nrChannels, 0);
 
-        if (!is_rgb)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        else
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        if (!data)
+        {
+            std::cout << "OH NOP " << ("backpack/" + filepath).c_str() << std::endl;
+            std::exit(0);
+        }
 
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(data);
@@ -68,9 +77,9 @@ private:
             bool skip = false;
             for (unsigned int j = 0; j < LoadedTextures.size(); j++)
             {
-                if (std::strcmp(LoadedTextures[j].path.data(), str.C_Str()) == 0)
+                if (std::strcmp(LoadedTextures[j].Path.data(), str.C_Str()) == 0)
                 {
-                    textures.push_back(textures_loaded[j]);
+                    Textures.push_back(LoadedTextures[j]);
                     skip = true;
                     break;
                 }
@@ -79,10 +88,11 @@ private:
             if (!skip)
             {
                 Texture texture;
-                texture.Id = TextureFromFile(str.C_Str(), directory);
+                texture.Id = LoadTextureFromFile(str.C_Str(), true);
                 texture.Type = textureType;
-                texture.path = str;
+                texture.Path = str.C_Str();
                 Textures.push_back(texture);
+                LoadedTextures.push_back(texture);
             }
         }
         return Textures;
@@ -90,6 +100,8 @@ private:
 
     Mesh ProcessMesh(aiMesh *AIMesh, const aiScene *Scene)
     {
+        // std::cout << "new mesh" << std::endl;
+
         // Process vertices
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
@@ -114,7 +126,7 @@ private:
             if (AIMesh->mTextureCoords[0])
                 TextureCoordinates = Vector2f(AIMesh->mTextureCoords[0][i].x, AIMesh->mTextureCoords[0][i].y);
             else
-                TextureCoordinates = Vector2f(0, 0);
+                std::cout << "NO TEXTURE COORDINATES" << std::endl;
 
             vertex.Position = Position;
             vertex.Normal = Normal;
@@ -125,8 +137,13 @@ private:
 
         // Process indices
         for (unsigned int i = 0; i < AIMesh->mNumFaces; i++)
-            for (unsigned int j = 0; j < (AIMesh->mFaces[i]).mNumIndices; j++)
-                indices.push_back((AIMesh->mFaces[i]).mIndices[j]);
+        {
+            auto const &face = AIMesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; j++)
+            {
+                indices.push_back(face.mIndices[j]);
+            }
+        }
 
         // Process materials
         if (AIMesh->mMaterialIndex > 0)
@@ -154,11 +171,15 @@ public:
             std::cout << "ERROR::ASSIMP::" << Importer.GetErrorString() << std::endl;
             return;
         }
+
+        ProcessNodes(Scene->mRootNode, Scene);
     }
 
     void Draw(Shader *MeshShader)
     {
         for (auto &mesh : Meshes)
+        {
             mesh.Draw(MeshShader);
+        }
     }
 };

@@ -25,6 +25,7 @@ public:
     {
         x = _x;
         y = _y;
+        z = 0;
     }
 
     Vector(T _x, T _y, T _z)

@@ -88,7 +88,7 @@ public:
     {
         int result = glGetUniformLocation(programId, name.c_str());
         if (result < 0)
-            std::cout << "Failed to create uniform float\n";
+            std::cout << "Failed to create uniform int\n";
         glUniform1i(result, value);
     }
 
