@@ -3,9 +3,9 @@
 
 #include <math.h>
 #include <iostream>
-#include "shader.h"
-#include "stb_image.h"
-#include "camera.h" // Includes matrix.h itself
+
+#include "model.h" // Includes Mesh (contains shader + matrix)
+#include "camera.h"
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController);
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);

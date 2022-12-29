@@ -84,7 +84,8 @@
         "iterator": "cpp",
         "memory_resource": "cpp",
         "utility": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "set": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

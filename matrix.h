@@ -34,6 +34,11 @@ public:
         z = _z;
     }
 
+    Vector()
+    {
+        x = 0, y = 0, z = 0;
+    }
+
     float GetMagnitude()
     {
         return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
