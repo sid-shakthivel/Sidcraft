@@ -21,6 +21,14 @@ struct Texture
     std::string Name;
     std::string Path;
     TextureType Type;
+
+    Texture(unsigned int Id, const std::string &Name, const std::string &Path, TextureType Type)
+    {
+        this->Id = Id;
+        this->Name = Name;
+        this->Path = Path;
+        this->Type = Type;
+    }
 };
 
 class Mesh
@@ -71,10 +79,10 @@ public:
                 glBindTexture(GL_TEXTURE_2D, this->Textures[i].Id);
                 MeshShader->SetInt("DiffuseTexture" + std::to_string(i), i);
                 break;
-            }
             case Specular:
                 // MeshShader->SetInt("SpecularTexture" + std::to_string(i), i);
                 break;
+            }
         }
 
         // Draw mesh

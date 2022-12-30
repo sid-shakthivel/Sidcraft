@@ -36,7 +36,7 @@ private:
     }
 
     // If is_rgb = false, assumed it's a png
-    unsigned int LoadTextureFromFile(const std::string &filepath, bool is_rgb)
+    unsigned int OldLoadTextureFromFile(const std::string &filepath, bool is_rgb)
     {
         unsigned int texture;
         glGenTextures(1, &texture);
@@ -51,12 +51,6 @@ private:
 
         int width, height, nrChannels;
         unsigned char *data = stbi_load(("backpack/" + filepath).c_str(), &width, &height, &nrChannels, 0);
-
-        if (!data)
-        {
-            std::cout << "OH NOP " << ("backpack/" + filepath).c_str() << std::endl;
-            std::exit(0);
-        }
 
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -88,7 +82,7 @@ private:
             if (!skip)
             {
                 Texture texture;
-                texture.Id = LoadTextureFromFile(str.C_Str(), true);
+                texture.Id = OldLoadTextureFromFile(str.C_Str(), true);
                 texture.Type = textureType;
                 texture.Path = str.C_Str();
                 Textures.push_back(texture);

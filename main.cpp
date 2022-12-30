@@ -6,7 +6,7 @@
 
 #include "Chunk.h" // Includes Mesh (contains shader + matrix)
 #include "camera.h"
-#include "shader.h"
+// #include "shader.h"
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController);
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
@@ -89,7 +89,7 @@ int main()
         ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
         ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
 
-        chunk.Draw();
+        chunk.Draw(&ChunkShader);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -147,7 +147,7 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)
 {
-    float CameraSpeed = deltaTime * 2.0f;
+    float CameraSpeed = deltaTime * 8.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
