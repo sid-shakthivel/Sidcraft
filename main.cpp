@@ -4,8 +4,9 @@
 #include <math.h>
 #include <iostream>
 
-#include "model.h" // Includes Mesh (contains shader + matrix)
+#include "Chunk.h" // Includes Mesh (contains shader + matrix)
 #include "camera.h"
+#include "shader.h"
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController);
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
@@ -18,7 +19,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 10.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 16.0f, 10.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -47,22 +48,25 @@ int main()
 
     glViewport(0, 0, 800, 600); // Set size of window for rendering
 
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, MouseCallback);
+
     glEnable(GL_DEPTH_TEST);
 
     // Setup shaders
-    Shader BackpackShader = Shader();
-    BackpackShader.AddShader("shader.vs", GL_VERTEX_SHADER);
-    BackpackShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
-    BackpackShader.LinkShader();
+    Shader ChunkShader = Shader();
+    ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
+    ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
+    ChunkShader.LinkShader();
 
     // Setup matrices
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ModelMatrix = Matrix4f(1);
-    ModelMatrix.Translate(Vector3f(0, 0, -3.0f));
 
     // Setup model
-    Model Backpack = Model("backpack/backpack.obj");
+    Chunk chunk = Chunk();
+    chunk.CreateMesh();
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -71,22 +75,21 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
         // Input
         ProcessInput(window, &CameraController);
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 
         ViewMatrix = CameraController.RetrieveLookAt();
 
-        BackpackShader.Use();
-        BackpackShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
-        BackpackShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
-        BackpackShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        ChunkShader.Use();
+        ChunkShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
+        ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+        ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
 
-        Backpack.Draw(&BackpackShader);
+        chunk.Draw();
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

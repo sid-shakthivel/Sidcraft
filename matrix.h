@@ -50,6 +50,13 @@ public:
         return Vector(x + VecB.x, y + VecB.y, z + VecB.z);
     }
 
+    bool IsEqual(Vector VecB)
+    {
+        if (x == VecB.x && y == VecB.y && z == VecB.z)
+            return true;
+        return false;
+    }
+
     void NegateVector()
     {
         x = -x;

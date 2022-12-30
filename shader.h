@@ -40,8 +40,6 @@ public:
         if (!success)
         {
             glGetProgramInfoLog(shaderNumber, 512, NULL, infoLog);
-            // std::cout << infoLog;
-            // std::cout << "Error when loading shaders!\n";
         }
 
         shaderIdentifiers.push_back(shaderNumber);

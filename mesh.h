@@ -62,32 +62,20 @@ public:
 
     void Draw(Shader *MeshShader)
     {
-        // for (int i = 0; i < this->Textures.size(); i++)
-        // {
-        //     switch (this->Textures[i].Type)
-        //     {
-        //     case Diffuse:
-        //         glActiveTexture(GL_TEXTURE0 + i);
-        //         glBindTexture(GL_TEXTURE_2D, this->Textures[i].Id);
-        //         MeshShader->SetInt("DiffuseTexture" + std::to_string(i), i);
-        //         break;
-        //     }
-        //     // case Specular:
-        //     //     MeshShader->SetInt("SpecularTexture" + std::to_string(i), i);
-        //     //     break;
-        // }
-
-        Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(45.0f * 3.14159 / 180, 800.0f / 600.0f, 0.1f, 100.0f);
-        Matrix4f ViewMatrix = Matrix4f(1);
-        Matrix4f ModelMatrix = Matrix4f(1);
-        ModelMatrix.Translate(Vector3f(0, 0, -10.0f));
-
-        MeshShader->Use();
-        MeshShader->SetMatrix4f("model", (const float *)(&ModelMatrix));
-        MeshShader->SetMatrix4f("view", (const float *)(&ViewMatrix));
-        MeshShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-
-        // glActiveTexture(GL_TEXTURE0);
+        for (int i = 0; i < this->Textures.size(); i++)
+        {
+            switch (this->Textures[i].Type)
+            {
+            case Diffuse:
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, this->Textures[i].Id);
+                MeshShader->SetInt("DiffuseTexture" + std::to_string(i), i);
+                break;
+            }
+            case Specular:
+                // MeshShader->SetInt("SpecularTexture" + std::to_string(i), i);
+                break;
+        }
 
         // Draw mesh
         glBindVertexArray(VAO);
