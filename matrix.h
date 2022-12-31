@@ -359,3 +359,28 @@ Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vect
 
     return MatrixA;
 }
+
+Matrix4f CreateSlimLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
+{
+    Matrix4f MatrixA = Matrix4f(1);
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            MatrixA.elements[i][j] = 0;
+
+    Matrix4f LookAtMatrix = CreateLookAtMatrix(PositionVector, TargetVector, UpVector);
+
+    MatrixA.elements[0][0] = LookAtMatrix.elements[0][0];
+    MatrixA.elements[0][1] = LookAtMatrix.elements[0][1];
+    MatrixA.elements[0][2] = LookAtMatrix.elements[0][2];
+
+    MatrixA.elements[1][0] = LookAtMatrix.elements[1][0];
+    MatrixA.elements[1][1] = LookAtMatrix.elements[1][1];
+    MatrixA.elements[1][2] = LookAtMatrix.elements[1][2];
+
+    MatrixA.elements[2][0] = LookAtMatrix.elements[2][0];
+    MatrixA.elements[2][1] = LookAtMatrix.elements[2][1];
+    MatrixA.elements[2][2] = LookAtMatrix.elements[2][2];
+
+    return MatrixA;
+}

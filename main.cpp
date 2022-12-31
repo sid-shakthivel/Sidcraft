@@ -4,7 +4,7 @@
 #include <math.h>
 #include <iostream>
 
-#include "Chunk.h" // Includes Mesh (contains shader + matrix)
+#include "world.h" // Includes Mesh, Shader, Matrix, Chunk
 #include "cubemap.h"
 #include "camera.h"
 // #include "shader.h"
@@ -20,7 +20,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(-16.0f, 16.0f, -16.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -61,53 +61,38 @@ int main()
     SkyboxShader.LinkShader();
 
     // Setup shaders
-    // Shader ChunkShader = Shader();
-    // ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
-    // ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
-    // ChunkShader.LinkShader();
+    Shader ChunkShader = Shader();
+    ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
+    ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
+    ChunkShader.LinkShader();
 
     // Setup matrices
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
     Matrix4f ViewMatrix = Matrix4f(1);
+
+    std::vector<Chunk> ChunkList;
+    std::vector<Matrix4f> PositionList;
+
+    for (int i = -5; i < 5; i++)
+    {
+        for (int j = -5; j < 5; j++)
+        {
+            Chunk NewChunk = Chunk();
+            ChunkList.emplace_back(NewChunk);
+
+            Matrix4f ModelMatrix = Matrix4f(1);
+            ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
+
+            PositionList.emplace_back(ModelMatrix);
+        }
+    }
+
+    Skybox::Create();
+
     Matrix4f ModelMatrix = Matrix4f(1);
 
-    // Generate grid of chunks to render - make this into a sort of class eventually
-
-    // std::vector<Chunk> Chunks;
-    // for (unsigned int i = 0; i < 3; i++)
-    // {
-    //     // for (unsigned int j = 0; j < 2; j++)
-    //     // {
-
-    //     // }
-
-    //     Chunk exampleChunk = Chunk();
-    //     exampleChunk.CreateMesh();
-
-    //     std::for_each(exampleChunk.VertexData.begin(), exampleChunk.VertexData.end(), [i](ThinVertex &TV)
-    //                   { TV.Position = TV.Position.Add(Vector3f(i * 12, 0, 0)); });
-
-    //     Chunks.push_back(exampleChunk);
-    // }
-
-    // for (unsigned int i = 1; i < 2; i++)
-    // {
-    //     for (auto v : Chunks[i].VertexData)
-    //     {
-    //         v.Position.Print();
-    //     }
-    // }
-
-    Cubemap::Create();
-
-    // Chunk exampleChunk = Chunk();
-    // exampleChunk.CreateMesh();
-
-    // Chunk testChunk = Chunk();
-    // testChunk.CreateMesh();
-
-    // std::for_each(testChunk.VertexData.begin(), testChunk.VertexData.end(), [](ThinVertex &TV)
-    //               { TV.Position = TV.Position.Add(Vector3f(1 * 17, 0, 0)); });
+    ViewMatrix = CameraController.RetrieveLookAt();
+    Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -121,22 +106,26 @@ int main()
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        // glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 
         ViewMatrix = CameraController.RetrieveLookAt();
+        SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
+
+        for (unsigned i = 0; i < ChunkList.size(); i++)
+        {
+            auto TestChunk = ChunkList[i];
+            auto PositionThing = PositionList[i];
+
+            ChunkShader.Use();
+            ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
+            ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+            TestChunk.Draw(&ChunkShader);
+        }
 
         SkyboxShader.Use();
-        SkyboxShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+        SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
         SkyboxShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-        Cubemap::Draw(&SkyboxShader);
-
-        // ChunkShader.Use();
-        // ChunkShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
-        // ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
-        // ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-
-        // exampleChunk.Draw(&ChunkShader);
-        // testChunk.Draw(&ChunkShader);
+        Skybox::Draw(&SkyboxShader);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -146,50 +135,27 @@ int main()
     return 0;
 }
 
-float LastX = 400;
-float LastY = 300;
-float Yaw = -90.0f;
-float Pitch = 0;
+float HorizontalAngle = 3.14f;
+float VerticalAngle = 0.0f;
 
-bool firstMouse = true;
+double xpos_old, ypos_old;
 
 void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 {
+    // glfwSetCursorPos(800 / 2, 600 / 2);
 
-    if (firstMouse)
-    {
-        LastX = XPos;
-        LastY = YPos;
-        firstMouse = false;
-    }
+    // HorizontalAngle += 0.005f * deltaTime * float(800 / 2 - XPos);
+    // VerticalAngle += 0.005f * deltaTime * float(600 / 2 - YPos);
 
-    // Calculate offset
-    float XOffset = XPos - LastX;
-    float YOffset = LastY - YPos;
-    LastX = XPos;
-    LastY = YPos;
+    HorizontalAngle += 0.005f * float(xpos_old - XPos);
+    VerticalAngle += 0.005f * float(ypos_old - YPos);
+    xpos_old = XPos;
+    ypos_old = YPos;
 
-    float sensitivity = 0.1f;
-    XOffset *= sensitivity;
-    YOffset *= sensitivity;
+    Vector3f NewDirection = Vector3f(cos(VerticalAngle) * sin(HorizontalAngle), sin(VerticalAngle), cos(VerticalAngle) * cos(HorizontalAngle));
+    NewDirection.Normalise();
 
-    Yaw += XOffset;
-    Pitch += YOffset;
-
-    // Constrain the value
-    if (Pitch > 89.0f)
-        Pitch = 89.0f;
-    if (Pitch < -89.0f)
-        Pitch = -89.0f;
-
-    float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
-    float y = sin(ConvertToRadians(Pitch));
-    float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
-
-    Vector3f Direction = Vector3f(x, 0, z);
-    Direction.Normalise();
-
-    CameraController.CameraFront = Direction;
+    CameraController.CameraFront = NewDirection;
 }
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)

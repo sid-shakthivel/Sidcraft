@@ -5,7 +5,7 @@
 #include "stb_image.h"
 // #include "shader.h"
 
-namespace Cubemap
+namespace Skybox
 {
     std::vector<const char *> ImagePaths = {
         "SkyBoxImages/right.png",
@@ -76,6 +76,8 @@ namespace Cubemap
 
         int width, height, nrChannels;
         unsigned char *data;
+
+        stbi_set_flip_vertically_on_load(true);
 
         for (unsigned int i = 0; i < ImagePaths.size(); i++)
         {

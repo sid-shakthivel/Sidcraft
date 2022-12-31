@@ -7,7 +7,7 @@ private:
     Vector3f CameraTarget;
 
 public:
-    Vector3f CameraFront = Vector3f(0.0f, 0.0f, -1.0f);
+    Vector3f CameraFront = Vector3f(-1.0f, 0.0f, 0.0f);
     Vector3f Up = Vector3f(0.0f, 1.0f, 0.0f);
 
     Camera(Vector3f cameraPos, Vector3f cameraTarget) : CameraPos(0.0f, 0.0f, 0.0f), CameraTarget(0.0f, 0.0f, 0.0f)
@@ -19,6 +19,11 @@ public:
     Matrix4f RetrieveLookAt()
     {
         return CreateLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
+    }
+
+    Matrix4f RetrieveSlimLookAtMatrix()
+    {
+        return CreateSlimLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
     }
 
     Vector3f GetCameraPos()
@@ -35,4 +40,4 @@ public:
     {
         return CameraTarget;
     }
-};  
+};
