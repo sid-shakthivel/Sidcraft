@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "Chunk.h" // Includes Mesh (contains shader + matrix)
+#include "cubemap.h"
 #include "camera.h"
 // #include "shader.h"
 
@@ -19,7 +20,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 16.0f, 20.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -54,10 +55,16 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
     // Setup shaders
-    Shader ChunkShader = Shader();
-    ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
-    ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
-    ChunkShader.LinkShader();
+    Shader SkyboxShader = Shader();
+    SkyboxShader.AddShader("SkyboxShader.vs", GL_VERTEX_SHADER);
+    SkyboxShader.AddShader("SkyboxShader.fs", GL_FRAGMENT_SHADER);
+    SkyboxShader.LinkShader();
+
+    // Setup shaders
+    // Shader ChunkShader = Shader();
+    // ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
+    // ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
+    // ChunkShader.LinkShader();
 
     // Setup matrices
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -91,14 +98,16 @@ int main()
     //     }
     // }
 
-    Chunk exampleChunk = Chunk();
-    exampleChunk.CreateMesh();
+    Cubemap::Create();
 
-    Chunk testChunk = Chunk();
-    testChunk.CreateMesh();
+    // Chunk exampleChunk = Chunk();
+    // exampleChunk.CreateMesh();
 
-    std::for_each(testChunk.VertexData.begin(), testChunk.VertexData.end(), [](ThinVertex &TV)
-                  { TV.Position = TV.Position.Add(Vector3f(1 * 17, 0, 0)); });
+    // Chunk testChunk = Chunk();
+    // testChunk.CreateMesh();
+
+    // std::for_each(testChunk.VertexData.begin(), testChunk.VertexData.end(), [](ThinVertex &TV)
+    //               { TV.Position = TV.Position.Add(Vector3f(1 * 17, 0, 0)); });
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -112,19 +121,22 @@ int main()
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
+        // glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
 
         ViewMatrix = CameraController.RetrieveLookAt();
 
-        ChunkShader.Use();
-        ChunkShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
-        ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
-        ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        SkyboxShader.Use();
+        SkyboxShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+        SkyboxShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        Cubemap::Draw(&SkyboxShader);
 
-        // std::cout << "new\n";
+        // ChunkShader.Use();
+        // ChunkShader.SetMatrix4f("model", (const float *)(&ModelMatrix));
+        // ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
+        // ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
 
-        exampleChunk.Draw(&ChunkShader);
-        testChunk.Draw(&ChunkShader);
+        // exampleChunk.Draw(&ChunkShader);
+        // testChunk.Draw(&ChunkShader);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

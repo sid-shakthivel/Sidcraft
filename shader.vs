@@ -10,5 +10,5 @@ out vec2 TexCoords;
 
 void main() {
     TexCoords = TextureCoordinates;
-    gl_Position = projection* view * model * vec4(pos.x, pos.y, pos.z, 1);
+    gl_Position = projection * view * model * vec4(pos.x, pos.y, pos.z, 1);
 }
