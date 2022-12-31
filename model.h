@@ -18,10 +18,6 @@ private:
     void ProcessNodes(aiNode *Node, const aiScene *Scene)
     {
         // Process nodes of mesh
-
-        // std::cout << Node->mNumMeshes << std::endl;
-        // std::cout << Node->mNumChildren << std::endl;
-
         for (unsigned int i = 0; i < Node->mNumMeshes; i++)
         {
             aiMesh *mesh = Scene->mMeshes[Node->mMeshes[i]];

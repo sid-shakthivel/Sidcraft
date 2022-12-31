@@ -67,7 +67,6 @@ private:
 
     Texture *MainTexture;
 
-    std::vector<ThinVertex> VertexData;
     std::vector<unsigned int> Indices;
 
     std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
@@ -151,6 +150,8 @@ private:
     }
 
 public:
+    std::vector<ThinVertex> VertexData;
+
     /*
         Determines whether a block should be rendered or not
         In future when we can delete blocks may come in handy
