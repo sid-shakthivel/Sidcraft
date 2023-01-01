@@ -19,6 +19,8 @@ const Vector3f RIGHT = Vector3f(1.0f, 0.0f, 0.0f);
 const Vector3f FRONT = Vector3f(0.0f, 0.0f, 1.0f);
 const Vector3f BACK = Vector3f(0.0f, 0.0f, -1.0f);
 
+static const unsigned int CHUNK_SIZE = 16;
+
 struct ThinVertex
 {
     Vector3f Position;
@@ -58,8 +60,6 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     return TextureId;
 }
 
-static const unsigned int CHUNK_SIZE = 16;
-
 // Represents a number of blocks together
 class Chunk
 {
@@ -68,12 +68,13 @@ private:
 
     Texture *MainTexture;
 
+    std::vector<ThinVertex> VertexData;
     std::vector<unsigned int> Indices;
 
     std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
     std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
 
-    unsigned VBO, EBO;
+    unsigned int VAO, VBO, EBO;
 
     std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position)
     {
@@ -151,9 +152,41 @@ private:
     }
 
 public:
-    std::vector<ThinVertex> VertexData;
+    /*
+        Determines whether a block should be rendered or not
+        In future when we can delete blocks may come in handy
+    */
+    Chunk()
+    {
+        // Setup texture
+        auto TextureId = LoadTextureFromFile("grass.png");
+        auto Test = Texture(TextureId, "grass", "grass.png", TextureType::Diffuse);
+        MainTexture = &Test;
 
-    unsigned int VAO;
+        for (int x = 0; x < CHUNK_SIZE; x++)
+            for (int z = 0; z < CHUNK_SIZE; z++)
+                for (int y = 0; y < CHUNK_SIZE; y++)
+                    Blocks[x][y][z] = false;
+
+        /*
+            Uses perlin noise to determine height
+            Build terrain by making each column a different / same height
+        */
+
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
+        const siv::PerlinNoise perlin{static_cast<unsigned int>(std::rand())};
+
+        const float scale = 1.0f / 10.0f;
+
+        for (int x = 0; x < CHUNK_SIZE; x++)
+            for (int z = 0; z < CHUNK_SIZE; z++)
+            {
+                const int height = perlin.normalizedOctave2D_01((z * scale), (x * scale), 8) * CHUNK_SIZE;
+
+                for (int y = 0; y < height; y++)
+                    Blocks[x][y][z] = true;
+            }
+    }
 
     void CreateMesh()
     {
@@ -215,48 +248,6 @@ public:
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Setup position attribute
         glEnableVertexAttribArray(1);
     }
-
-    /*
-        Determines whether a block should be rendered or not
-        In future when we can delete blocks may come in handy
-    */
-    Chunk()
-    {
-        // Setup texture
-        auto TextureId = LoadTextureFromFile("grass.png");
-        auto Test = Texture(TextureId, "grass", "grass.png", TextureType::Diffuse);
-        MainTexture = &Test;
-
-        for (int x = 0; x < CHUNK_SIZE; x++)
-            for (int z = 0; z < CHUNK_SIZE; z++)
-                for (int y = 0; y < CHUNK_SIZE; y++)
-                    Blocks[x][y][z] = false;
-
-        /*
-            Uses perlin noise to determine height
-            Build terrain by making each column a different / same height
-        */
-
-        const siv::PerlinNoise::seed_type seed = 123456u;
-
-        const siv::PerlinNoise perlin{seed};
-
-        for (int x = 0; x < CHUNK_SIZE; x++)
-            for (int z = 0; z < CHUNK_SIZE; z++)
-            {
-                const int noise = perlin.octave2D_01((z * 0.01), (x * 0.01), 5) * CHUNK_SIZE;
-
-                for (int y = 0; y < noise; y++)
-                    Blocks[x][y][z] = true;
-            }
-
-        CreateMesh();
-    }
-
-    // ~Chunk()
-    // {
-    //     std::cout << "oh no\n";
-    // }
 
     void Draw(Shader *MeshShader)
     {
