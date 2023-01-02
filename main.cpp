@@ -22,7 +22,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 12.0f, 20.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 12.0f, -10.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -69,7 +69,7 @@ int main()
 
     // Setup matrices
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
-    Matrix4f ViewMatrix = Matrix4f(1);
+    // Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ModelMatrix = Matrix4f(1);
     Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
@@ -107,9 +107,8 @@ int main()
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        ViewMatrix = CameraController.RetrieveLookAt();
-
         glm::mat4 ViewTestMatrix = CameraController.TestLookAt();
+        // SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
         for (unsigned i = 0; i < ChunkList.size(); i++)
         {
@@ -118,10 +117,9 @@ int main()
 
             ChunkShader.Use();
             ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
-            // ChunkShader.SetMatrix4f("view", (const float *)(&ViewMatrix));
             ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-
             ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+
             TestChunk.Draw(&ChunkShader);
         }
 
@@ -148,7 +146,7 @@ bool firstMouse = true;
 void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 {
 
-    if (firstMouse) // initially set to true
+    if (firstMouse)
     {
         LastX = XPos;
         LastY = YPos;
@@ -178,7 +176,7 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
     float y = sin(ConvertToRadians(Pitch));
     float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
 
-    Vector3f Direction = Vector3f(x, y, z);
+    Vector3f Direction = Vector3f(x, 0, z);
     Direction.Normalise();
 
     CameraController.CameraFront = Direction;
@@ -186,7 +184,7 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)
 {
-    float CameraSpeed = deltaTime * 8.0f;
+    float CameraSpeed = deltaTime * 16.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {

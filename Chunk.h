@@ -44,13 +44,13 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Set filtering method
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    stbi_set_flip_vertically_on_load(true);
+    // stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
     unsigned char *data = stbi_load((filepath).c_str(), &width, &height, &nrChannels, 0);
 
     if (!data)
-        std::cout << "ERROR LOADING TEXTURE";
+        std::cout << "ERROR LOADING TEXTURE\n";
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -66,10 +66,11 @@ class Chunk
 private:
     bool Blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 
-    Texture *MainTexture;
+    unsigned int TextureAtlasId;
 
     std::vector<ThinVertex> VertexData;
     std::vector<unsigned int> Indices;
+    std::vector<Vector3f> FaceList;
 
     std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
     std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
@@ -158,10 +159,8 @@ public:
     */
     Chunk()
     {
-        // Setup texture
-        auto TextureId = LoadTextureFromFile("grass.png");
-        auto Test = Texture(TextureId, "grass", "grass.png", TextureType::Diffuse);
-        MainTexture = &Test;
+        // Setup textures
+        TextureAtlasId = LoadTextureFromFile("TesturePack2.png");
 
         for (int x = 0; x < CHUNK_SIZE; x++)
             for (int z = 0; z < CHUNK_SIZE; z++)
@@ -181,7 +180,7 @@ public:
         for (int x = 0; x < CHUNK_SIZE; x++)
             for (int z = 0; z < CHUNK_SIZE; z++)
             {
-                const int height = perlin.normalizedOctave2D_01((z * scale), (x * scale), 8) * CHUNK_SIZE;
+                int height = perlin.normalizedOctave2D_01((z * scale), (x * scale), 8) * CHUNK_SIZE;
 
                 for (int y = 0; y < height; y++)
                     Blocks[x][y][z] = true;
@@ -218,11 +217,24 @@ public:
 
                                 std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
                                               { index += 4 * indexer; });
+
                                 for (auto index : CubeFaceIndices)
                                     Indices.push_back(index);
 
-                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                    VertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
+                                if (Direction.IsEqual(RIGHT) || Direction.IsEqual(LEFT))
+                                {
+                                    std::vector<Vector2f> TestVec = {Vector2f(1, 1), Vector2f(0, 0), Vector2f(0, 1), Vector2f(1, 0)};
+
+                                    for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                        VertexData.push_back(ThinVertex(CubeFaceVertices[i], TestVec[i]));
+                                }
+                                else
+                                {
+                                    for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                        VertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
+                                }
+
+                                FaceList.push_back(Direction);
 
                                 indexer += 1;
                             }
@@ -251,11 +263,23 @@ public:
 
     void Draw(Shader *MeshShader)
     {
+        MeshShader->SetFloat("NumberOfRows", 16.0f);
+
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, MainTexture->Id);
         MeshShader->SetInt("DiffuseTexture0", 0);
+        glBindTexture(GL_TEXTURE_2D, TextureAtlasId);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
+        // glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+
+        for (unsigned int i = 0; i < (Indices.size() / 6); i++)
+        {
+            if (FaceList[i].IsEqual(DirectionsList[0]) || FaceList[i].IsEqual(DirectionsList[1]))
+                MeshShader->SetFloat("TestIndex", 240.0f);
+            else
+                MeshShader->SetFloat("TestIndex", 241.0f);
+
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)((i * 6) * sizeof(GLuint)));
+        }
     }
 };
