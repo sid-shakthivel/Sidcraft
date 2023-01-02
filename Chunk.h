@@ -60,6 +60,76 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     return TextureId;
 }
 
+std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
+
+std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position)
+{
+    std::vector<Vector3f> FaceVertices;
+    std::vector<unsigned int> FaceIndices;
+
+    if (Direction.IsEqual(UP))
+    {
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 0};
+    }
+    else if (Direction.IsEqual(DOWN))
+    {
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 1};
+    }
+    else if (Direction.IsEqual(LEFT))
+    {
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 1};
+    }
+    else if (Direction.IsEqual(RIGHT))
+    {
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 1};
+    }
+    else if (Direction.IsEqual(FRONT))
+    {
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 0};
+    }
+    else
+    {
+        // Back
+        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
+        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
+
+        FaceIndices = {0, 1, 2, 2, 3, 0};
+    }
+
+    // Vertex positions must be offsetted by the position
+    std::for_each(FaceVertices.begin(), FaceVertices.end(), [Position](auto &vertex)
+                  { vertex = vertex.Add(Position); });
+
+    return {FaceVertices, FaceIndices};
+}
+
 // Represents a number of blocks together
 class Chunk
 {
@@ -72,78 +142,9 @@ private:
     std::vector<unsigned int> Indices;
     std::vector<Vector3f> FaceList;
 
-    std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
     std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
 
     unsigned int VAO, VBO, EBO;
-
-    std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position)
-    {
-        std::vector<Vector3f> FaceVertices;
-        std::vector<unsigned int> FaceIndices;
-
-        if (Direction.IsEqual(UP))
-        {
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 0};
-        }
-        else if (Direction.IsEqual(DOWN))
-        {
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 1};
-        }
-        else if (Direction.IsEqual(LEFT))
-        {
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 1};
-        }
-        else if (Direction.IsEqual(RIGHT))
-        {
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 1};
-        }
-        else if (Direction.IsEqual(FRONT))
-        {
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 0};
-        }
-        else
-        {
-            // Back
-            FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
-            FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
-
-            FaceIndices = {0, 1, 2, 2, 3, 0};
-        }
-
-        // Vertex positions must be offsetted by the position
-        std::for_each(FaceVertices.begin(), FaceVertices.end(), [Position](auto &vertex)
-                      { vertex = vertex.Add(Position); });
-
-        return {FaceVertices, FaceIndices};
-    }
 
     bool IsWithinRange(Vector3f Vec)
     {

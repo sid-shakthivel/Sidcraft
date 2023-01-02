@@ -7,7 +7,7 @@
 #include <math.h>
 #include <iostream>
 
-#include "Chunk.h" // Includes Mesh (contains shader + matrix)
+#include "Tree.h" // Includes Mesh (contains shader + matrix)
 #include "cubemap.h"
 #include "camera.h"
 
@@ -22,7 +22,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 12.0f, -10.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 4.0f, -10.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -76,23 +76,25 @@ int main()
     // Setup world
     Skybox::Create();
 
-    std::vector<Chunk> ChunkList;
-    std::vector<Matrix4f> PositionList;
+    // std::vector<Chunk> ChunkList;
+    // std::vector<Matrix4f> PositionList;
 
-    for (int i = -5; i < 5; i++)
-    {
-        for (int j = -5; j < 5; j++)
-        {
-            Chunk NewChunk = Chunk();
-            NewChunk.CreateMesh();
-            ChunkList.push_back(NewChunk);
+    // for (int i = -5; i < 5; i++)
+    // {
+    //     for (int j = -5; j < 5; j++)
+    //     {
+    //         Chunk NewChunk = Chunk();
+    //         NewChunk.CreateMesh();
+    //         ChunkList.push_back(NewChunk);
 
-            Matrix4f ModelMatrix = Matrix4f(1);
-            ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
+    //         Matrix4f ModelMatrix = Matrix4f(1);
+    //         ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
 
-            PositionList.push_back(ModelMatrix);
-        }
-    }
+    //         PositionList.push_back(ModelMatrix);
+    //     }
+    // }
+
+    Tree tree = Tree();
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -110,18 +112,23 @@ int main()
         glm::mat4 ViewTestMatrix = CameraController.TestLookAt();
         // SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
-        for (unsigned i = 0; i < ChunkList.size(); i++)
-        {
-            auto TestChunk = ChunkList[i];
-            auto PositionThing = PositionList[i];
+        // for (unsigned i = 0; i < ChunkList.size(); i++)
+        // {
+        //     auto TestChunk = ChunkList[i];
+        //     auto PositionThing = PositionList[i];
 
-            ChunkShader.Use();
-            ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
-            ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        //     ChunkShader.Use();
+        //     ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
+        //     ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+        //     ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
 
-            TestChunk.Draw(&ChunkShader);
-        }
+        //     TestChunk.Draw(&ChunkShader);
+        // }
+
+        ChunkShader.Use();
+        ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+        ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        tree.Draw(&ChunkShader);
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
