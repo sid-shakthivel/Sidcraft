@@ -10,6 +10,7 @@
 #include "Tree.h" // Includes Mesh (contains shader + matrix)
 #include "cubemap.h"
 #include "camera.h"
+#include "TextureAtlas.h"
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController);
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
@@ -22,7 +23,7 @@ float ConvertToRadians(float Degrees)
     return Degrees * 3.14159 / 180;
 }
 
-static Camera CameraController = Camera(Vector3f(0.0f, 4.0f, -10.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 40.0f, -40.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -67,34 +68,64 @@ int main()
     SkyboxShader.AddShader("SkyboxShader.fs", GL_FRAGMENT_SHADER);
     SkyboxShader.LinkShader();
 
+    // Setup textures
+    TextureAtlas::GetInstance();
+
     // Setup matrices
     Matrix4f ProjectionMatrix = CreatePerspectiveProjectionMatrix(ConvertToRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
-    // Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ModelMatrix = Matrix4f(1);
     Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
     // Setup world
     Skybox::Create();
 
-    // std::vector<Chunk> ChunkList;
-    // std::vector<Matrix4f> PositionList;
+    std::vector<Chunk> ChunkList;
+    std::vector<Matrix4f> PositionList;
 
-    // for (int i = -5; i < 5; i++)
-    // {
-    //     for (int j = -5; j < 5; j++)
-    //     {
-    //         Chunk NewChunk = Chunk();
-    //         NewChunk.CreateMesh();
-    //         ChunkList.push_back(NewChunk);
+    const int size = 10 * 10 * CHUNK_SIZE * CHUNK_SIZE;
 
-    //         Matrix4f ModelMatrix = Matrix4f(1);
-    //         ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
+    int Heightmap[size];
 
-    //         PositionList.push_back(ModelMatrix);
-    //     }
-    // }
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            Matrix4f ModelMatrix = Matrix4f(1);
+            ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
 
-    Tree tree = Tree();
+            Chunk NewChunk = Chunk(Vector3f(i, 0, j), Heightmap);
+            NewChunk.CreateMesh();
+            ChunkList.push_back(NewChunk);
+
+            PositionList.push_back(ModelMatrix);
+        }
+    }
+
+    std::vector<Tree> TreeList;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> WorldRange(0, 25600);
+
+    for (int i = 0; i < 30; i++)
+    {
+        auto Pos = WorldRange(gen);
+        auto Height = Heightmap[Pos];
+
+        auto X = Pos % 160;
+        auto Z = floor(Pos / 160);
+
+        Tree tree = Tree(Vector3f(X, Height, Z));
+
+        TreeList.push_back(tree);
+    }
+
+    Vector3f DLightDirection = Vector3f(0.0f, -1.0f, 0.0f);
+    Vector3f DLightingAmbient = Vector3f(0.2f, 0.2f, 0.2f);
+    Vector3f DLightingDiffuse = Vector3f(0.5f, 0.5f, 0.5f);
+    Vector3f DLightingSpecular = Vector3f(1.0f, 1.0f, 1.0f);
+
+    Vector3f CameraViewPosition = CameraController.GetCameraPos();
+    Vector3f CameraDirection = CameraController.CameraFront;
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -110,25 +141,59 @@ int main()
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         glm::mat4 ViewTestMatrix = CameraController.TestLookAt();
-        // SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
+        SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
+        CameraViewPosition = CameraController.GetCameraPos();
+        CameraDirection = CameraController.CameraFront;
 
-        // for (unsigned i = 0; i < ChunkList.size(); i++)
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+
+        for (unsigned i = 0; i < ChunkList.size(); i++)
+        {
+            auto TestChunk = ChunkList[i];
+            auto PositionThing = PositionList[i];
+
+            ChunkShader.Use();
+
+            ChunkShader.SetInt("DiffuseTexture0", 0);
+            ChunkShader.SetFloat("NumberOfRows", 16.0f);
+
+            ChunkShader.SetVector3f("ViewPosition", &CameraViewPosition);
+            ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
+            ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
+            ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
+            ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
+
+            ChunkShader.SetVector3f("SpotLight.position", &CameraViewPosition);
+            ChunkShader.SetVector3f("SpotLight.direction", &CameraDirection);
+            ChunkShader.SetVector3f("SpotLight.ambient", &DLightingAmbient);
+            ChunkShader.SetVector3f("SpotLight.diffuse", &DLightingDiffuse);
+            ChunkShader.SetVector3f("SpotLight.specular", &DLightingSpecular);
+            ChunkShader.SetFloat("SpotLight.cutOff", cos(ConvertToRadians(10.5f)));
+
+            ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
+            ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+
+            TestChunk.Draw(&ChunkShader);
+        }
+
+        // for (unsigned i = 0; i < TreeList.size(); i++)
         // {
-        //     auto TestChunk = ChunkList[i];
-        //     auto PositionThing = PositionList[i];
-
         //     ChunkShader.Use();
-        //     ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
+
+        //     ChunkShader.SetInt("DiffuseTexture0", 0);
+        //     ChunkShader.SetFloat("NumberOfRows", 16.0f);
+
+        //     ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
+        //     ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
+        //     ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
+        //     ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
+
         //     ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
         //     ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-
-        //     TestChunk.Draw(&ChunkShader);
+        //     TreeList[i].Draw(&ChunkShader);
         // }
-
-        ChunkShader.Use();
-        ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-        ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-        tree.Draw(&ChunkShader);
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
@@ -191,7 +256,7 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 
 void ProcessInput(GLFWwindow *window, Camera *CameraController)
 {
-    float CameraSpeed = deltaTime * 16.0f;
+    float CameraSpeed = deltaTime * 64.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {

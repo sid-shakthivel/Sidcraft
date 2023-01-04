@@ -25,19 +25,23 @@ struct MeshData
 
 class Cube
 {
-public:
+private:
     std::vector<ThinVertex> VertexData;
     std::vector<unsigned int> Indices;
     std::vector<Vector3f> FaceVertices;
 
+    std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
+
+public:
     Cube()
     {
         /*
             Simple generates a singular cube
         */
+        unsigned int indexer = 0;
         for (Vector3f Direction : DirectionsList)
         {
-            auto [CubeFaceVertices, CubeFaceIndices] = GetCubeData(Direction, Vector3f(0, 0, 0));
+            auto [CubeFaceVertices, CubeFaceIndices] = ::GetCubeData(Direction, Vector3f(0, 0, 0));
 
             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
                 VertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
@@ -58,101 +62,49 @@ public:
     {
         return MeshData(VertexData, Indices, FaceVertices);
     }
-}
+};
 
 class Tree
 {
 private:
     unsigned int VAO, VBO, EBO;
 
-    unsigned int LeafVAO, LeafVBO, LeafEBO;
-    unsigned int TextureAtlasId;
-
-    std::vector<ThinVertex> VertexData;
-    std::vector<unsigned int> Indices;
+    Cube cube = Cube();
+    MeshData CubeData;
     std::vector<Matrix4f> PositionsList;
-    std::vector<Vector3f> FaceVertices;
+    std::vector<Matrix4f> LeavesPositionList;
 
-    std::vector<ThinVertex> LeavesVertexData;
-    std::vector<unsigned int> LeavesIndices;
-    std::vector<Matrix4f> LeavesPositionsList;
-    std::vector<Vector3f> LeavesFaceVertices;
-
-    std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
-
-    void CreateMesh()
+    void CreateMesh(Vector3f Offset)
     {
         // Generate trunks of tree
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distr(5, 10);
+        std::uniform_int_distribution<> TrunkRange(15, 20);
 
-        auto height = distr(gen);
-        unsigned int indexer = 0;
-        for (unsigned int i = 0; i < height; i++)
+        auto TrunkHeight = TrunkRange(gen);
+
+        for (unsigned int i = 0; i < TrunkHeight; i++)
         {
-            for (Vector3f Direction : DirectionsList)
-            {
-                auto [CubeFaceVertices, CubeFaceIndices] = GetCubeData(Direction, Vector3f(0, 0, 0));
-
-                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                    VertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
-
-                std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
-                              { index += 4 * indexer; });
-
-                for (auto index : CubeFaceIndices)
-                    Indices.push_back(index);
-
-                FaceVertices.push_back(Direction);
-
-                indexer += 1;
-            }
-
             Matrix4f ModelMatrix = Matrix4f(1);
-            ModelMatrix.Translate(Vector3f(0, i, 0));
+            ModelMatrix.Translate(Vector3f(0 + Offset.x, i + Offset.y, 0 + Offset.z));
             PositionsList.push_back(ModelMatrix);
         }
 
         // Generate leaves
-        // TODO: Randomise the numbers within
-        std::uniform_int_distribution<> leavesRange(3, 5);
+        std::uniform_int_distribution<> LeafRange(5, 7);
 
-        auto length = leavesRange(gen);
-        auto width = leavesRange(gen);
-        auto LeaveHeight = leavesRange(gen);
+        auto LeavesLength = LeafRange(gen);
+        auto LeavesWidth = LeafRange(gen);
+        auto LeavesHeight = LeafRange(gen);
 
-        indexer = 0;
-        for (int i = -length; i < length; i++)
-        {
-            for (int j = -width; j < width; j++)
-            {
-                for (int k = 0; k < LeaveHeight; k++)
+        for (int i = -LeavesLength; i < LeavesLength; i++)
+            for (int j = -LeavesWidth; j < LeavesWidth; j++)
+                for (int k = 0; k < LeavesHeight; k++)
                 {
-                    for (Vector3f Direction : DirectionsList)
-                    {
-                        auto [CubeFaceVertices, CubeFaceIndices] = GetCubeData(Direction, Vector3f(0, 0, 0));
-
-                        for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                            LeavesVertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
-
-                        std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
-                                      { index += 4 * indexer; });
-
-                        for (auto index : CubeFaceIndices)
-                            LeavesIndices.push_back(index);
-
-                        LeavesFaceVertices.push_back(Direction);
-
-                        indexer += 1;
-                    }
-
                     Matrix4f ModelMatrix = Matrix4f(1);
-                    ModelMatrix.Translate(Vector3f(i, height + k, j));
-                    LeavesPositionsList.push_back(ModelMatrix);
+                    ModelMatrix.Translate(Vector3f(i + Offset.x, TrunkHeight + Offset.y + k, j + Offset.z));
+                    LeavesPositionList.push_back(ModelMatrix);
                 }
-            }
-        }
 
         // Setup rendering buffers
         glGenVertexArrays(1, &VAO);
@@ -160,28 +112,11 @@ private:
 
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, VertexData.size() * sizeof(ThinVertex), &VertexData[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, CubeData.VertexData.size() * sizeof(ThinVertex), &CubeData.VertexData[0], GL_STATIC_DRAW);
 
         glGenBuffers(1, &EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Setup position attribute
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Setup position attribute
-        glEnableVertexAttribArray(1);
-
-        glGenVertexArrays(1, &LeafVAO);
-        glBindVertexArray(LeafVAO);
-
-        glGenBuffers(1, &LeafVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, LeafVBO);
-        glBufferData(GL_ARRAY_BUFFER, LeavesVertexData.size() * sizeof(ThinVertex), &LeavesVertexData[0], GL_STATIC_DRAW);
-
-        glGenBuffers(1, &LeafEBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, LeafEBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, LeavesIndices.size() * sizeof(unsigned int), &LeavesIndices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, CubeData.Indices.size() * sizeof(unsigned int), &CubeData.Indices[0], GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Setup position attribute
         glEnableVertexAttribArray(0);
@@ -191,41 +126,27 @@ private:
     }
 
 public:
-    Tree()
+    Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
     {
-        // Setup textures
-        TextureAtlasId = LoadTextureFromFile("TesturePack2.png");
-        CreateMesh();
+        CreateMesh(Offset);
     }
 
     void Draw(Shader *MeshShader)
     {
-        MeshShader->SetFloat("NumberOfRows", 16.0f);
+        MeshShader->SetFloat("TestIndex", 4.0f);
+        glBindVertexArray(VAO);
+
         for (unsigned int i = 0; i < PositionsList.size(); i++)
         {
             MeshShader->SetMatrix4f("model", (const float *)(&PositionsList[i]));
-
-            glActiveTexture(GL_TEXTURE0);
-            MeshShader->SetInt("DiffuseTexture0", 0);
-            glBindTexture(GL_TEXTURE_2D, TextureAtlasId);
-
-            glBindVertexArray(VAO);
-
-            MeshShader->SetFloat("TestIndex", 244.0f);
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
         }
 
-        for (unsigned int i = 0; i < LeavesPositionsList.size(); i++)
+        MeshShader->SetFloat("TestIndex", 6.0f);
+
+        for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
         {
-            MeshShader->SetMatrix4f("model", (const float *)(&LeavesPositionsList[i]));
-
-            glActiveTexture(GL_TEXTURE0);
-            MeshShader->SetInt("DiffuseTexture0", 0);
-            glBindTexture(GL_TEXTURE_2D, TextureAtlasId);
-
-            glBindVertexArray(LeafVAO);
-
-            MeshShader->SetFloat("TestIndex", 246.0f);
+            MeshShader->SetMatrix4f("model", (const float *)(&LeavesPositionList[i]));
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
         }
     }

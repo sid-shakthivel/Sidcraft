@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-#include "stb_image.h"
 // #include "shader.h"
 
 namespace Skybox
@@ -77,7 +76,7 @@ namespace Skybox
         int width, height, nrChannels;
         unsigned char *data;
 
-        stbi_set_flip_vertically_on_load(true);
+        stbi_set_flip_vertically_on_load(false);
 
         for (unsigned int i = 0; i < ImagePaths.size(); i++)
         {

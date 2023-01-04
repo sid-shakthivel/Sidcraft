@@ -209,9 +209,6 @@ public:
     // Creates a transformation matrix (opengl style) in which last column gets set to a vector
     void Translate(Vector3f Vec)
     {
-        // if (Vec.Size > Size)
-        //     return;
-
         elements[0][Size - 1] = Vec.x;
 
         if (Size > 0)

@@ -7,6 +7,13 @@ struct Vertex
     Vector3f Position;
     Vector3f Normal;
     Vector2f TextureCoordinates;
+
+    Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates)
+    {
+        this->Position = Position;
+        this->Normal = Normal;
+        this->TextureCoordinates = TextureCoordinates;
+    }
 };
 
 enum TextureType
