@@ -12,7 +12,6 @@
 #include "camera.h"
 #include "TextureAtlas.h"
 
-void ProcessInput(GLFWwindow *window, Camera *CameraController);
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -82,9 +81,8 @@ int main()
     std::vector<Chunk> ChunkList;
     std::vector<Matrix4f> PositionList;
 
-    const int size = 10 * 10 * CHUNK_SIZE * CHUNK_SIZE;
-
-    int Heightmap[size];
+    const int size = 10 * CHUNK_SIZE;
+    int Heightmap[160][160];
 
     for (int i = 0; i < 10; i++)
     {
@@ -104,24 +102,22 @@ int main()
     std::vector<Tree> TreeList;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> WorldRange(0, 25600);
+    std::uniform_int_distribution<> WorldRange(0, 160);
 
     for (int i = 0; i < 30; i++)
     {
-        auto Pos = WorldRange(gen);
-        auto Height = Heightmap[Pos];
+        auto PosX = WorldRange(gen);
+        auto PosZ = WorldRange(gen);
+        auto Height = Heightmap[PosZ][PosX];
 
-        auto X = Pos % 160;
-        auto Z = floor(Pos / 160);
-
-        Tree tree = Tree(Vector3f(X, Height, Z));
+        Tree tree = Tree(Vector3f(PosX, Height, PosZ));
 
         TreeList.push_back(tree);
     }
 
-    Vector3f DLightDirection = Vector3f(0.0f, -1.0f, 0.0f);
+    Vector3f DLightDirection = Vector3f(0.0f, -1.0f, -1.0f);
     Vector3f DLightingAmbient = Vector3f(0.2f, 0.2f, 0.2f);
-    Vector3f DLightingDiffuse = Vector3f(0.5f, 0.5f, 0.5f);
+    Vector3f DLightingDiffuse = Vector3f(0.7f, 0.7f, 0.7f);
     Vector3f DLightingSpecular = Vector3f(1.0f, 1.0f, 1.0f);
 
     Vector3f CameraViewPosition = CameraController.GetCameraPos();
@@ -135,7 +131,7 @@ int main()
         lastFrame = currentFrame;
 
         // Input
-        ProcessInput(window, &CameraController);
+        CameraController.Move(window, deltaTime, Heightmap);
 
         // Render
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -164,12 +160,12 @@ int main()
             ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
             ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
 
-            ChunkShader.SetVector3f("SpotLight.position", &CameraViewPosition);
-            ChunkShader.SetVector3f("SpotLight.direction", &CameraDirection);
-            ChunkShader.SetVector3f("SpotLight.ambient", &DLightingAmbient);
-            ChunkShader.SetVector3f("SpotLight.diffuse", &DLightingDiffuse);
-            ChunkShader.SetVector3f("SpotLight.specular", &DLightingSpecular);
-            ChunkShader.SetFloat("SpotLight.cutOff", cos(ConvertToRadians(10.5f)));
+            // ChunkShader.SetVector3f("SpotLight.position", &CameraViewPosition);
+            // ChunkShader.SetVector3f("SpotLight.direction", &CameraDirection);
+            // ChunkShader.SetVector3f("SpotLight.ambient", &DLightingAmbient);
+            // ChunkShader.SetVector3f("SpotLight.diffuse", &DLightingDiffuse);
+            // ChunkShader.SetVector3f("SpotLight.specular", &DLightingSpecular);
+            // ChunkShader.SetFloat("SpotLight.cutOff", cos(ConvertToRadians(20.5f)));
 
             ChunkShader.SetMatrix4f("model", (const float *)(&PositionThing));
             ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
@@ -178,22 +174,22 @@ int main()
             TestChunk.Draw(&ChunkShader);
         }
 
-        // for (unsigned i = 0; i < TreeList.size(); i++)
-        // {
-        //     ChunkShader.Use();
+        for (unsigned i = 0; i < TreeList.size(); i++)
+        {
+            ChunkShader.Use();
 
-        //     ChunkShader.SetInt("DiffuseTexture0", 0);
-        //     ChunkShader.SetFloat("NumberOfRows", 16.0f);
+            ChunkShader.SetInt("DiffuseTexture0", 0);
+            ChunkShader.SetFloat("NumberOfRows", 16.0f);
 
-        //     ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
-        //     ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
-        //     ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
-        //     ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
+            ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
+            ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
+            ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
+            ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
 
-        //     ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-        //     ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-        //     TreeList[i].Draw(&ChunkShader);
-        // }
+            ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+            TreeList[i].Draw(&ChunkShader);
+        }
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
@@ -252,44 +248,4 @@ void MouseCallback(GLFWwindow *window, double XPos, double YPos)
     Direction.Normalise();
 
     CameraController.CameraFront = Direction;
-}
-
-void ProcessInput(GLFWwindow *window, Camera *CameraController)
-{
-    float CameraSpeed = deltaTime * 64.0f;
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(CameraController->CameraFront.Multiply(CameraSpeed)));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(CameraController->CameraFront.Multiply(CameraSpeed)));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        Vector3f Direction = CameraController->CameraFront.CrossProduct(CameraController->CameraFront, CameraController->Up);
-        Direction.Normalise();
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(Direction.Multiply(CameraSpeed)));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        Vector3f Direction = CameraController->CameraFront.CrossProduct(CameraController->CameraFront, CameraController->Up);
-        Direction.Normalise();
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(Direction.Multiply(CameraSpeed)));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        Vector3f Direction = CameraController->Up;
-        Direction.Normalise();
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Add(Direction.Multiply(CameraSpeed)));
-    }
-
-    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        // Vector3f Direction = Vector3f(0, -1.0, 0);
-        Vector3f Direction = CameraController->Up;
-        Direction.Normalise();
-        CameraController->SetCameraPos(CameraController->GetCameraPos().Sub(Direction.Multiply(CameraSpeed)));
-    }
 }

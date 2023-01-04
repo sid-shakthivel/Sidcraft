@@ -101,6 +101,12 @@ public:
         z /= magnitude;
     }
 
+    Vector ReturnNormalise()
+    {
+        float magnitude = GetMagnitude();
+        return Vector(x / magnitude, y / magnitude, z / magnitude);
+    }
+
     void Print()
     {
         std::cout << "Vector: " << x << " " << y << " " << z << "\n\n";

@@ -14,18 +14,6 @@
 
 #include <glm/gtc/noise.hpp>
 
-struct ThinVertex
-{
-    Vector3f Position;
-    Vector2f TextureCoordinates;
-
-    ThinVertex(Vector3f Position, Vector2f TextureCoordinates)
-    {
-        this->Position = Position;
-        this->TextureCoordinates = TextureCoordinates;
-    }
-};
-
 const Vector3f UP = Vector3f(0.0f, 1.0f, 0.0f);
 const Vector3f DOWN = Vector3f(0.0f, -1.0f, 0.0f);
 const Vector3f LEFT = Vector3f(-1.0f, 0.0f, 0.0f);
@@ -133,7 +121,7 @@ public:
         Determines whether a block should be rendered or not
         In future when we can delete blocks may come in handy
     */
-    Chunk(Vector3f Offset, int *Heightmap)
+    Chunk(Vector3f Offset, int (&Heightmap)[160][160])
     {
         for (int x = 0; x < CHUNK_SIZE; x++)
             for (int z = 0; z < CHUNK_SIZE; z++)
@@ -151,14 +139,17 @@ public:
                 int VoxelZ = z + (Offset.z * CHUNK_SIZE);
 
                 auto height = glm::simplex(glm::vec2(VoxelX / 64.0f, VoxelZ / 64.0f));
-                height = (height + 1) / 3;
+                height = (height + 1) / 4;
 
                 height *= CHUNK_HEIGHT;
 
                 for (int y = 0; y < height; y++)
                     Blocks[x][y][z] = true;
 
-                Heightmap[(int)(abs(Offset.z) * CHUNK_SIZE + abs(Offset.x)) + (int)(z * CHUNK_SIZE + x)] = height;
+                int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + z;
+                int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
+
+                Heightmap[ZOffset][XOffset] = height;
             }
     }
 
@@ -198,15 +189,21 @@ public:
 
                                 std::vector<Vector3f> NormalsList;
 
-                                auto Corner1 = CubeFaceVertices[0];
-                                auto Corner2 = CubeFaceVertices[1];
-                                auto Corner3 = CubeFaceVertices[2];
-                                auto Corner4 = CubeFaceVertices[3];
+                                auto Tri1Corn1 = CubeFaceVertices[0];
+                                auto Tri1Corn2 = CubeFaceVertices[1];
+                                auto Tri1Corn3 = CubeFaceVertices[2];
 
-                                NormalsList.push_back(Corner1.CrossProduct(Corner2, Corner4));
-                                NormalsList.push_back(Corner1.CrossProduct(Corner1, Corner3));
-                                NormalsList.push_back(Corner1.CrossProduct(Corner2, Corner4));
-                                NormalsList.push_back(Corner1.CrossProduct(Corner1, Corner3));
+                                auto Tri2Corn1 = CubeFaceVertices[2];
+                                auto Tri2Corn2 = CubeFaceVertices[3];
+                                auto Tri2Corn3 = CubeFaceVertices[0];
+
+                                NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+                                NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+                                NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+
+                                NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+                                NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+                                NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
 
                                 for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
                                     VertexData.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i]));

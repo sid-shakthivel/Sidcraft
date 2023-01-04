@@ -39,7 +39,7 @@ vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     float spec = max(dot(viewDir, reflectDir), 0.0);
     vec3 specular = light.specular * (pow(spec, 1) * vec3(texture(DiffuseTexture0, TexCoords))); 
 
-    vec3 Directional = ambient + diffuse;
+    vec3 Directional = ambient + diffuse + specular;
 
     return Directional;
 }

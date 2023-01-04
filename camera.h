@@ -55,4 +55,48 @@ public:
     {
         return CameraTarget;
     }
+
+    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160])
+    {
+        float CameraSpeed = DeltaTime * 64.0f;
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        {
+            CameraPos = CameraPos.Add(CameraFront.Multiply(CameraSpeed));
+        }
+        else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            CameraPos = CameraPos.Sub(CameraFront.Multiply(CameraSpeed));
+        }
+        else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        {
+            Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
+            CameraPos = CameraPos.Sub(Direction.Multiply(CameraSpeed));
+        }
+        else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        {
+            Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
+            CameraPos = CameraPos.Add(Direction.Multiply(CameraSpeed));
+
+            auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
+            if (CameraPos.y < Height)
+                CameraPos.y = Height + 5;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            Vector3f Direction = Up.ReturnNormalise();
+            CameraPos = CameraPos.Add(Direction.Multiply(CameraSpeed));
+        }
+        else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            Vector3f Direction = Up.ReturnNormalise();
+            CameraPos = CameraPos.Sub(Direction.Multiply(CameraSpeed));
+
+            // Get height of position in which we are
+            auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
+
+            if (CameraPos.y < Height)
+                CameraPos.y = Height + 5;
+        }
+    }
 };

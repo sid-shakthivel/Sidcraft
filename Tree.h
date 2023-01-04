@@ -11,11 +11,11 @@
 
 struct MeshData
 {
-    std::vector<ThinVertex> VertexData;
+    std::vector<Vertex> VertexData;
     std::vector<unsigned int> Indices;
     std::vector<Vector3f> FaceVertices;
 
-    MeshData(std::vector<ThinVertex> VertexData, std::vector<unsigned int> Indices, std::vector<Vector3f> FaceVertices)
+    MeshData(std::vector<Vertex> VertexData, std::vector<unsigned int> Indices, std::vector<Vector3f> FaceVertices)
     {
         this->VertexData = VertexData;
         this->Indices = Indices;
@@ -26,7 +26,7 @@ struct MeshData
 class Cube
 {
 private:
-    std::vector<ThinVertex> VertexData;
+    std::vector<Vertex> VertexData;
     std::vector<unsigned int> Indices;
     std::vector<Vector3f> FaceVertices;
 
@@ -35,16 +35,32 @@ private:
 public:
     Cube()
     {
-        /*
-            Simple generates a singular cube
-        */
+        // Generates a cube
         unsigned int indexer = 0;
         for (Vector3f Direction : DirectionsList)
         {
             auto [CubeFaceVertices, CubeFaceIndices] = ::GetCubeData(Direction, Vector3f(0, 0, 0));
 
+            std::vector<Vector3f> NormalsList;
+
+            auto Tri1Corn1 = CubeFaceVertices[0];
+            auto Tri1Corn2 = CubeFaceVertices[1];
+            auto Tri1Corn3 = CubeFaceVertices[2];
+
+            auto Tri2Corn1 = CubeFaceVertices[2];
+            auto Tri2Corn2 = CubeFaceVertices[3];
+            auto Tri2Corn3 = CubeFaceVertices[0];
+
+            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+
+            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+
             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                VertexData.push_back(ThinVertex(CubeFaceVertices[i], TextureCoordinatesList[i]));
+                VertexData.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i]));
 
             std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
                           { index += 4 * indexer; });
@@ -79,7 +95,7 @@ private:
         // Generate trunks of tree
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_int_distribution<> TrunkRange(15, 20);
+        std::uniform_int_distribution<> TrunkRange(7, 15);
 
         auto TrunkHeight = TrunkRange(gen);
 
@@ -112,17 +128,20 @@ private:
 
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, CubeData.VertexData.size() * sizeof(ThinVertex), &CubeData.VertexData[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, CubeData.VertexData.size() * sizeof(Vertex), &CubeData.VertexData[0], GL_STATIC_DRAW);
 
         glGenBuffers(1, &EBO);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, CubeData.Indices.size() * sizeof(unsigned int), &CubeData.Indices[0], GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Setup position attribute
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)0); // Setup position attribute
         glEnableVertexAttribArray(0);
 
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Setup position attribute
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(3 * sizeof(float))); // Setup normals attribute
         glEnableVertexAttribArray(1);
+
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(6 * sizeof(float))); // Setup texture coordinates attribute
+        glEnableVertexAttribArray(2);
     }
 
 public:
