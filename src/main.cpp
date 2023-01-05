@@ -3,14 +3,20 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 #include <math.h>
 #include <iostream>
+#include <vector>
+#include <random>
 
-#include "Tree.h" // Includes Mesh (contains shader + matrix)
-#include "cubemap.h"
-#include "camera.h"
-#include "TextureAtlas.h"
+#include "../include/Matrix.h"
+#include "../include/Camera.h"
+#include "../include/Shader.h"
+#include "../include/Mesh.h"
+#include "../include/Cube.h"
+#include "../include/Chunk.h"
+#include "../include/Tree.h"
+#include "../include/Skybox.h"
+#include "../include/TextureAtlas.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 
@@ -61,18 +67,18 @@ int main()
 
     // Setup shaders
     Shader ChunkShader = Shader();
-    ChunkShader.AddShader("shader.vs", GL_VERTEX_SHADER);
-    ChunkShader.AddShader("shader.fs", GL_FRAGMENT_SHADER);
+    ChunkShader.AddShader("shaders/shader.vs", GL_VERTEX_SHADER);
+    ChunkShader.AddShader("shaders/shader.fs", GL_FRAGMENT_SHADER);
     ChunkShader.LinkShader();
 
     Shader SkyboxShader = Shader();
-    SkyboxShader.AddShader("SkyboxShader.vs", GL_VERTEX_SHADER);
-    SkyboxShader.AddShader("SkyboxShader.fs", GL_FRAGMENT_SHADER);
+    SkyboxShader.AddShader("shaders/SkyboxShader.vs", GL_VERTEX_SHADER);
+    SkyboxShader.AddShader("shaders/SkyboxShader.fs", GL_FRAGMENT_SHADER);
     SkyboxShader.LinkShader();
 
     Shader DepthShader = Shader();
-    DepthShader.AddShader("DepthShader.vs", GL_VERTEX_SHADER);
-    DepthShader.AddShader("DepthShader.fs", GL_FRAGMENT_SHADER);
+    DepthShader.AddShader("shaders/DepthShader.vs", GL_VERTEX_SHADER);
+    DepthShader.AddShader("shaders/DepthShader.fs", GL_FRAGMENT_SHADER);
     DepthShader.LinkShader();
 
     // Setup textures
@@ -104,7 +110,7 @@ int main()
     Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
     // Setup world
-    Skybox::Create();
+    Skybox skybox = Skybox();
 
     std::vector<Chunk> ChunkList;
     std::vector<Matrix4f> PositionList;
@@ -186,32 +192,32 @@ int main()
         // Begin rendering
 
         // Render to depth map
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        // glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        // glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+        // glClear(GL_DEPTH_BUFFER_BIT);
 
-        for (unsigned i = 0; i < ChunkList.size(); i++)
-        {
-            auto TestChunk = ChunkList[i];
-            auto PositionThing = PositionList[i];
+        // for (unsigned i = 0; i < ChunkList.size(); i++)
+        // {
+        //     auto TestChunk = ChunkList[i];
+        //     auto PositionThing = PositionList[i];
 
-            DepthShader.Use();
-            DepthShader.SetMatrix4f("model", (const float *)(&PositionThing));
-            DepthShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+        //     DepthShader.Use();
+        //     DepthShader.SetMatrix4f("model", (const float *)(&PositionThing));
+        //     DepthShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
-            TestChunk.Draw(&DepthShader, true);
-        }
+        //     TestChunk.Draw(&DepthShader, true);
+        // }
 
-        for (unsigned i = 0; i < TreeList.size(); i++)
-        {
-            DepthShader.Use();
-            DepthShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
-            TreeList[i].Draw(&DepthShader, true);
-        }
+        // for (unsigned i = 0; i < TreeList.size(); i++)
+        // {
+        //     DepthShader.Use();
+        //     DepthShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+        //     TreeList[i].Draw(&DepthShader, true);
+        // }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // Render scene with shadow mapping
+        // // Render scene with shadow mapping
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -247,30 +253,30 @@ int main()
             TestChunk.Draw(&ChunkShader, false);
         }
 
-        for (unsigned i = 0; i < TreeList.size(); i++)
-        {
-            ChunkShader.Use();
+        // for (unsigned i = 0; i < TreeList.size(); i++)
+        // {
+        //     ChunkShader.Use();
 
-            ChunkShader.SetInt("DiffuseTexture0", 0);
-            ChunkShader.SetFloat("NumberOfRows", 16.0f);
+        //     ChunkShader.SetInt("DiffuseTexture0", 0);
+        //     ChunkShader.SetFloat("NumberOfRows", 16.0f);
 
-            ChunkShader.SetVector3f("ViewPosition", &CameraViewPosition);
-            ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
-            ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
-            ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
-            ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
+        //     ChunkShader.SetVector3f("ViewPosition", &CameraViewPosition);
+        //     ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
+        //     ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
+        //     ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
+        //     ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
 
-            ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+        //     ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
-            ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-            TreeList[i].Draw(&ChunkShader, false);
-        }
+        //     ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+        //     ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+        //     TreeList[i].Draw(&ChunkShader, false);
+        // }
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
         SkyboxShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-        Skybox::Draw(&SkyboxShader);
+        skybox.Draw(&SkyboxShader);
 
         glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

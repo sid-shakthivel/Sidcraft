@@ -79,7 +79,9 @@ void main() {
     vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
     // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
     vec3 Combined = Directional;
-    FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
+    // FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
+
+    FragColour = texture(DiffuseTexture0, TexCoords);
 
     // Gamma Correction
     float gamma = 2.2;

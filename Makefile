@@ -9,8 +9,11 @@ LIBS = $(DEPENDENCIES_PATH)/lib $(DEPENDENCIES_PATH)/lib/libglfw.3.3.dylib  $(DE
 
 TARGET = GameEngine
 
-FILES = $(PROJECT_PATH)/*.cpp $(PROJECT_PATH)/glad.c
+FILES = $(PROJECT_PATH)/src/*.cpp $(PROJECT_PATH)/src/glad.c
 
 all: $(FILES)
 	$(CC) $(CFLAGS) -g -I $(INCLUDE) -L $(LIBS) $(FILES) -o $(TARGET) -framework OpenGL -Wno-deprecated
 	./$(TARGET)
+
+clean:
+	rm $(TARGET)

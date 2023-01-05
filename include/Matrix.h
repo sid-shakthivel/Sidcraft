@@ -254,50 +254,55 @@ public:
     }
 
     // For 3D rotations
-    void Rotate(double Degrees, Vector3f Direction)
+    void Rotate(double Degrees, Axis RotationAxis)
     {
-        for (int i = 0; i < Size; i++)
-            for (int j = 0; j < Size; j++)
-                elements[i][j] = 0;
+        switch (RotationAxis)
+        {
+        case X_AXIS:
+            elements[0][0] = 1;
+            elements[0][1] = 0;
+            elements[0][2] = 0;
 
-        // X Axis
-        elements[0][0] += 1 * Direction.x;
-        elements[0][1] += 0 * Direction.x;
-        elements[0][2] += 0 * Direction.x;
+            elements[1][0] = 0;
+            elements[1][1] = cos(Degrees);
+            elements[1][2] = -sin(Degrees);
 
-        elements[1][0] += 0 * Direction.x;
-        elements[1][1] += cos(Degrees) * Direction.x;
-        elements[1][2] += -sin(Degrees) * Direction.x;
+            elements[2][0] = 0;
+            elements[2][1] = sin(Degrees);
+            elements[2][2] = cos(Degrees);
 
-        elements[2][0] += 0 * Direction.x;
-        elements[2][1] += sin(Degrees) * Direction.x;
-        elements[2][2] += cos(Degrees) * Direction.x;
+            break;
+        case Y_AXIS:
+            elements[0][0] = cos(Degrees);
+            elements[0][1] = 0;
+            elements[0][2] = sin(Degrees);
 
-        // Y Axis
-        elements[0][0] += cos(Degrees) * Direction.y;
-        elements[0][1] += 0 * Direction.y;
-        elements[0][2] += sin(Degrees) * Direction.y;
+            elements[1][0] = 0;
+            elements[1][1] = 1;
+            elements[1][2] = 0;
 
-        elements[1][0] += 0 * Direction.y;
-        elements[1][1] += 1 * Direction.y;
-        elements[1][2] += 0 * Direction.y;
+            elements[2][0] = -sin(Degrees);
+            elements[2][1] = 0;
+            elements[2][2] = cos(Degrees);
 
-        elements[2][0] += -sin(Degrees) * Direction.y;
-        elements[2][1] += 0 * Direction.y;
-        elements[2][2] += cos(Degrees) * Direction.y;
+            break;
+        case Z_AXIS:
+            elements[0][0] = cos(Degrees);
+            elements[0][1] = -sin(Degrees);
+            elements[0][2] = 0;
 
-        // Z Axis
-        elements[0][0] += cos(Degrees) * Direction.z;
-        elements[0][1] += -sin(Degrees) * Direction.z;
-        elements[0][2] += 0 * Direction.z;
+            elements[1][0] = sin(Degrees);
+            elements[1][1] = cos(Degrees);
+            elements[1][2] = 0;
 
-        elements[1][0] += sin(Degrees) * Direction.z;
-        elements[1][1] += cos(Degrees) * Direction.z;
-        elements[1][2] += 0 * Direction.z;
+            elements[2][0] = 0;
+            elements[2][1] = 0;
+            elements[2][2] = 1;
 
-        elements[2][0] += 0 * Direction.z;
-        elements[2][1] += 0 * Direction.z;
-        elements[2][2] += 1 * Direction.z;
+            // ConvertToColumnMajorOrder();
+
+            break;
+        }
     }
 };
 
@@ -305,7 +310,7 @@ typedef SquareMatrix<float, 4> Matrix4f;
 typedef SquareMatrix<float, 3> Matrix3f;
 typedef SquareMatrix<float, 2> Matrix2f;
 
-Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, float Far)
+inline Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, float Far)
 {
     Matrix4f ProjectionMatrix = Matrix4f(0);
 
@@ -322,7 +327,7 @@ Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, 
     return ProjectionMatrix;
 }
 
-Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
+inline Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
 {
     Matrix4f MatrixA = Matrix4f(1);
 
@@ -363,7 +368,7 @@ Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vect
     return MatrixA;
 }
 
-Matrix4f CreateSlimLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
+inline Matrix4f CreateSlimLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
 {
     Matrix4f MatrixA = Matrix4f(1);
 

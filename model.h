@@ -9,6 +9,28 @@
 #include "mesh.h"
 #include <vector>
 
+enum TextureType
+{
+    Diffuse,
+    Specular
+};
+
+struct Texture
+{
+    unsigned int Id;
+    std::string Name;
+    std::string Path;
+    TextureType Type;
+
+    Texture(unsigned int Id, const std::string &Name, const std::string &Path, TextureType Type)
+    {
+        this->Id = Id;
+        this->Name = Name;
+        this->Path = Path;
+        this->Type = Type;
+    }
+};
+
 class Model
 {
 private:
@@ -173,3 +195,92 @@ public:
         }
     }
 };
+
+// duplicate symbol 'TextureAtlas::TextureAtlasSingleton_' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/TextureAtlas-fa47a2.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Skybox-1977ef.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Skybox-1977ef.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Skybox-1977ef.o
+// duplicate symbol '_DirectionsList' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Mesh-b3d82d.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Mesh-b3d82d.o
+// duplicate symbol 'Mesh::Draw(Shader*, bool)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Mesh-b3d82d.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Mesh-b3d82d.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Mesh-b3d82d.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Shader-54bd9a.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Shader-54bd9a.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Shader-54bd9a.o
+// duplicate symbol '_DirectionsList' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+// duplicate symbol '_DirectionsList' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Cube-26cd88.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Cube-26cd88.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Cube-26cd88.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Cube-26cd88.o
+// duplicate symbol '_DirectionsList' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Tree-16b3f9.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Tree-16b3f9.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Tree-16b3f9.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Tree-16b3f9.o
+// duplicate symbol '_DirectionsList' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/main-c35052.o
+// duplicate symbol 'CreatePerspectiveProjectionMatrix(float, float, float, float)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/main-c35052.o
+// duplicate symbol 'CreateSlimLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/main-c35052.o
+// duplicate symbol 'CreateLookAtMatrix(Vector<float, 3u>, Vector<float, 3u>, Vector<float, 3u>)' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Camera-b1e0b4.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/main-c35052.o
+// duplicate symbol 'TextureAtlas::TextureAtlasSingleton_' in:
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/Chunk-cc9d94.o
+//     /var/folders/lf/8q7dbpnj4b3dc1drk4h187300000gn/T/main-c35052.o
+// ld: 29 duplicate symbols for architecture x86_64
