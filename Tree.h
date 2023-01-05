@@ -150,9 +150,11 @@ public:
         CreateMesh(Offset);
     }
 
-    void Draw(Shader *MeshShader)
+    void Draw(Shader *MeshShader, bool isDepth)
     {
-        MeshShader->SetFloat("TestIndex", 4.0f);
+        if (!isDepth)
+            MeshShader->SetFloat("TestIndex", 4.0f);
+
         glBindVertexArray(VAO);
 
         for (unsigned int i = 0; i < PositionsList.size(); i++)
@@ -161,7 +163,8 @@ public:
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
         }
 
-        MeshShader->SetFloat("TestIndex", 6.0f);
+        if (!isDepth)
+            MeshShader->SetFloat("TestIndex", 6.0f);
 
         for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
         {

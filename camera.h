@@ -78,9 +78,9 @@ public:
             Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
             CameraPos = CameraPos.Add(Direction.Multiply(CameraSpeed));
 
-            auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
-            if (CameraPos.y < Height)
-                CameraPos.y = Height + 5;
+            // auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
+            // if (CameraPos.y < Height)
+            //     CameraPos.y = Height + 5;
         }
         else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
@@ -93,10 +93,13 @@ public:
             CameraPos = CameraPos.Sub(Direction.Multiply(CameraSpeed));
 
             // Get height of position in which we are
-            auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
 
-            if (CameraPos.y < Height)
-                CameraPos.y = Height + 5;
+            if (CameraPos.z > 0 && CameraPos.x > 0)
+            {
+                auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
+                if (CameraPos.y < Height)
+                    CameraPos.y = Height + 5;
+            }
         }
     }
 };

@@ -3,6 +3,7 @@
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragmentPosition;
+in vec4 FragPosLightSpace;
 
 struct DirectionalLightProperties {
     vec3 direction;
@@ -20,12 +21,35 @@ struct SpotlightProperties {
     float cutOff;
 };
 
-uniform SpotlightProperties SpotLight;
+// uniform SpotlightProperties SpotLight;
 uniform DirectionalLightProperties DirectionalLight;
 uniform sampler2D DiffuseTexture0;
+uniform sampler2D ShadowMap;
 uniform vec3 ViewPosition;
 
 out vec4 FragColour;
+
+float ShadowCalculation(vec4 fragPosLightSpace, float bias) {
+    vec3 ProjCoords = fragPosLightSpace.xyz / fragPosLightSpace.w; // Perspective division
+    ProjCoords = ProjCoords * 0.5 + 0.5; // Transform to [0,1] range
+    // float ClosestDepth = texture(ShadowMap, ProjCoords.xy).r; // Get closest depth value from light's perspective
+    float CurrentDepth = ProjCoords.z; // Get depth of current fragment from light's perspective
+    // float shadow = CurrentDepth - bias > ClosestDepth ? 1.0 : 0.0; // Check whether in shadow
+    
+    float shadow = 0.0;
+    vec2 TexelSize = 1.0 / textureSize(ShadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float PCFDepth = texture(ShadowMap, ProjCoords.xy + vec2(x, y) * TexelSize).r; 
+            shadow += CurrentDepth - bias > PCFDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+
+    return shadow;
+}
 
 vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     vec3 Norm = normalize(normal);
@@ -41,9 +65,25 @@ vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     float spec = max(dot(halfwayVector, normal), 0.0);
     vec3 specular = light.specular * (pow(spec, 32) * vec3(texture(DiffuseTexture0, TexCoords))); 
 
-    vec3 Directional = ambient + diffuse + specular;
+    float Bias = max(0.05 * (1.0 - dot(Norm, LightDirection)), 0.005);  
+    float shadow = ShadowCalculation(FragPosLightSpace, Bias);
+
+    vec3 Directional = ambient + ((diffuse + specular) * (1 - shadow));
 
     return Directional;
+}
+
+void main() {
+    // General Lighting
+    vec3 ViewDir = normalize(FragmentPosition - ViewPosition);
+    vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
+    // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
+    vec3 Combined = Directional;
+    FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
+
+    // Gamma Correction
+    float gamma = 2.2;
+    FragColour.rgb = pow(FragColour.rgb, vec3(1.0/gamma));
 }
 
 vec3 CalcSpotLight(SpotlightProperties Light, vec3 normal, vec3 viewDir, vec3 fragmentPosition) {
@@ -62,24 +102,16 @@ vec3 CalcSpotLight(SpotlightProperties Light, vec3 normal, vec3 viewDir, vec3 fr
         float spec = max(dot(viewDir, reflectDir), 0.0);
         vec3 specular = Light.specular * (pow(spec, 1) * vec3(texture(DiffuseTexture0, TexCoords))); 
 
-        return vec3(ambient + diffuse + specular);
+        
+        
+
+        // Shadows
+        float Bias = max(0.05 * (1.0 - dot(Norm, LightDirection)), 0.005);  
+        float shadow = ShadowCalculation(FragPosLightSpace, Bias);
+
+        return vec3(ambient + (diffuse * (1 - shadow)) + (specular * (1 - shadow)));
     } else {
         return ambient;
     }
 }
-
-void main() {
-    // General Lighting
-    vec3 ViewDir = normalize(FragmentPosition - ViewPosition);
-    vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
-    // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
-    vec3 Combined = Directional;
-
-    FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
-
-    // Gamma Correction
-    float gamma = 2.2;
-    FragColour.rgb = pow(FragColour.rgb, vec3(1.0/gamma));
-}
-
 

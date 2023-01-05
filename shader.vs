@@ -8,10 +8,12 @@ uniform mat4 view;
 uniform mat4 projection;
 uniform float NumberOfRows;
 uniform float TestIndex;
+uniform mat4 lightSpaceMatrix;
 
 out vec3 Normal;
 out vec3 FragmentPosition;
 out vec2 TexCoords;
+out vec4 FragPosLightSpace;
 
 void main() {
     int BestIndex = int(TestIndex);
@@ -24,5 +26,7 @@ void main() {
     FragmentPosition = vec3(model * vec4(pos, 1.0));
     Normal = normal;
     TexCoords = (TextureCoordinates / NumberOfRows) + vec2(XOffset, YOffset);
+    FragPosLightSpace = lightSpaceMatrix * vec4(FragmentPosition, 1.0);
+
     gl_Position = projection * view * model * vec4(pos.x, pos.y, pos.z, 1);
 }
