@@ -123,12 +123,22 @@ int main()
     Vector3f CameraViewPosition = CameraController.GetCameraPos();
     Vector3f CameraDirection = CameraController.CameraFront;
 
+    unsigned int counter = 0;
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        counter += 1;
+
+        if (deltaTime >= 1.0 / 30.0)
+        {
+            std::string FPS = "GameEngine FPS: " + std::to_string((1.0 / deltaTime) * counter) + " MS: " + std::to_string((deltaTime / counter) * 1000);
+            glfwSetWindowTitle(window, FPS.c_str());
+            counter = 0;
+            lastFrame = currentFrame;
+        }
 
         // Input
         CameraController.Move(window, deltaTime, Heightmap);

@@ -36,8 +36,10 @@ vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     vec3 diffuse = diff * light.diffuse * vec3(texture(DiffuseTexture0, TexCoords));
 
     vec3 reflectDir = reflect(-LightDirection, Norm);  
-    float spec = max(dot(viewDir, reflectDir), 0.0);
-    vec3 specular = light.specular * (pow(spec, 1) * vec3(texture(DiffuseTexture0, TexCoords))); 
+    vec3 halfwayVector = normalize(viewDir + LightDirection);
+
+    float spec = max(dot(halfwayVector, normal), 0.0);
+    vec3 specular = light.specular * (pow(spec, 32) * vec3(texture(DiffuseTexture0, TexCoords))); 
 
     vec3 Directional = ambient + diffuse + specular;
 
@@ -67,13 +69,17 @@ vec3 CalcSpotLight(SpotlightProperties Light, vec3 normal, vec3 viewDir, vec3 fr
 }
 
 void main() {
+    // General Lighting
     vec3 ViewDir = normalize(FragmentPosition - ViewPosition);
     vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
-    vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
-
-    vec3 Combined = Directional + Spot;
+    // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
+    vec3 Combined = Directional;
 
     FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
+
+    // Gamma Correction
+    float gamma = 2.2;
+    FragColour.rgb = pow(FragColour.rgb, vec3(1.0/gamma));
 }
 
 
