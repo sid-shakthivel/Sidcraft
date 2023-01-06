@@ -4,8 +4,9 @@
 #include <iostream>
 #include "../include/stb_image.h"
 
-#include "../include/Skybox.h"
 #include "../include/Shader.h"
+
+#include "../include/Skybox.h"
 
 Skybox::Skybox()
 {

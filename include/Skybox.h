@@ -1,8 +1,9 @@
 #pragma once
 
+#include <vector>
+
 #include "Matrix.h"
 #include "Shader.h"
-#include <vector>
 
 class Skybox
 {

@@ -3,18 +3,20 @@
 #include <vector>
 
 #include "../include/Matrix.h"
+
 #include "../include/Mesh.h"
 
-Mesh::Mesh()
-{
-    CreateMesh();
-}
-
-void Mesh::CreateMesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices)
+Mesh::Mesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices)
 {
     this->Vertices = Vertices;
     this->Indices = Indices;
-    this->InitaliseData();
+
+    this->CreateMesh();
+}
+
+Mesh::Mesh()
+{
+    this->CreateMesh();
 }
 
 void Mesh::CreateMesh()
@@ -24,6 +26,7 @@ void Mesh::CreateMesh()
 
 void Mesh::Draw(Shader *MeshShader, bool isDepth)
 {
+    // Draw mesh
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, this->Indices.size(), GL_UNSIGNED_INT, 0);
 }

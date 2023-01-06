@@ -5,18 +5,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 #include <iostream>
-#include <vector>
 #include <random>
 
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
 #include "../include/Shader.h"
-#include "../include/Mesh.h"
-#include "../include/Cube.h"
-#include "../include/Chunk.h"
-#include "../include/Tree.h"
-#include "../include/Skybox.h"
 #include "../include/TextureAtlas.h"
+#include "../include/Tree.h"
+#include "../include/Chunk.h"
+#include "../include/Skybox.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 
@@ -138,13 +135,14 @@ int main()
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> WorldRange(0, 160);
 
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < 25; i++)
     {
         auto PosX = WorldRange(gen);
         auto PosZ = WorldRange(gen);
         auto Height = Heightmap[PosZ][PosX];
 
         Tree tree = Tree(Vector3f(PosX, Height, PosZ));
+        tree.CreateMesh();
 
         TreeList.push_back(tree);
     }
@@ -215,9 +213,9 @@ int main()
         //     TreeList[i].Draw(&DepthShader, true);
         // }
 
-        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // // Render scene with shadow mapping
+        // Render scene with shadow mapping
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -253,25 +251,26 @@ int main()
             TestChunk.Draw(&ChunkShader, false);
         }
 
-        // for (unsigned i = 0; i < TreeList.size(); i++)
-        // {
-        //     ChunkShader.Use();
+        for (unsigned i = 0; i < TreeList.size(); i++)
+        {
+            ChunkShader.Use();
 
-        //     ChunkShader.SetInt("DiffuseTexture0", 0);
-        //     ChunkShader.SetFloat("NumberOfRows", 16.0f);
+            ChunkShader.SetInt("DiffuseTexture0", 0);
+            ChunkShader.SetFloat("NumberOfRows", 16.0f);
 
-        //     ChunkShader.SetVector3f("ViewPosition", &CameraViewPosition);
-        //     ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
-        //     ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
-        //     ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
-        //     ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
+            ChunkShader.SetVector3f("ViewPosition", &CameraViewPosition);
+            ChunkShader.SetVector3f("DirectionalLight.direction", &DLightDirection);
+            ChunkShader.SetVector3f("DirectionalLight.ambient", &DLightingAmbient);
+            ChunkShader.SetVector3f("DirectionalLight.diffuse", &DLightingDiffuse);
+            ChunkShader.SetVector3f("DirectionalLight.specular", &DLightingSpecular);
 
-        //     ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+            ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
-        //     ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
-        //     ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-        //     TreeList[i].Draw(&ChunkShader, false);
-        // }
+            ChunkShader.SetMatrix4f("view", (const float *)(&ViewTestMatrix));
+            ChunkShader.SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+
+            TreeList[i].Draw(&ChunkShader, false);
+        }
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));

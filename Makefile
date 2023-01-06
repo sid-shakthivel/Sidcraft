@@ -14,6 +14,3 @@ FILES = $(PROJECT_PATH)/src/*.cpp $(PROJECT_PATH)/src/glad.c
 all: $(FILES)
 	$(CC) $(CFLAGS) -g -I $(INCLUDE) -L $(LIBS) $(FILES) -o $(TARGET) -framework OpenGL -Wno-deprecated
 	./$(TARGET)
-
-clean:
-	rm $(TARGET)

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Matrix.h"
-#include "Shader.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <vector>
+
+#include "Shader.h"
 
 const Vector3f UP = Vector3f(0.0f, 1.0f, 0.0f);
 const Vector3f DOWN = Vector3f(0.0f, -1.0f, 0.0f);
@@ -11,7 +13,7 @@ const Vector3f RIGHT = Vector3f(1.0f, 0.0f, 0.0f);
 const Vector3f FRONT = Vector3f(0.0f, 0.0f, 1.0f);
 const Vector3f BACK = Vector3f(0.0f, 0.0f, -1.0f);
 
-inline std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
+// std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
 
 struct Vertex
 {
@@ -29,9 +31,6 @@ struct Vertex
 
 class Mesh
 {
-private:
-    void InitaliseData();
-
 protected:
     std::vector<Vertex> Vertices;
     std::vector<unsigned int> Indices;
@@ -41,8 +40,9 @@ protected:
     unsigned int VAO, VBO, EBO;
 
 public:
+    Mesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices);
     Mesh();
-    void CreateMesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices);
-    void CreateMesh();
     void Draw(Shader *MeshShader, bool isDepth);
+    void CreateMesh();
+    void InitaliseData();
 };

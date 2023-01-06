@@ -6,15 +6,18 @@
 #include <vector>
 #include <string>
 
-#include "../include/Cube.h"
 #include "../include/Mesh.h"
 #include "../include/Matrix.h"
+
+#include "../include/Cube.h"
+
+std::vector<Vector3f> AnotherList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
 
 Cube::Cube()
 {
     // Generates a cube
     unsigned int indexer = 0;
-    for (Vector3f Direction : DirectionsList)
+    for (Vector3f Direction : AnotherList)
     {
         auto [CubeFaceVertices, CubeFaceIndices] = ::GetCubeData(Direction, Vector3f(0, 0, 0));
 

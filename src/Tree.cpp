@@ -14,7 +14,7 @@
 
 Tree::Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
 {
-    CreateMesh(Offset);
+    this->Offset = Offset;
 }
 
 void Tree::Draw(Shader *MeshShader, bool isDepth)
@@ -40,7 +40,7 @@ void Tree::Draw(Shader *MeshShader, bool isDepth)
     }
 }
 
-void Tree::CreateMesh(Vector3f Offset)
+void Tree::CreateMesh()
 {
     // Generate trunks of tree
     std::random_device rd;
@@ -72,5 +72,14 @@ void Tree::CreateMesh(Vector3f Offset)
                 LeavesPositionList.push_back(ModelMatrix);
             }
 
+    Vertices = CubeData.Vertices;
+    Faces = CubeData.Faces;
+    Indices = CubeData.Indices;
+
     Mesh::CreateMesh();
+
+    // std::cout << VAO << std::endl;
+    // std::cout << Vertices.size() << std::endl;
+    // std::cout << Faces.size() << std::endl;
+    // std::cout << Indices.size() << std::endl;
 }

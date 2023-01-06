@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "Matrix.h"
+
 class Shader
 {
 private:
