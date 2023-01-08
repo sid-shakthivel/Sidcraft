@@ -8,7 +8,7 @@
 class Skybox
 {
 private:
-    std::vector<const char *> ImagePaths = {
+    std::vector<const char *> LightImagePaths = {
         "res/SkyBoxImages/right.png",
         "res/SkyBoxImages/left.png",
         "res/SkyBoxImages/top.png",
@@ -17,8 +17,18 @@ private:
         "res/SkyBoxImages/front.png",
     };
 
+    std::vector<const char *> DarkImagePaths = {
+        "res/DarkSkyBoxImages/right.png",
+        "res/DarkSkyBoxImages/left.png",
+        "res/DarkSkyBoxImages/top.png",
+        "res/DarkSkyBoxImages/bottom.png",
+        "res/DarkSkyBoxImages/back.png",
+        "res/DarkSkyBoxImages/front.png",
+    };
+
     unsigned int VAO, VBO, EBO;
-    unsigned int TextureId;
+    unsigned int LightTextureId;
+    unsigned int DarkTextureId;
 
     static constexpr float SkyboxVertices[] =
         {
@@ -53,7 +63,16 @@ private:
             3, 7, 6,
             6, 2, 3};
 
+    float RotationAngle;
+    Matrix4f ModelMatrix;
+
+    static constexpr float SPEED = 3.0f;
+    float TotalTime;
+    float BlendFactor;
+
+    void UpdateBlend(float DeltaTime);
+
 public:
     Skybox();
-    void Draw(Shader *MeshShader);
+    void Draw(Shader *MeshShader, float DeltaTime);
 };

@@ -14,17 +14,20 @@
 #include "../include/Tree.h"
 #include "../include/Chunk.h"
 #include "../include/Skybox.h"
+#include "../include/World.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 float ConvertToRadians(float Degrees);
+void HandleFPS(GLFWwindow *window);
 
 const unsigned int SCREEN_WIDTH = 800;
 const unsigned int SCREEN_HEIGHT = 600;
 
-float deltaTime = 0.0f; // Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
+float deltaTime = 0.0f;   // Time between current frame and last frame
+float lastFrame = 0.0f;   // Time of last frame
+unsigned int counter = 0; //
 
-static Camera CameraController = Camera(Vector3f(0.0f, 1.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 30.0f, -20.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -97,51 +100,38 @@ int main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Setup world
-    std::vector<Tree> TreeList;
+    World NewWorld = World();
 
-    for (int i = 0; i < 1; i++)
-    {
-        Tree tree = Tree(Vector3f(0, 0, 0));
-        tree.CreateMesh();
-        TreeList.push_back(tree);
-    }
+    // Setup required matrices and vectors
+    glm::mat4 lightProjection = glm::ortho(-800.0f, 800.0f, -800.0f, 800.0f, 1.0f, 7.0f);
+    glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 30.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-    unsigned int counter = 0;
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+    glm::mat4 view = CameraController.TestLookAt();
+    Vector3f CameraViewPosition = CameraController.GetCameraPos();
+    Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
     ChunkShader.Use();
     ChunkShader.SetInt("diffuseTexture", 0);
     ChunkShader.SetInt("shadowMap", 1);
 
-    Vector3f LightDir = Vector3f(-2.0f, 4.0f, -1.0f);
+    Vector3f LightDir = Vector3f(-0.2f, -1.0f, -0.3f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
-        // Handle timing and FPS
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        counter += 1;
+        HandleFPS(window);
 
-        if (deltaTime >= 1.0 / 30.0)
-        {
-            std::string FPS = "GameEngine FPS: " + std::to_string((1.0 / deltaTime) * counter) + " MS: " + std::to_string((deltaTime / counter) * 1000);
-            glfwSetWindowTitle(window, FPS.c_str());
-            counter = 0;
-            lastFrame = currentFrame;
-        }
-
-        // Input
         CameraController.Move(window, deltaTime, Heightmap);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Update key variables
+        CameraViewPosition = CameraController.GetCameraPos();
+        view = CameraController.TestLookAt();
+        SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
         // Begin rendering
-        glm::mat4 lightProjection, lightView;
-        glm::mat4 lightSpaceMatrix;
-        float near_plane = 1.0f, far_plane = 7.5f;
-        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjection * lightView;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render to depth map
         DepthShader.Use();
@@ -153,10 +143,11 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
 
-        for (unsigned i = 0; i < TreeList.size(); i++)
-        {
-            TreeList[i].Draw(&DepthShader, true);
-        }
+        for (auto const &[Offset, Chunk] : NewWorld.TerrainData)
+            Chunk.Draw(&DepthShader, true, Offset);
+
+        for (unsigned i = 0; i < NewWorld.TreeList.size(); i++)
+            NewWorld.TreeList[i].Draw(&DepthShader, true);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -166,31 +157,33 @@ int main()
 
         ChunkShader.Use();
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = CameraController.TestLookAt();
-        Vector3f CameraViewPosition = CameraController.GetCameraPos();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, DepthMap);
 
-        for (unsigned i = 0; i < TreeList.size(); i++)
-        {
-            ChunkShader.SetInt("diffuseTexture", 0);
-            ChunkShader.SetInt("shadowMap", 1);
+        ChunkShader.SetInt("diffuseTexture", 0);
+        ChunkShader.SetInt("shadowMap", 1);
 
-            ChunkShader.SetVector3f("viewPos", &CameraViewPosition);
-            ChunkShader.SetVector3f("lightPos", &LightDir);
+        ChunkShader.SetVector3f("viewPos", &CameraViewPosition);
+        ChunkShader.SetVector3f("lightPos", &LightDir);
 
-            ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
-            ChunkShader.SetMatrix4f("view", (const float *)(&view));
-            ChunkShader.SetMatrix4f("projection", (const float *)(&projection));
+        ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
+        ChunkShader.SetMatrix4f("view", (const float *)(&view));
+        ChunkShader.SetMatrix4f("projection", (const float *)(&projection));
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, DepthMap);
+        for (auto const &[Offset, Chunk] : NewWorld.TerrainData)
+            Chunk.Draw(&ChunkShader, false, Offset);
 
-            TreeList[i].Draw(&ChunkShader, false);
-        }
+        for (unsigned i = 0; i < NewWorld.TreeList.size(); i++)
+            NewWorld.TreeList[i].Draw(&ChunkShader, false);
 
-        glfwSwapBuffers(window); // Presemably uses double buffering thus swaps front and back buffers
+        SkyboxShader.Use();
+        SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
+        SkyboxShader.SetMatrix4f("projection", (const float *)(&projection));
+        NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
+
+        glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
     }
 
@@ -204,6 +197,21 @@ float Yaw = 90.0f;
 float Pitch = 0;
 
 bool firstMouse = true;
+
+void HandleFPS(GLFWwindow *window)
+{
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    counter += 1;
+
+    if (deltaTime >= 1.0 / 30.0)
+    {
+        std::string FPS = "GameEngine FPS: " + std::to_string((1.0 / deltaTime) * counter) + " MS: " + std::to_string((deltaTime / counter) * 1000);
+        glfwSetWindowTitle(window, FPS.c_str());
+        counter = 0;
+        lastFrame = currentFrame;
+    }
+}
 
 void MouseCallback(GLFWwindow *window, double XPos, double YPos)
 {

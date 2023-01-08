@@ -17,11 +17,20 @@ uniform mat4 view;
 uniform mat4 model;
 uniform mat4 lightSpaceMatrix;
 
+uniform float TestIndex;
+
 void main()
 {
+    int BestIndex = int(TestIndex);
+
+    float Column = mod(BestIndex, 16);
+    float XOffset = Column / 16;
+    float Row = floor(BestIndex / 16);
+    float YOffset = Row / 16;
+
     vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
     vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
-    vs_out.TexCoords = aTexCoords;
+    vs_out.TexCoords = (aTexCoords / 16) + vec2(XOffset, YOffset);
     vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

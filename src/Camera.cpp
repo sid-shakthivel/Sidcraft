@@ -48,7 +48,7 @@ Matrix4f Camera::RetrieveSlimLookAtMatrix()
 
 void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160])
 {
-    float CameraSpeed = DeltaTime * 16.0f;
+    float CameraSpeed = DeltaTime * 64.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {

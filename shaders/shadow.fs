@@ -30,6 +30,12 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     return shadow;
 }
 
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 1 * 7) / (7 + 1 - z * (7 - 1));
+}
+
 void main()
 {           
     vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
@@ -38,8 +44,8 @@ void main()
     // ambient
     vec3 ambient = 0.3 * lightColor;
     // diffuse
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    // vec3 lightDir = normalize(lightPos);
+    // vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    vec3 lightDir = normalize(-lightPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
     // specular
@@ -56,5 +62,10 @@ void main()
     FragColor = vec4(lighting, 1.0);
     
     float depthValue = texture(shadowMap, fs_in.TexCoords).r;
-    FragColor = vec4(vec3(depthValue), 1.0);
+
+    // float gamma = 2.2;
+    // FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
+
+    // FragColor = vec4(vec3(depthValue), 1.0);
+    // FragColor = vec4(vec3(LinearizeDepth(depthValue)), 1.0);
 }

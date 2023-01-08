@@ -16,5 +16,5 @@ private:
 public:
     Chunk(Vector3f Offset, int (&Heightmap)[160][160]);
     void CreateMesh();
-    void Draw(Shader *MeshShader, bool isDepth);
+    void Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const;
 };

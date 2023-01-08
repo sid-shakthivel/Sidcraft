@@ -126,10 +126,12 @@ void Chunk::CreateMesh()
     Mesh::CreateMesh();
 }
 
-void Chunk::Draw(Shader *MeshShader, bool isDepth)
+void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
     if (!isDepth)
         MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
+
+    MeshShader->SetMatrix4f("model", (const float *)(&Offset));
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }

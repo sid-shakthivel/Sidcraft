@@ -39,6 +39,8 @@ void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
                       << "\n"
                       << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
+
+        std::exit(0);
     }
 
     // if (type != "PROGRAM")
