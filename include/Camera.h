@@ -17,6 +17,7 @@ public:
     Matrix4f RetrieveLookAt();
     glm::mat4 TestLookAt();
     Vector3f GetCameraPos();
+    glm::vec3 TestValue();
     Matrix4f RetrieveSlimLookAtMatrix();
 
     void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160]);

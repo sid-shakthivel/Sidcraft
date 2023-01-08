@@ -23,6 +23,14 @@ Matrix4f Camera::RetrieveLookAt()
     return CreateLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
 }
 
+glm::vec3 Camera::TestValue()
+{
+    glm::vec3 GCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
+    glm::vec3 GCameraFront = glm::vec3(CameraFront.x, CameraFront.y, CameraFront.z);
+
+    return GCameraPos;
+}
+
 glm::mat4 Camera::TestLookAt()
 {
     glm::vec3 GCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
@@ -40,7 +48,7 @@ Matrix4f Camera::RetrieveSlimLookAtMatrix()
 
 void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160])
 {
-    float CameraSpeed = DeltaTime * 64.0f;
+    float CameraSpeed = DeltaTime * 16.0f;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {

@@ -8,6 +8,7 @@ class Shader
 {
 private:
     unsigned int programId;
+    void CheckCompileErrors(GLuint shader, GLenum Type);
 
 protected:
     std::vector<unsigned int> shaderIdentifiers;

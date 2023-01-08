@@ -15,6 +15,54 @@ Shader::Shader()
     programId = glCreateProgram();
 }
 
+void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
+{
+    GLint success;
+    GLchar infoLog[1024];
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+
+        if (Type == GL_VERTEX_SHADER)
+        {
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
+                      << "Vertex"
+                      << "\n"
+                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+        }
+        else
+        {
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
+                      << "Fragment"
+                      << "\n"
+                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+        }
+    }
+
+    // if (type != "PROGRAM")
+    // {
+    //     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    //     if (!success)
+    //     {
+    //         glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+    //         std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
+    //                   << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+    //     }
+    // }
+    // else
+    // {
+    //     glGetProgramiv(shader, GL_LINK_STATUS, &success);
+    //     if (!success)
+    //     {
+    //         glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+    //         std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
+    //                   << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+    //     }
+    // }
+}
+
 void Shader::AddShader(const char *filepath, GLenum shaderType)
 {
     std::ostringstream sstream;
@@ -26,6 +74,8 @@ void Shader::AddShader(const char *filepath, GLenum shaderType)
     unsigned int shaderNumber = glCreateShader(shaderType);
     glShaderSource(shaderNumber, 1, &fileContents, NULL); // Second parameter specifies number of strings which are source code
     glCompileShader(shaderNumber);
+
+    CheckCompileErrors(shaderNumber, shaderType);
 
     char infoLog[512];
     int success;

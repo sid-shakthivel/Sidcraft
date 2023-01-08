@@ -26,27 +26,16 @@ uniform DirectionalLightProperties DirectionalLight;
 uniform sampler2D DiffuseTexture0;
 uniform sampler2D ShadowMap;
 uniform vec3 ViewPosition;
+uniform vec3 LightPosition;
 
 out vec4 FragColour;
 
 float ShadowCalculation(vec4 fragPosLightSpace, float bias) {
     vec3 ProjCoords = fragPosLightSpace.xyz / fragPosLightSpace.w; // Perspective division
-    ProjCoords = ProjCoords * 0.5 + 0.5; // Transform to [0,1] range
-    // float ClosestDepth = texture(ShadowMap, ProjCoords.xy).r; // Get closest depth value from light's perspective
+    ProjCoords = (ProjCoords + 1.0f) / 2.0f ; // Transform to [0,1] range
+    float ClosestDepth = texture(ShadowMap, ProjCoords.xy).r; // Get closest depth value from light's perspective
     float CurrentDepth = ProjCoords.z; // Get depth of current fragment from light's perspective
-    // float shadow = CurrentDepth - bias > ClosestDepth ? 1.0 : 0.0; // Check whether in shadow
-    
-    float shadow = 0.0;
-    vec2 TexelSize = 1.0 / textureSize(ShadowMap, 0);
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float PCFDepth = texture(ShadowMap, ProjCoords.xy + vec2(x, y) * TexelSize).r; 
-            shadow += CurrentDepth - bias > PCFDepth ? 1.0 : 0.0;        
-        }    
-    }
-    shadow /= 9.0;
+    float shadow = CurrentDepth - bias > ClosestDepth ? 1.0 : 0.0; // Check whether in shadow
 
     return shadow;
 }
@@ -68,20 +57,58 @@ vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     float Bias = max(0.05 * (1.0 - dot(Norm, LightDirection)), 0.005);  
     float shadow = ShadowCalculation(FragPosLightSpace, Bias);
 
-    vec3 Directional = ambient + ((diffuse + specular) * (1 - shadow));
+    vec3 Directional = ambient + ((diffuse + specular) * (1.0 - shadow));
+
+    // Directional = ambient + (diffuse + specular);
 
     return Directional;
+}
+
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 001 * 1000) / (1000 + 001 - z * (1000 - 0.01));
 }
 
 void main() {
     // General Lighting
     vec3 ViewDir = normalize(FragmentPosition - ViewPosition);
     vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
+    vec3 TestThing = 4 * LightPosition;
     // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
     vec3 Combined = Directional;
     FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
 
-    FragColour = texture(DiffuseTexture0, TexCoords);
+    float DepthValue = texture(ShadowMap, TexCoords).r;
+    // FragColour = vec4(DepthValue, DepthValue, DepthValue, 1);
+
+    vec3 color = texture(DiffuseTexture0, TexCoords).rgb;
+    vec3 normal = normalize(Normal);
+    vec3 lightColor = vec3(0.3);
+    // ambient
+    vec3 ambient = 0.3 * lightColor;
+    // diffuse
+    vec3 lightDir = normalize(LightPosition - FragmentPosition);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * lightColor;
+    // specular
+    vec3 viewDir = normalize(ViewPosition - FragmentPosition);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+    vec3 specular = spec * lightColor;    
+    // calculate shadow
+    float Bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
+
+    float shadow = ShadowCalculation(FragPosLightSpace, Bias);                      
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
+
+    FragColour = vec4(lighting.x, lighting.y, lighting.z, 1);  
+    
+    // FragColor = vec4(1, 0, 0, 1);
+
+    FragColour = vec4(vec3(LinearizeDepth(DepthValue)), 1.0);
 
     // Gamma Correction
     float gamma = 2.2;
@@ -103,9 +130,6 @@ vec3 CalcSpotLight(SpotlightProperties Light, vec3 normal, vec3 viewDir, vec3 fr
 
         float spec = max(dot(viewDir, reflectDir), 0.0);
         vec3 specular = Light.specular * (pow(spec, 1) * vec3(texture(DiffuseTexture0, TexCoords))); 
-
-        
-        
 
         // Shadows
         float Bias = max(0.05 * (1.0 - dot(Norm, LightDirection)), 0.005);  
