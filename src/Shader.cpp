@@ -12,7 +12,7 @@
 
 Shader::Shader()
 {
-    programId = glCreateProgram();
+    ProgramId = glCreateProgram();
 }
 
 void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
@@ -42,27 +42,24 @@ void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
 
         std::exit(0);
     }
+}
 
-    // if (type != "PROGRAM")
-    // {
-    //     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    //     if (!success)
-    //     {
-    //         glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-    //         std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n"
-    //                   << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-    //     }
-    // }
-    // else
-    // {
-    //     glGetProgramiv(shader, GL_LINK_STATUS, &success);
-    //     if (!success)
-    //     {
-    //         glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-    //         std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n"
-    //                   << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-    //     }
-    // }
+void Shader::CheckLinkingErrors(GLuint program)
+{
+    GLint success;
+    GLchar infoLog[1024];
+
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+    if (!success)
+    {
+        glGetProgramInfoLog(program, 1024, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: "
+                  << "\n"
+                  << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+
+        std::exit(0);
+    }
 }
 
 void Shader::AddShader(const char *filepath, GLenum shaderType)
@@ -95,9 +92,11 @@ void Shader::LinkShader()
 {
     // Attach each shader
     for (unsigned int value : shaderIdentifiers)
-        glAttachShader(programId, value); // Attaches compilled shader to shader program
+        glAttachShader(ProgramId, value); // Attaches compilled shader to shader program
 
-    glLinkProgram(programId);
+    glLinkProgram(ProgramId);
+
+    CheckLinkingErrors(ProgramId);
 
     // Delete each shader since unused
     for (unsigned int value : shaderIdentifiers)
@@ -106,7 +105,7 @@ void Shader::LinkShader()
 
 void Shader::SetMatrix4f(const std::string &name, const float *Value) const
 {
-    int result = glGetUniformLocation(programId, name.c_str());
+    int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
         std::cout << "Failed to create uniform matrix\n";
     glUniformMatrix4fv(result, 1, GL_FALSE, Value);
@@ -114,7 +113,7 @@ void Shader::SetMatrix4f(const std::string &name, const float *Value) const
 
 void Shader::SetVector3f(const std::string &name, Vector3f *Vec) const
 {
-    int result = glGetUniformLocation(programId, name.c_str());
+    int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
         std::cout << "Failed to create uniform vec3\n";
     glUniform3f(result, Vec->x, Vec->y, Vec->z);
@@ -122,7 +121,7 @@ void Shader::SetVector3f(const std::string &name, Vector3f *Vec) const
 
 void Shader::SetFloat(const std::string &name, float value)
 {
-    int result = glGetUniformLocation(programId, name.c_str());
+    int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
         std::cout << "Failed to create uniform float\n";
     glUniform1f(result, value);
@@ -130,7 +129,7 @@ void Shader::SetFloat(const std::string &name, float value)
 
 void Shader::SetInt(const std::string &name, int value)
 {
-    int result = glGetUniformLocation(programId, name.c_str());
+    int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
         std::cout << "Failed to create uniform int\n";
     glUniform1i(result, value);
@@ -138,5 +137,5 @@ void Shader::SetInt(const std::string &name, int value)
 
 void Shader::Use()
 {
-    glUseProgram(programId);
+    glUseProgram(ProgramId);
 }

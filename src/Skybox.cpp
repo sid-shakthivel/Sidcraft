@@ -83,6 +83,10 @@ Skybox::Skybox() : ModelMatrix(Matrix4f(1.0f))
 
 void Skybox::Draw(Shader *MeshShader, float DeltaTime)
 {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
     UpdateBlend(DeltaTime);
 
     RotationAngle += SPEED * DeltaTime;
@@ -94,11 +98,6 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
     glDepthFunc(GL_LEQUAL);
 
     glBindVertexArray(VAO);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
 
     MeshShader->SetInt("Cubemap", 0);
     MeshShader->SetInt("Cubemap2", 1);
@@ -116,16 +115,24 @@ float lerp(float a, float b, float f)
 
 void Skybox::UpdateBlend(float DeltaTime)
 {
-    TotalTime += DeltaTime;
+    // TotalTime += DeltaTime;
 
-    if (TotalTime > 35)
-        TotalTime = 0;
-    else if (TotalTime > 30)
-        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    else if (TotalTime > 25)
-        BlendFactor = 1.0f;
-    else if (TotalTime > 5)
-        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    else
-        BlendFactor = 0.0f;
+    // if (TotalTime > 35)
+    //     TotalTime = 0;
+    // else if (TotalTime > 30)
+    // {
+    //     glActiveTexture(GL_TEXTURE0);
+    //     glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
+    //     glActiveTexture(GL_TEXTURE1);
+    //     glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
+    //     BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+    // }
+    // else if (TotalTime > 25)
+    //     BlendFactor = 1.0f;
+    // else if (TotalTime > 5)
+    // {
+    //     BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+    // }
+    // else
+    //     BlendFactor = 0.0f;
 }

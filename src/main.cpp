@@ -29,6 +29,53 @@ unsigned int counter = 0; //
 
 static Camera CameraController = Camera(Vector3f(0.0f, 30.0f, -20.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,
+            1.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            -1.0f,
+            -1.0f,
+            0.0f,
+            0.0f,
+            0.0f,
+            1.0f,
+            1.0f,
+            0.0f,
+            1.0f,
+            1.0f,
+            1.0f,
+            -1.0f,
+            0.0f,
+            1.0f,
+            0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 int main()
 {
     int Heightmap[160][160];
@@ -59,6 +106,7 @@ int main()
     }
 
     glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
     Shader ChunkShader = Shader();
@@ -76,27 +124,55 @@ int main()
     DepthShader.AddShader("shaders/DepthShader.fs", GL_FRAGMENT_SHADER);
     DepthShader.LinkShader();
 
+    Shader HDRShader = Shader();
+    HDRShader.AddShader("shaders/HDRShader.vs", GL_VERTEX_SHADER);
+    HDRShader.AddShader("shaders/HDRShader.fs", GL_FRAGMENT_SHADER);
+    HDRShader.LinkShader();
+
     // Setup textures
     TextureAtlas::GetInstance();
 
     // Setup Depth Map
-    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    unsigned int DepthMapFBO;
-    glGenFramebuffers(1, &DepthMapFBO);
+    // const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+    // unsigned int DepthMapFBO;
+    // glGenFramebuffers(1, &DepthMapFBO);
 
-    unsigned int DepthMap;
-    glGenTextures(1, &DepthMap);
-    glBindTexture(GL_TEXTURE_2D, DepthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // unsigned int DepthMap;
+    // glGenTextures(1, &DepthMap);
+    // glBindTexture(GL_TEXTURE_2D, DepthMap);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+    // glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMap, 0);
+    // glDrawBuffer(GL_NONE);
+    // glReadBuffer(GL_NONE);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Setup framebuffer for HDR
+    unsigned int HdrFBO;
+    glGenFramebuffers(1, &HdrFBO);
+
+    unsigned int ColourBuffer;
+    glGenTextures(1, &ColourBuffer);
+    glBindTexture(GL_TEXTURE_2D, ColourBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned int RboDepth;
+    glGenRenderbuffers(1, &RboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, RboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ColourBuffer, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Setup world
@@ -121,6 +197,7 @@ int main()
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
+
         HandleFPS(window);
 
         CameraController.Move(window, deltaTime, Heightmap);
@@ -130,40 +207,17 @@ int main()
         view = CameraController.TestLookAt();
         SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
-        // Begin rendering
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Render to depth map
-        DepthShader.Use();
-        DepthShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
-
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-
-        for (auto const &[Offset, Chunk] : NewWorld.TerrainData)
-            Chunk.Draw(&DepthShader, true, Offset);
-
-        for (unsigned i = 0; i < NewWorld.TreeList.size(); i++)
-            NewWorld.TreeList[i].Draw(&DepthShader, true);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Render scene with shadow mapping
-        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        // Render to HDR framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ChunkShader.Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, DepthMap);
 
         ChunkShader.SetInt("diffuseTexture", 0);
-        ChunkShader.SetInt("shadowMap", 1);
 
         ChunkShader.SetVector3f("viewPos", &CameraViewPosition);
         ChunkShader.SetVector3f("lightPos", &LightDir);
@@ -182,6 +236,20 @@ int main()
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
         SkyboxShader.SetMatrix4f("projection", (const float *)(&projection));
         NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
+
+        // Render to main shader
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        HDRShader.Use();
+        HDRShader.SetInt("HDRTexture", 0);
+        HDRShader.SetFloat("Exposure", 1.0);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ColourBuffer);
+
+        renderQuad();
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

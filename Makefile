@@ -5,7 +5,8 @@ INCLUDE = /Users/siddharth/Code/C++/GameEngine/dependencies/include
 PROJECT_PATH = /Users/siddharth/Code/C++/GameEngine
 DEPENDENCIES_PATH = $(PROJECT_PATH)/dependencies
 
-LIBS = $(DEPENDENCIES_PATH)/lib $(DEPENDENCIES_PATH)/lib/libglfw.3.3.dylib  $(DEPENDENCIES_PATH)/lib/libassimp.5.2.4.dylib
+# LIBS = $(DEPENDENCIES_PATH)/lib $(DEPENDENCIES_PATH)/lib/libglfw.3.3.dylib  $(DEPENDENCIES_PATH)/lib/libassimp.5.2.4.dylib
+LIBS = $(DEPENDENCIES_PATH)/lib $(DEPENDENCIES_PATH)/lib/libglfw.3.3.dylib
 
 TARGET = GameEngine
 

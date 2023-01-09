@@ -22,8 +22,7 @@ Tree::Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
 
 void Tree::Draw(Shader *MeshShader, bool isDepth)
 {
-    if (!isDepth)
-        MeshShader->SetFloat("TestIndex", 4.0f);
+    MeshShader->SetFloat("TestIndex", 4.0f);
 
     glBindVertexArray(VAO);
 
@@ -33,8 +32,7 @@ void Tree::Draw(Shader *MeshShader, bool isDepth)
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 
-    if (!isDepth)
-        MeshShader->SetFloat("TestIndex", 6.0f);
+    MeshShader->SetFloat("TestIndex", 6.0f);
 
     for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
     {
