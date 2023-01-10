@@ -7,6 +7,12 @@ uniform float Exposure;
 
 out vec4 FragColour;
 
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC 
+    return (2.0 * 0.01 * 1000.0) / (1000.0 + 0.01 - z * (1000.0 - 0.01));
+}
+
 void main() {
     const float gamma = 2.2f;
     vec3 HdrColour = texture(HDRTexture, TexCoords).rgb;

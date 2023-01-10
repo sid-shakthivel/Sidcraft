@@ -87,7 +87,11 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
     glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
-    UpdateBlend(DeltaTime);
+
+    MeshShader->SetInt("Cubemap", 0);
+    MeshShader->SetInt("Cubemap2", 1);
+
+    UpdateBlend(DeltaTime, MeshShader);
 
     RotationAngle += SPEED * DeltaTime;
     auto AnglesInRadians = RotationAngle * 3.14159 / 180;
@@ -99,8 +103,6 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
 
     glBindVertexArray(VAO);
 
-    MeshShader->SetInt("Cubemap", 0);
-    MeshShader->SetInt("Cubemap2", 1);
     MeshShader->SetFloat("BlendFactor", BlendFactor);
 
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -113,26 +115,25 @@ float lerp(float a, float b, float f)
     return a + f * (b - a);
 }
 
-void Skybox::UpdateBlend(float DeltaTime)
+void Skybox::UpdateBlend(float DeltaTime, Shader *MeshShader)
 {
-    // TotalTime += DeltaTime;
+    TotalTime += DeltaTime;
 
-    // if (TotalTime > 35)
-    //     TotalTime = 0;
-    // else if (TotalTime > 30)
-    // {
-    //     glActiveTexture(GL_TEXTURE0);
-    //     glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
-    //     glActiveTexture(GL_TEXTURE1);
-    //     glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
-    //     BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    // }
-    // else if (TotalTime > 25)
-    //     BlendFactor = 1.0f;
-    // else if (TotalTime > 5)
-    // {
-    //     BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    // }
-    // else
-    //     BlendFactor = 0.0f;
+    if (TotalTime > 35)
+        TotalTime = 0;
+    else if (TotalTime > 30)
+    {
+        MeshShader->SetInt("Cubemap", 1);
+        MeshShader->SetInt("Cubemap2", 0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
+        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+    }
+    else if (TotalTime > 25)
+        BlendFactor = 1.0f;
+    else if (TotalTime > 5)
+    {
+        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+    }
+    else
+        BlendFactor = 0.0f;
 }

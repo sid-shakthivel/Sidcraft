@@ -14,67 +14,21 @@
 #include "../include/Tree.h"
 #include "../include/Chunk.h"
 #include "../include/Skybox.h"
+#include "../include/Quad.h"
 #include "../include/World.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 float ConvertToRadians(float Degrees);
 void HandleFPS(GLFWwindow *window);
 
-const unsigned int SCREEN_WIDTH = 800;
-const unsigned int SCREEN_HEIGHT = 600;
+const unsigned int SCREEN_WIDTH = 800 * 4;
+const unsigned int SCREEN_HEIGHT = 600 * 4;
 
 float deltaTime = 0.0f;   // Time between current frame and last frame
 float lastFrame = 0.0f;   // Time of last frame
 unsigned int counter = 0; //
 
 static Camera CameraController = Camera(Vector3f(0.0f, 30.0f, -20.0f), Vector3f(0.0f, 0.0f, 0.0f));
-
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-void renderQuad()
-{
-    if (quadVAO == 0)
-    {
-        float quadVertices[] = {
-            // positions        // texture Coords
-            -1.0f,
-            1.0f,
-            0.0f,
-            0.0f,
-            1.0f,
-            -1.0f,
-            -1.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            1.0f,
-            1.0f,
-            0.0f,
-            1.0f,
-            1.0f,
-            1.0f,
-            -1.0f,
-            0.0f,
-            1.0f,
-            0.0f,
-        };
-        // setup plane VAO
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-        glBindVertexArray(quadVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-    }
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-}
 
 int main()
 {
@@ -124,44 +78,50 @@ int main()
     DepthShader.AddShader("shaders/DepthShader.fs", GL_FRAGMENT_SHADER);
     DepthShader.LinkShader();
 
+    std::cout << "LOADING BUFFER" << std::endl;
+
     Shader HDRShader = Shader();
     HDRShader.AddShader("shaders/HDRShader.vs", GL_VERTEX_SHADER);
     HDRShader.AddShader("shaders/HDRShader.fs", GL_FRAGMENT_SHADER);
     HDRShader.LinkShader();
 
+    std::cout << "LOADING BLUR BUFFER" << std::endl;
+
+    Shader BlurShader = Shader();
+    BlurShader.AddShader("shaders/BlurShader.vs", GL_VERTEX_SHADER);
+    BlurShader.AddShader("shaders/BlurShader.fs", GL_FRAGMENT_SHADER);
+    BlurShader.LinkShader();
+
+    std::cout << "LOADING BLEND BUFFER" << std::endl;
+
+    Shader BlendShader = Shader();
+    BlendShader.AddShader("shaders/BlendShader.vs", GL_VERTEX_SHADER);
+    BlendShader.AddShader("shaders/BlendShader.fs", GL_FRAGMENT_SHADER);
+    BlendShader.LinkShader();
+
     // Setup textures
     TextureAtlas::GetInstance();
-
-    // Setup Depth Map
-    // const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    // unsigned int DepthMapFBO;
-    // glGenFramebuffers(1, &DepthMapFBO);
-
-    // unsigned int DepthMap;
-    // glGenTextures(1, &DepthMap);
-    // glBindTexture(GL_TEXTURE_2D, DepthMap);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMap, 0);
-    // glDrawBuffer(GL_NONE);
-    // glReadBuffer(GL_NONE);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Setup framebuffer for HDR
     unsigned int HdrFBO;
     glGenFramebuffers(1, &HdrFBO);
 
-    unsigned int ColourBuffer;
-    glGenTextures(1, &ColourBuffer);
-    glBindTexture(GL_TEXTURE_2D, ColourBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    unsigned int ColourBuffers[2];
+    glGenTextures(2, &ColourBuffers[0]);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+
+    for (int i = 0; i < 2; i++)
+    {
+        glBindTexture(GL_TEXTURE_2D, ColourBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, ColourBuffers[i], 0);
+    }
 
     unsigned int RboDepth;
     glGenRenderbuffers(1, &RboDepth);
@@ -169,18 +129,41 @@ int main()
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ColourBuffer, 0);
+    unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+    glDrawBuffers(2, Attachments);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Setup pingpong buffers for blur rendering
+    unsigned int PingPongFBO[2];
+    unsigned int PingPongBuffers[2];
+    glGenFramebuffers(2, &PingPongFBO[0]);
+    glGenTextures(2, &PingPongBuffers[0]);
+
+    for (unsigned int i = 0; i < 2; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, PingPongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, PingPongBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, PingPongBuffers[i], 0);
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Setup world
     World NewWorld = World();
 
     // Setup required matrices and vectors
-    glm::mat4 lightProjection = glm::ortho(-800.0f, 800.0f, -800.0f, 800.0f, 1.0f, 7.0f);
-    glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 30.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.01f, 1000.0f);
+    glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -194,10 +177,11 @@ int main()
 
     Vector3f LightDir = Vector3f(-0.2f, -1.0f, -0.3f);
 
+    Quad ViewQuad = Quad();
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
-
         HandleFPS(window);
 
         CameraController.Move(window, deltaTime, Heightmap);
@@ -207,9 +191,8 @@ int main()
         view = CameraController.TestLookAt();
         SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
-        // Render to HDR framebuffer
+        // Render the scene to the HDR buffer (floating point fb) using normal shaders
         glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
-        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ChunkShader.Use();
@@ -237,19 +220,46 @@ int main()
         SkyboxShader.SetMatrix4f("projection", (const float *)(&projection));
         NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
 
-        // Render to main shader
+        // Use ping pong buffers to blur the texture
+        BlurShader.Use();
+
+        bool Horizontal = true, FirstIteration = true;
+        int Amount = 20;
+
+        for (unsigned int i = 0; i < Amount; i++)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[Horizontal]);
+
+            BlurShader.SetInt("Horizontal", Horizontal);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(
+                GL_TEXTURE_2D, FirstIteration ? ColourBuffers[0] : PingPongBuffers[!Horizontal]);
+
+            BlurShader.SetInt("Image", 0);
+
+            ViewQuad.Draw();
+
+            Horizontal = !Horizontal;
+
+            if (FirstIteration)
+                FirstIteration = false;
+        }
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        HDRShader.Use();
-        HDRShader.SetInt("HDRTexture", 0);
-        HDRShader.SetFloat("Exposure", 1.0);
+        BlendShader.Use();
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ColourBuffer);
+        glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, PingPongBuffers[!Horizontal]);
 
-        renderQuad();
+        BlendShader.SetInt("Scene", 0);
+        BlendShader.SetInt("BloomBlur", 1);
+        BlendShader.SetFloat("Exposure", 0.45f);
+
+        ViewQuad.Draw();
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

@@ -70,7 +70,7 @@ private:
     float TotalTime;
     float BlendFactor;
 
-    void UpdateBlend(float DeltaTime);
+    void UpdateBlend(float DeltaTime, Shader *MeshShader);
 
 public:
     Skybox();

@@ -128,8 +128,8 @@ void Chunk::CreateMesh()
 
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
-    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
-
+    if (!isDepth)
+        MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
     MeshShader->SetMatrix4f("model", (const float *)(&Offset));
 
     glBindVertexArray(VAO);

@@ -101,18 +101,18 @@ void main() {
     // calculate shadow
     float Bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
 
-    float shadow = ShadowCalculation(FragPosLightSpace, Bias);                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
+    // float shadow = ShadowCalculation(FragPosLightSpace, Bias);                      
+    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
 
-    FragColour = vec4(lighting.x, lighting.y, lighting.z, 1);  
+    // FragColour = vec4(lighting.x, lighting.y, lighting.z, 1);  
     
     // FragColor = vec4(1, 0, 0, 1);
 
-    FragColour = vec4(vec3(LinearizeDepth(DepthValue)), 1.0);
+    // FragColour = vec4(vec3(LinearizeDepth(DepthValue)), 1.0);
 
     // Gamma Correction
-    float gamma = 2.2;
-    FragColour.rgb = pow(FragColour.rgb, vec3(1.0/gamma));
+    // float gamma = 2.2;
+    // FragColour.rgb = pow(FragColour.rgb, vec3(1.0/gamma));
 }
 
 vec3 CalcSpotLight(SpotlightProperties Light, vec3 normal, vec3 viewDir, vec3 fragmentPosition) {
