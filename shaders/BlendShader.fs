@@ -16,4 +16,5 @@ void main() {
     vec3 Final = pow(Mapped, vec3(1.0 / gamma)); // Gamma correction
 
     FragColour = vec4(Final, 1.0);
+    FragColour = texture(Scene, TexCoords);
 }

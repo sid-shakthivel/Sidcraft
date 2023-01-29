@@ -16,7 +16,7 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // Set filtering method
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);
 
     int width, height, nrChannels;
     unsigned char *data = stbi_load((filepath).c_str(), &width, &height, &nrChannels, 0);
@@ -53,20 +53,20 @@ unsigned int TextureAtlas::GetTextureAtlasId()
 
 float TextureAtlas::FetchGrassTop()
 {
-    return 0.0f;
+    return 240.0f;
 }
 
 float TextureAtlas::FetchGrassSide()
 {
-    return 1.0f;
+    return 241.0f;
 }
 
 float TextureAtlas::FetchTreeTrunk()
 {
-    return 4.0f;
+    return 244.0f;
 }
 
 float TextureAtlas::FetchTreeLeaves()
 {
-    return 6.0f;
+    return 246.0f;
 }

@@ -50,7 +50,7 @@ public:
         return Vector(x + VecB.x, y + VecB.y, z + VecB.z);
     }
 
-    bool IsEqual(Vector VecB)
+    const bool IsEqual(Vector VecB)
     {
         if (x == VecB.x && y == VecB.y && z == VecB.z)
             return true;

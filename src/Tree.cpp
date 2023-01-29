@@ -12,6 +12,7 @@
 #include "../include/Mesh.h"
 #include "../include/Cube.h"
 #include "../include/Shader.h"
+#include "../include/TextureAtlas.h"
 
 #include "../include/Tree.h"
 
@@ -22,7 +23,7 @@ Tree::Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
 
 void Tree::Draw(Shader *MeshShader, bool isDepth)
 {
-    MeshShader->SetFloat("TestIndex", 4.0f);
+    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchTreeTrunk());
 
     glBindVertexArray(VAO);
 
@@ -32,7 +33,7 @@ void Tree::Draw(Shader *MeshShader, bool isDepth)
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 
-    MeshShader->SetFloat("TestIndex", 6.0f);
+    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchTreeLeaves());
 
     for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
     {

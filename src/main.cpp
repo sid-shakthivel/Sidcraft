@@ -192,7 +192,10 @@ int main()
         SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
         // Render the scene to the HDR buffer (floating point fb) using normal shaders
-        glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+        // glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ChunkShader.Use();
@@ -221,45 +224,6 @@ int main()
         NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
 
         // Use ping pong buffers to blur the texture
-        BlurShader.Use();
-
-        bool Horizontal = true, FirstIteration = true;
-        int Amount = 20;
-
-        for (unsigned int i = 0; i < Amount; i++)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[Horizontal]);
-
-            BlurShader.SetInt("Horizontal", Horizontal);
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(
-                GL_TEXTURE_2D, FirstIteration ? ColourBuffers[0] : PingPongBuffers[!Horizontal]);
-
-            BlurShader.SetInt("Image", 0);
-
-            ViewQuad.Draw();
-
-            Horizontal = !Horizontal;
-
-            if (FirstIteration)
-                FirstIteration = false;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        BlendShader.Use();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, PingPongBuffers[!Horizontal]);
-
-        BlendShader.SetInt("Scene", 0);
-        BlendShader.SetInt("BloomBlur", 1);
-        BlendShader.SetFloat("Exposure", 0.45f);
-
-        ViewQuad.Draw();
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
