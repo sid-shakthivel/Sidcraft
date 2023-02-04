@@ -13,11 +13,21 @@ class World
 private:
     void GenerateWorld();
 
-public:
-    std::vector<Tree> TreeList;
-    int Heightmap[160][160];
-    std::map<Matrix4f, Chunk> TerrainData;
-    Skybox skybox;
-
+protected:
     World();
+
+    static World *World_;
+
+public:
+    World(World &other) = delete;
+    void operator=(const World &) = delete;
+
+    static World *GetInstance();
+
+    std::vector<Tree> TreeList;
+    std::map<Matrix4f, Chunk> TerrainData;
+
+    int Heightmap[160][160];
+
+    Skybox skybox;
 };

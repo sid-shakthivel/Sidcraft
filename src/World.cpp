@@ -4,6 +4,15 @@
 
 #include "../include/World.h"
 
+World *World::World_ = nullptr;
+
+World *World::GetInstance()
+{
+    if (World_ == nullptr)
+        World_ = new World();
+    return World_;
+}
+
 World::World()
 {
     GenerateWorld();

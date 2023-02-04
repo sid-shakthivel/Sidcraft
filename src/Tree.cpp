@@ -21,7 +21,7 @@ Tree::Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
     this->Offset = Offset;
 }
 
-void Tree::Draw(Shader *MeshShader, bool isDepth)
+void Tree::Draw(Shader *MeshShader, bool isDepth) const
 {
     MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchTreeTrunk());
 
@@ -48,7 +48,7 @@ void Tree::CreateMesh()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> TrunkRange(7, 12);
-    
+
     auto TrunkHeight = TrunkRange(gen);
 
     for (unsigned int i = 0; i < TrunkHeight; i++)

@@ -16,19 +16,14 @@
 #include "../include/Skybox.h"
 #include "../include/Quad.h"
 #include "../include/World.h"
+#include "../include/Renderer.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
-float ConvertToRadians(float Degrees);
 void HandleFPS(GLFWwindow *window);
-
-const unsigned int SCREEN_WIDTH = 800 * 4;
-const unsigned int SCREEN_HEIGHT = 600 * 4;
 
 float deltaTime = 0.0f;   // Time between current frame and last frame
 float lastFrame = 0.0f;   // Time of last frame
 unsigned int counter = 0; //
-
-static Camera CameraController = Camera(Vector3f(0.0f, 15.0f, -40.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -192,77 +187,19 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // Setup world
-    World NewWorld = World();
-
-    // Setup required matrices and vectors
-    glm::mat4 lightProjection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, 1.0f, 7.5f);
-    // glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 9.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
-
-    glm::vec3 GLMlightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
-    glm::vec3 position = glm::vec3(2.0f, 3.0f, -4.0f);
-    glm::mat4 lightView = glm::lookAt(position, position + GLMlightDir, glm::vec3(0.0, 1.0, 0.0));
-
-    glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
-    glm::mat4 view = CameraController.TestLookAt();
-    Vector3f CameraViewPosition = CameraController.GetCameraPos();
-    Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
-
-    GeneralShader.Use();
-    GeneralShader.SetInt("diffuseTexture", 0);
-    GeneralShader.SetInt("shadowMap", 1);
-
-    Vector3f LightDir = Vector3f(-0.2f, -1.0f, -0.3f);
-
-    Quad ViewQuad = Quad();
-
-    Vector3f SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
+    Camera::GetInstance(Vector3f(0.0f, 15.0f, -40.0f), Vector3f(0.0f, 0.0f, 0.0f));
+    World::GetInstance();
+    Renderer MasterRenderer = Renderer();
 
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         HandleFPS(window);
+        MasterRenderer.Update();
+        Camera::GetInstance()->Move(window, deltaTime, Heightmap);
 
-        CameraController.Move(window, deltaTime, Heightmap);
-
-        // Update key variables
-        CameraViewPosition = CameraController.GetCameraPos();
-        view = CameraController.TestLookAt();
-        SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
-
-        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        GeneralShader.Use();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-
-        GeneralShader.SetInt("diffuseTexture", 0);
-
-        GeneralShader.SetVector3f("viewPos", &CameraViewPosition);
-        GeneralShader.SetVector3f("lightPos", &LightDir);
-
-        GeneralShader.SetVector3f("SkyColour", &SkyColour);
-
-        GeneralShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
-        GeneralShader.SetMatrix4f("view", (const float *)(&view));
-        GeneralShader.SetMatrix4f("projection", (const float *)(&projection));
-
-        for (auto const &[Offset, Chunk] : NewWorld.TerrainData)
-            Chunk.Draw(&GeneralShader, false, Offset);
-
-        for (unsigned i = 0; i < NewWorld.TreeList.size(); i++)
-            NewWorld.TreeList[i].Draw(&GeneralShader, false);
-
-        SkyboxShader.Use();
-        SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
-        SkyboxShader.SetMatrix4f("projection", (const float *)(&projection));
-        SkyboxShader.SetVector3f("FogColour", &SkyColour);
-        NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
+        MasterRenderer.RenderScene(&GeneralShader);
+        MasterRenderer.RenderSkybox(&SkyboxShader, deltaTime);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -271,13 +208,6 @@ int main()
     glfwTerminate();
     return 0;
 }
-
-float LastX = 400;
-float LastY = 300;
-float Yaw = 90.0f;
-float Pitch = 0;
-
-bool firstMouse = true;
 
 void HandleFPS(GLFWwindow *window)
 {
@@ -294,42 +224,7 @@ void HandleFPS(GLFWwindow *window)
     }
 }
 
-void MouseCallback(GLFWwindow *window, double XPos, double YPos)
+void MouseCallback(GLFWwindow *window, double xpos, double ypos)
 {
-    if (firstMouse)
-    {
-        LastX = XPos;
-        LastY = YPos;
-        firstMouse = false;
-    }
-
-    // Calculate offset
-    float XOffset = XPos - LastX;
-    float YOffset = LastY - YPos;
-    LastX = XPos;
-    LastY = YPos;
-
-    float sensitivity = 0.1f;
-    XOffset *= sensitivity;
-    YOffset *= sensitivity;
-
-    Yaw += XOffset;
-    Pitch += YOffset;
-
-    // Constrain the value
-    if (Pitch > 89.0f)
-        Pitch = 89.0f;
-    if (Pitch < -89.0f)
-        Pitch = -89.0f;
-
-    float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
-    float y = sin(ConvertToRadians(Pitch));
-    float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
-
-    CameraController.CameraFront = Vector3f(x, 0, z).ReturnNormalise();
-}
-
-float ConvertToRadians(float Degrees)
-{
-    return Degrees * 3.14159 / 180;
+    Camera::GetInstance()->Rotate(xpos, ypos);
 }

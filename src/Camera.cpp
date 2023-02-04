@@ -7,6 +7,23 @@
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
 
+Camera *Camera::GetInstance(Vector3f cameraPos, Vector3f cameraTarget)
+{
+    if (Camera_ == nullptr)
+        Camera_ = new Camera(cameraPos, cameraTarget);
+    return Camera_;
+}
+
+Camera *Camera::GetInstance()
+{
+    if (Camera_ == nullptr)
+    {
+        std::cout << "Camera singleton must be defined";
+        std::exit(0);
+    }
+    return Camera_;
+}
+
 Camera::Camera(Vector3f cameraPos, Vector3f cameraTarget) : CameraPos(0.0f, 0.0f, 0.0f), CameraTarget(0.0f, 0.0f, 0.0f)
 {
     CameraPos = cameraPos;
@@ -83,7 +100,6 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160
         CameraPos = CameraPos.Sub(Direction.Multiply(CameraSpeed));
 
         // Get height of position in which we are
-
         if (CameraPos.z > 0 && CameraPos.x > 0)
         {
             auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
@@ -92,3 +108,43 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160
         }
     }
 };
+
+void Camera::Rotate(double XPos, double YPos)
+{
+    if (IsFirstMouse)
+    {
+        LastX = XPos;
+        LastY = YPos;
+        IsFirstMouse = false;
+    }
+
+    // Calculate offset
+    float XOffset = XPos - LastX;
+    float YOffset = LastY - YPos;
+    LastX = XPos;
+    LastY = YPos;
+
+    float sensitivity = 0.1f;
+    XOffset *= sensitivity;
+    YOffset *= sensitivity;
+
+    Yaw += XOffset;
+    Pitch += YOffset;
+
+    // Constrain the value
+    if (Pitch > 89.0f)
+        Pitch = 89.0f;
+    if (Pitch < -89.0f)
+        Pitch = -89.0f;
+
+    float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
+    float y = sin(ConvertToRadians(Pitch));
+    float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
+
+    CameraFront = Vector3f(x, 0, z).ReturnNormalise();
+}
+
+float Camera::ConvertToRadians(float Degrees)
+{
+    return Degrees * 3.14159 / 180;
+}
