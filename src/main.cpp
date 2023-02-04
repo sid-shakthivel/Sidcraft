@@ -28,7 +28,7 @@ float deltaTime = 0.0f;   // Time between current frame and last frame
 float lastFrame = 0.0f;   // Time of last frame
 unsigned int counter = 0; //
 
-static Camera CameraController = Camera(Vector3f(0.0f, 30.0f, -20.0f), Vector3f(0.0f, 0.0f, 0.0f));
+static Camera CameraController = Camera(Vector3f(0.0f, 15.0f, -40.0f), Vector3f(0.0f, 0.0f, 0.0f));
 
 int main()
 {
@@ -63,41 +63,54 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
-    Shader ChunkShader = Shader();
-    ChunkShader.AddShader("shaders/shadow.vs", GL_VERTEX_SHADER);
-    ChunkShader.AddShader("shaders/shadow.fs", GL_FRAGMENT_SHADER);
-    ChunkShader.LinkShader();
+    std::cout << "LOADING SHADOW Shader" << std::endl;
+
+    Shader GeneralShader = Shader();
+    GeneralShader.AddShader("shaders/shadow.vs", GL_VERTEX_SHADER);
+    GeneralShader.AddShader("shaders/shadow.fs", GL_FRAGMENT_SHADER);
+    GeneralShader.LinkShader();
+
+    std::cout << "LOADING SKYBOX Shader" << std::endl;
 
     Shader SkyboxShader = Shader();
     SkyboxShader.AddShader("shaders/SkyboxShader.vs", GL_VERTEX_SHADER);
     SkyboxShader.AddShader("shaders/SkyboxShader.fs", GL_FRAGMENT_SHADER);
     SkyboxShader.LinkShader();
 
+    std::cout << "LOADING DEPTH Shader" << std::endl;
+
     Shader DepthShader = Shader();
     DepthShader.AddShader("shaders/DepthShader.vs", GL_VERTEX_SHADER);
     DepthShader.AddShader("shaders/DepthShader.fs", GL_FRAGMENT_SHADER);
     DepthShader.LinkShader();
 
-    std::cout << "LOADING BUFFER" << std::endl;
+    std::cout << "LOADING HDR " << std::endl;
 
     Shader HDRShader = Shader();
     HDRShader.AddShader("shaders/HDRShader.vs", GL_VERTEX_SHADER);
     HDRShader.AddShader("shaders/HDRShader.fs", GL_FRAGMENT_SHADER);
     HDRShader.LinkShader();
 
-    std::cout << "LOADING BLUR BUFFER" << std::endl;
+    std::cout << "LOADING BLUR Shader" << std::endl;
 
     Shader BlurShader = Shader();
     BlurShader.AddShader("shaders/BlurShader.vs", GL_VERTEX_SHADER);
     BlurShader.AddShader("shaders/BlurShader.fs", GL_FRAGMENT_SHADER);
     BlurShader.LinkShader();
 
-    std::cout << "LOADING BLEND BUFFER" << std::endl;
+    std::cout << "LOADING BLEND Shader" << std::endl;
 
     Shader BlendShader = Shader();
     BlendShader.AddShader("shaders/BlendShader.vs", GL_VERTEX_SHADER);
     BlendShader.AddShader("shaders/BlendShader.fs", GL_FRAGMENT_SHADER);
     BlendShader.LinkShader();
+
+    std::cout << "LOADING QUAD Shader" << std::endl;
+
+    Shader QuadShader = Shader();
+    QuadShader.AddShader("shaders/QuadShader.vs", GL_VERTEX_SHADER);
+    QuadShader.AddShader("shaders/QuadShader.fs", GL_FRAGMENT_SHADER);
+    QuadShader.LinkShader();
 
     // Setup textures
     TextureAtlas::GetInstance();
@@ -156,14 +169,40 @@ int main()
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, PingPongBuffers[i], 0);
     }
 
+    // Setup shadow specific buffers
+    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+    unsigned int DepthMapFBO;
+    glGenFramebuffers(1, &DepthMapFBO);
+
+    unsigned int DepthMap;
+    glGenTextures(1, &DepthMap);
+    glBindTexture(GL_TEXTURE_2D, DepthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Setup world
     World NewWorld = World();
 
     // Setup required matrices and vectors
-    glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.01f, 1000.0f);
-    glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f, 50.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 lightProjection = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, 1.0f, 7.5f);
+    // glm::mat4 lightView = glm::lookAt(glm::vec3(-2.0f, 9.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+    glm::vec3 GLMlightDir = glm::vec3(-0.2f, -1.0f, -0.3f);
+    glm::vec3 position = glm::vec3(2.0f, 3.0f, -4.0f);
+    glm::mat4 lightView = glm::lookAt(position, position + GLMlightDir, glm::vec3(0.0, 1.0, 0.0));
+
     glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -171,13 +210,15 @@ int main()
     Vector3f CameraViewPosition = CameraController.GetCameraPos();
     Matrix4f SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
-    ChunkShader.Use();
-    ChunkShader.SetInt("diffuseTexture", 0);
-    ChunkShader.SetInt("shadowMap", 1);
+    GeneralShader.Use();
+    GeneralShader.SetInt("diffuseTexture", 0);
+    GeneralShader.SetInt("shadowMap", 1);
 
     Vector3f LightDir = Vector3f(-0.2f, -1.0f, -0.3f);
 
     Quad ViewQuad = Quad();
+
+    Vector3f SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -191,39 +232,37 @@ int main()
         view = CameraController.TestLookAt();
         SlimViewMatrix = CameraController.RetrieveSlimLookAtMatrix();
 
-        // Render the scene to the HDR buffer (floating point fb) using normal shaders
-        // glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ChunkShader.Use();
+        GeneralShader.Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
 
-        ChunkShader.SetInt("diffuseTexture", 0);
+        GeneralShader.SetInt("diffuseTexture", 0);
 
-        ChunkShader.SetVector3f("viewPos", &CameraViewPosition);
-        ChunkShader.SetVector3f("lightPos", &LightDir);
+        GeneralShader.SetVector3f("viewPos", &CameraViewPosition);
+        GeneralShader.SetVector3f("lightPos", &LightDir);
 
-        ChunkShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
-        ChunkShader.SetMatrix4f("view", (const float *)(&view));
-        ChunkShader.SetMatrix4f("projection", (const float *)(&projection));
+        GeneralShader.SetVector3f("SkyColour", &SkyColour);
+
+        GeneralShader.SetMatrix4f("lightSpaceMatrix", (const float *)(&lightSpaceMatrix));
+        GeneralShader.SetMatrix4f("view", (const float *)(&view));
+        GeneralShader.SetMatrix4f("projection", (const float *)(&projection));
 
         for (auto const &[Offset, Chunk] : NewWorld.TerrainData)
-            Chunk.Draw(&ChunkShader, false, Offset);
+            Chunk.Draw(&GeneralShader, false, Offset);
 
         for (unsigned i = 0; i < NewWorld.TreeList.size(); i++)
-            NewWorld.TreeList[i].Draw(&ChunkShader, false);
+            NewWorld.TreeList[i].Draw(&GeneralShader, false);
 
         SkyboxShader.Use();
         SkyboxShader.SetMatrix4f("view", (const float *)(&SlimViewMatrix));
         SkyboxShader.SetMatrix4f("projection", (const float *)(&projection));
+        SkyboxShader.SetVector3f("FogColour", &SkyColour);
         NewWorld.skybox.Draw(&SkyboxShader, deltaTime);
-
-        // Use ping pong buffers to blur the texture
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

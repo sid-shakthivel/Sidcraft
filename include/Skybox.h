@@ -30,17 +30,19 @@ private:
     unsigned int LightTextureId;
     unsigned int DarkTextureId;
 
+    static constexpr float SIZE = 500.0f;
+
     static constexpr float SkyboxVertices[] =
         {
             //   Coordinates
-            -1.0f, -1.0f, 1.0f,
-            1.0f, -1.0f, 1.0f,
-            1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, -1.0f,
-            -1.0f, 1.0f, -1.0f};
+            -SIZE, -SIZE, SIZE,
+            SIZE, -SIZE, SIZE,
+            SIZE, -SIZE, -SIZE,
+            -SIZE, -SIZE, -SIZE,
+            -SIZE, SIZE, SIZE,
+            SIZE, SIZE, SIZE,
+            SIZE, SIZE, -SIZE,
+            -SIZE, SIZE, -SIZE};
 
     static constexpr unsigned int SkyboxIndices[] =
         {

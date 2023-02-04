@@ -64,23 +64,12 @@ vec3 CalcDirLight(DirectionalLightProperties light, vec3 normal, vec3 viewDir) {
     return Directional;
 }
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0 - 1.0; // Back to NDC 
-    return (2.0 * 001 * 1000) / (1000 + 001 - z * (1000 - 0.01));
-}
-
 void main() {
     // General Lighting
     vec3 ViewDir = normalize(FragmentPosition - ViewPosition);
     vec3 Directional = CalcDirLight(DirectionalLight, Normal, ViewDir);
-    vec3 TestThing = 4 * LightPosition;
-    // vec3 Spot = CalcSpotLight(SpotLight, Normal, ViewDir, FragmentPosition);
-    vec3 Combined = Directional;
-    FragColour = vec4(Combined.x, Combined.y, Combined.z, 1);
 
     float DepthValue = texture(ShadowMap, TexCoords).r;
-    // FragColour = vec4(DepthValue, DepthValue, DepthValue, 1);
 
     vec3 color = texture(DiffuseTexture0, TexCoords).rgb;
     vec3 normal = normalize(Normal);
@@ -101,14 +90,10 @@ void main() {
     // calculate shadow
     float Bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
 
-    // float shadow = ShadowCalculation(FragPosLightSpace, Bias);                      
-    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
+    float shadow = ShadowCalculation(FragPosLightSpace, Bias);                      
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
 
-    // FragColour = vec4(lighting.x, lighting.y, lighting.z, 1);  
-    
-    // FragColor = vec4(1, 0, 0, 1);
-
-    // FragColour = vec4(vec3(LinearizeDepth(DepthValue)), 1.0);
+    FragColour = vec4(lighting.x, lighting.y, lighting.z, 1);  
 
     // Gamma Correction
     // float gamma = 2.2;

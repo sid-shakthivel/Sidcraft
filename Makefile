@@ -17,10 +17,10 @@ C++_OBJECTS := $(patsubst %.cpp, %.o, $(C++_SOURCES))
 all: $(TARGET)
 
 $(TARGET): $(C++_OBJECTS) $(GLAD)
-	$(CC) -L $(LIBS) -o $@ $^  $(PROJECT_PATH)/src/glad.o -framework OpenGL -Wno-deprecated && ./$(TARGET)
+	$(CC) -L $(LIBS) -o $@ $^  $(PROJECT_PATH)/glad.o -framework OpenGL -Wno-deprecated && ./$(TARGET)
 
 GLAD: $(PROJECT_PATH)/src/glad.c
-	gcc -c $(patsubst %.o, %.c, $<)
+	gcc -c $(patsubst %.o, %.c, $<) -o 
 
 $(C++_OBJECTS): $(C++_SOURCES)
 	$(CC) -g -I $(INCLUDE) $(CFLAGS) -c $(patsubst %.o, %.cpp, $@) -o $@

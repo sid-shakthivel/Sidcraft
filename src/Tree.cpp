@@ -48,18 +48,7 @@ void Tree::CreateMesh()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> TrunkRange(7, 12);
-
-    // Generate land below
-    // for (int i = -10; i < 10; i++)
-    // {
-    //     for (int j = -10; j < 10; j++)
-    //     {
-    //         Matrix4f ModelMatrix = Matrix4f(1);
-    //         ModelMatrix.Translate(Vector3f(i + Offset.x, 0, j + Offset.z));
-    //         PositionsList.push_back(ModelMatrix);
-    //     }
-    // }
-
+    
     auto TrunkHeight = TrunkRange(gen);
 
     for (unsigned int i = 0; i < TrunkHeight; i++)

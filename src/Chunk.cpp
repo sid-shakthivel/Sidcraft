@@ -50,6 +50,8 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
 
             height *= CHUNK_HEIGHT;
 
+            height = 10;
+
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;
 
@@ -128,16 +130,10 @@ void Chunk::CreateMesh()
 
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
-    // std::cout << Indices.size() << std::endl
-    //           << Faces.size() << std::endl;
-
-    // std::exit(0);
-
     MeshShader->SetMatrix4f("model", (const float *)(&Offset));
 
-    glBindVertexArray(VAO);
-
     // Draw each face of the chunk
+    glBindVertexArray(VAO);
 
     for (int i = 0; i < Faces.size(); i++)
     {
@@ -155,5 +151,9 @@ void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
         }
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)((i * 6) * sizeof(GLuint)));
+        // glDrawRangeElements(GL_TRIANGLES, i * 6, (i + 1) * 6, 6, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
     }
+
+    // MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
+    // glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }

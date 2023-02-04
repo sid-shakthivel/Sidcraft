@@ -30,12 +30,17 @@ void World::GenerateWorld()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> WorldRange(0, 160);
+    // std::uniform_int_distribution<> WorldRange(0, 32);
 
     // Generate trees
     for (int i = 0; i < 25; i++)
     {
         auto PosX = WorldRange(gen);
         auto PosZ = WorldRange(gen);
+
+        // PosX = 8;
+        // PosZ = 8;
+
         auto Height = Heightmap[PosZ][PosX];
 
         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
