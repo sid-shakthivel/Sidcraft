@@ -24,6 +24,45 @@ bool Chunk::IsWithinRange(Vector3f Vec)
     return false;
 }
 
+bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
+{
+    // Extract actual position
+    Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
+
+    // Check whether the vector is within this specific chunk
+    if (Vec.y >= 0 && Vec.y <= CHUNK_HEIGHT)
+        if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
+            if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
+                return true;
+
+    // Perhaps in future also return which chunk data, etc
+    return false;
+}
+
+void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
+{
+    Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
+    Vector3f RelativeVec = Position.Sub(ExtractedOffsetVec);
+
+    // RelativeVec.Print();
+
+    // Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = false;
+
+    for (int x = 0; x < CHUNK_SIZE; x++)
+        for (int z = 0; z < CHUNK_SIZE; z++)
+            for (int y = 0; y < CHUNK_HEIGHT; y++)
+                Blocks[x][y][z] = false;
+}
+
+// Creates a new chunk
+Chunk::Chunk(const bool (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE])
+{
+    for (int x = 0; x < CHUNK_SIZE; x++)
+        for (int z = 0; z < CHUNK_SIZE; z++)
+            for (int y = 0; y < CHUNK_HEIGHT; y++)
+                Blocks[x][y][z] = BlocksToCopy[x][y][z];
+}
+
 /*
     Determines whether a block should be rendered or not
     In future when we can delete blocks may come in handy

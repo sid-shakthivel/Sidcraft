@@ -6,6 +6,8 @@
 #include <math.h>
 #include <iostream>
 #include <random>
+#include <string>
+#include <tuple>
 
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
@@ -17,9 +19,15 @@
 #include "../include/Quad.h"
 #include "../include/World.h"
 #include "../include/Renderer.h"
+#include "../include/MouseHandler.h"
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void HandleFPS(GLFWwindow *window);
+
+static MouseHandler MainMouseHandler = MouseHandler();
+static glm::mat4 TestProjection;
+static glm::mat4 TestView;
 
 float deltaTime = 0.0f;   // Time between current frame and last frame
 float lastFrame = 0.0f;   // Time of last frame
@@ -27,8 +35,6 @@ unsigned int counter = 0; //
 
 int main()
 {
-    int Heightmap[160][160];
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Provides ability to set hints for createNewWindow
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -45,8 +51,9 @@ int main()
     }
 
     glfwMakeContextCurrent(window); // Contexts stores all of state assocaiated with this instance of OpenGL
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, MouseCallback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    // glfwSetCursorPosCallback(window, MouseCallback);
+    glfwSetMouseButtonCallback(window, MouseButtonCallback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -187,16 +194,20 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    Camera::GetInstance(Vector3f(0.0f, 15.0f, -40.0f), Vector3f(0.0f, 0.0f, 0.0f));
-    World::GetInstance();
+    Camera::GetInstance(Vector3f(0.0f, 30.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f));
     Renderer MasterRenderer = Renderer();
+    World::GetInstance();
 
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         HandleFPS(window);
         MasterRenderer.Update();
-        Camera::GetInstance()->Move(window, deltaTime, Heightmap);
+        Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
+
+        std::tuple<glm::mat4, glm::mat4> Matrices = MasterRenderer.GetMatrices();
+        TestProjection = get<0>(Matrices);
+        TestView = get<1>(Matrices);
 
         MasterRenderer.RenderScene(&GeneralShader);
         MasterRenderer.RenderSkybox(&SkyboxShader, deltaTime);
@@ -227,4 +238,50 @@ void HandleFPS(GLFWwindow *window)
 void MouseCallback(GLFWwindow *window, double xpos, double ypos)
 {
     Camera::GetInstance()->Rotate(xpos, ypos);
+}
+
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        std::cout << "ATTEMPTING TO REMOVE BLOCK" << std::endl;
+        double XPos, YPos;
+        glfwGetCursorPos(window, &XPos, &YPos);
+        Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
+
+        bool IsFound = false;
+
+        Vector3f PositionToTest;
+
+        for (int i = 1; i <= 10; i++)
+        {
+            // std::cout << World::GetInstance()->ChunkData.size() << std::endl;
+            PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos());
+
+            for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+            {
+                auto Offset = World::GetInstance()->ChunkPositions.at(i);
+                auto TempChunk = &World::GetInstance()->ChunkData.at(i);
+
+                if (TempChunk->IsWithinChunk(PositionToTest, Offset))
+                {
+                    auto NewChunk = Chunk(TempChunk->Blocks);
+                    NewChunk.ClearChunk(PositionToTest, Offset);
+                    NewChunk.CreateMesh();
+
+                    World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + i);
+                    World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + i);
+
+                    World::GetInstance()->ChunkPositions.push_back(Offset);
+                    World::GetInstance()->ChunkData.push_back(NewChunk);
+
+                    IsFound = true;
+                    break;
+                }
+            }
+
+            if (IsFound)
+                break;
+        }
+    }
 }

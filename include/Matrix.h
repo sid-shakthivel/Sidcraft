@@ -20,6 +20,7 @@ public:
     T x;
     T y;
     T z;
+    T w;
 
     Vector(T _x, T _y)
     {
@@ -33,6 +34,14 @@ public:
         x = _x;
         y = _y;
         z = _z;
+    }
+
+    Vector(T _x, T _y, T _z, T _w)
+    {
+        x = _x;
+        y = _y;
+        z = _z;
+        w = _w;
     }
 
     Vector()
@@ -123,6 +132,7 @@ public:
     }
 };
 
+typedef Vector<float, 4> Vector4f;
 typedef Vector<float, 3> Vector3f;
 typedef Vector<float, 2> Vector2f;
 

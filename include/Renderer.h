@@ -3,6 +3,10 @@
 #include "Matrix.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <tuple>
+#include "Shader.h"
 
 class Renderer
 {
@@ -31,6 +35,8 @@ public:
     void RenderScene(Shader *GenericShader);
     void RenderSkybox(Shader *GenericShader, float DeltaTime);
     void Update();
+
+    std::tuple<glm::mat4, glm::mat4> GetMatrices();
 };
 
 const unsigned int SCREEN_WIDTH = 800 * 4;

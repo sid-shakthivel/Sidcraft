@@ -107,7 +107,7 @@ void Shader::SetMatrix4f(const std::string &name, const float *Value) const
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform matrix\n";
+        std::cout << "Failed to create uniform matrix " << name.c_str() << std::endl;
     glUniformMatrix4fv(result, 1, GL_FALSE, Value);
 }
 

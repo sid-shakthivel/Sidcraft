@@ -30,11 +30,12 @@ void World::GenerateWorld()
             Chunk NewChunk = Chunk(Vector3f(i, 0, j), Heightmap);
             NewChunk.CreateMesh();
 
-            TerrainData.insert(std::make_pair(ModelMatrix, NewChunk));
+            // TerrainData.insert_or_assign(ModelMatrix, NewChunk);
+
+            ChunkPositions.push_back(ModelMatrix);
+            ChunkData.push_back(NewChunk);
         }
     }
-
-    // std::cout << TerrainData.size() << std::endl;
 
     std::random_device rd;
     std::mt19937 gen(rd());

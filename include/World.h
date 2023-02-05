@@ -27,6 +27,9 @@ public:
     std::vector<Tree> TreeList;
     std::map<Matrix4f, Chunk> TerrainData;
 
+    std::vector<Matrix4f> ChunkPositions;
+    std::vector<Chunk> ChunkData;
+
     int Heightmap[160][160];
 
     Skybox skybox;

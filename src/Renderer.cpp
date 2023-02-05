@@ -59,7 +59,7 @@ void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
     // glClear(GL_DEPTH_BUFFER_BIT);
 
     GenericShader->Use();
-    GenericShader->SetMatrix4f("view", (const float *)(&SlimViewMatrix));
+    // GenericShader->SetMatrix4f("view", (const float *)(&SlimViewMatrix));
     GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
     GenericShader->SetVector3f("FogColour", &SkyColour);
 
@@ -75,9 +75,14 @@ void Renderer::Update()
 
 void Renderer::DrawWorld(Shader *GenericShader)
 {
-    for (auto const &[Offset, Chunk] : World::GetInstance()->TerrainData)
-        Chunk.Draw(GenericShader, false, Offset);
+    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, false, World::GetInstance()->ChunkPositions.at(i));
 
     for (auto const &Tree : World::GetInstance()->TreeList)
         Tree.Draw(GenericShader, false);
+}
+
+std::tuple<glm::mat4, glm::mat4> Renderer::GetMatrices()
+{
+    return std::make_tuple(ProjectionMatrix, ViewMatrix);
 }

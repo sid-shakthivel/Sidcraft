@@ -9,8 +9,8 @@ in vec3 TexCoords;
 
 out vec4 FragColour;
 
-const float LowerLimit = 0.0;
-const float UpperLimit = 30.0;
+const float LowerLimit = -25.0;
+const float UpperLimit = 100.0;
 
 void main()
 {             
