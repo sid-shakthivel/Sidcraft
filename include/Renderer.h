@@ -26,12 +26,23 @@ private:
     glm::mat4 LightViewMatrix;
     glm::mat4 LightSpaceMatrix;
 
+    unsigned int HdrFBO;
+    unsigned int ColourBuffers[2];
+    unsigned int RboDepth;
+    unsigned int PingPongFBO[2];
+    unsigned int PingPongBuffers[2];
+    unsigned int DepthMapFBO;
+    unsigned int DepthMapTexture;
+
     void DrawWorld(Shader *GenericShader);
 
 protected:
 public:
     Renderer();
 
+    void SetupHDR();
+    void SetupBloom();
+    void SetupDepth();
     void RenderScene(Shader *GenericShader);
     void RenderSkybox(Shader *GenericShader, float DeltaTime);
     void Update();
@@ -41,3 +52,5 @@ public:
 
 const unsigned int SCREEN_WIDTH = 800;
 const unsigned int SCREEN_HEIGHT = 600;
+const unsigned int SHADOW_WIDTH = 1024;
+const unsigned int SHADOW_HEIGHT = 1024;

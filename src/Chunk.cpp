@@ -43,10 +43,18 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     return false;
 }
 
-void Chunk::SetChunk(Vector3f Position, Matrix4f Offset)
+void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[160][160])
 {
+
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
+
+    Offset.ExtractTranslation().Print();
+    Position.Print();
+    RelativeVec.Print();
+
     RelativeVec.RoundToNearestInt();
+
+    // float HeightFromMap = (float)(*Heightmap[(int)round(Position.z), (int)round(Position.x)]);
 
     Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = true;
 }
@@ -93,6 +101,8 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             height = (height + 1) / 4;
 
             height *= CHUNK_HEIGHT;
+
+            height = 10;
 
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;

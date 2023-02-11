@@ -110,29 +110,32 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
     glDepthFunc(GL_LESS);
 }
 
-float lerp(float a, float b, float f)
+float Lerp(float a, float b, float f)
 {
     return a + f * (b - a);
+}
+
+float InverseLerp(float a, float b, float f)
+{
+    return (f - a) / (b - a);
 }
 
 void Skybox::UpdateBlend(float DeltaTime, Shader *MeshShader)
 {
     TotalTime += DeltaTime;
 
-    if (TotalTime > 35)
+    if (TotalTime > 40)
         TotalTime = 0;
-    else if (TotalTime > 30)
-    {
-        MeshShader->SetInt("Cubemap", 1);
-        MeshShader->SetInt("Cubemap2", 0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
-        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    }
     else if (TotalTime > 25)
+    {
+        BlendFactor = 1.0f - Lerp(0.0f, 1.0f, (TotalTime - 20) * (1.0f / 20.0f));
+        // BlendFactor = 0.0f;
+    }
+    else if (TotalTime > 20)
         BlendFactor = 1.0f;
     else if (TotalTime > 5)
     {
-        BlendFactor = lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+        BlendFactor = Lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
     }
     else
         BlendFactor = 0.0f;

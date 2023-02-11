@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../include/Matrix.h"
+#include "../include/World.h"
 #include "../include/Renderer.h"
 
 #include "../include/MouseHandler.h"
@@ -46,4 +47,9 @@ Vector3f MouseHandler::GetRay(double ViewportXPos, double ViewportYPos, glm::mat
     Vector3f WorldCoords = ConvertToWorld(CameraCoords, ViewMatrix);
 
     return WorldCoords;
+}
+
+void MouseCallback(GLFWwindow *window, double xpos, double ypos)
+{
+    // Camera::GetInstance()->Rotate(xpos, ypos);
 }

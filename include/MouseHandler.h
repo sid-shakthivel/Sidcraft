@@ -17,3 +17,6 @@ public:
     MouseHandler(){};
     Vector3f GetRay(double ViewportXPos, double ViewportYPos, glm::mat4 ProjectionMatrix, glm::mat4 ViewMatrix);
 };
+
+void MouseCallback(GLFWwindow *window, double xpos, double ypos);
+// void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);

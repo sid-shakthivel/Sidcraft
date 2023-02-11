@@ -21,7 +21,7 @@
 #include "../include/Renderer.h"
 #include "../include/MouseHandler.h"
 
-void MouseCallback(GLFWwindow *window, double xpos, double ypos);
+// void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void HandleFPS(GLFWwindow *window);
 
@@ -76,83 +76,6 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    // Setup framebuffer for HDR
-    unsigned int HdrFBO;
-    glGenFramebuffers(1, &HdrFBO);
-
-    unsigned int ColourBuffers[2];
-    glGenTextures(2, &ColourBuffers[0]);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
-
-    for (int i = 0; i < 2; i++)
-    {
-        glBindTexture(GL_TEXTURE_2D, ColourBuffers[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, ColourBuffers[i], 0);
-    }
-
-    unsigned int RboDepth;
-    glGenRenderbuffers(1, &RboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, RboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
-    unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(2, Attachments);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Setup pingpong buffers for blur rendering
-    unsigned int PingPongFBO[2];
-    unsigned int PingPongBuffers[2];
-    glGenFramebuffers(2, &PingPongFBO[0]);
-    glGenTextures(2, &PingPongBuffers[0]);
-
-    for (unsigned int i = 0; i < 2; i++)
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, PingPongFBO[i]);
-        glBindTexture(GL_TEXTURE_2D, PingPongBuffers[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, PingPongBuffers[i], 0);
-    }
-
-    // Setup shadow specific buffers
-    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
-    unsigned int DepthMapFBO;
-    glGenFramebuffers(1, &DepthMapFBO);
-
-    unsigned int DepthMap;
-    glGenTextures(1, &DepthMap);
-    glBindTexture(GL_TEXTURE_2D, DepthMap);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
     Camera::GetInstance(Vector3f(0.0f, 25.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
@@ -194,11 +117,6 @@ void HandleFPS(GLFWwindow *window)
     }
 }
 
-void MouseCallback(GLFWwindow *window, double xpos, double ypos)
-{
-    // Camera::GetInstance()->Rotate(xpos, ypos);   
-}
-
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
     double XPos, YPos;
@@ -207,6 +125,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
 
     Vector3f PositionToTest;
+
+    bool IsFound = false;
 
     for (int i = 1; i <= 16; i++)
     {
@@ -233,7 +153,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 auto NewChunk = Chunk(TempChunk->Blocks);
 
                 if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset);
+                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
                 else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
                     NewChunk.ClearChunk(PositionToTest, Offset);
 
@@ -245,8 +165,12 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 World::GetInstance()->ChunkPositions.push_back(Offset);
                 World::GetInstance()->ChunkData.push_back(NewChunk);
 
+                IsFound = true;
                 break;
             }
         }
+
+        if (IsFound)
+            break;
     }
 }
