@@ -30,8 +30,6 @@ void World::GenerateWorld()
             Chunk NewChunk = Chunk(Vector3f(i, 0, j), Heightmap);
             NewChunk.CreateMesh();
 
-            // TerrainData.insert_or_assign(ModelMatrix, NewChunk);
-
             ChunkPositions.push_back(ModelMatrix);
             ChunkData.push_back(NewChunk);
         }
@@ -39,7 +37,7 @@ void World::GenerateWorld()
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> WorldRange(0, 160);
+    std::uniform_int_distribution<> WorldRange(0, 159);
     // std::uniform_int_distribution<> WorldRange(0, 32);
 
     // Generate trees

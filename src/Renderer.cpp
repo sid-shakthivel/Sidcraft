@@ -56,7 +56,6 @@ void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
 {
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // glClear(GL_DEPTH_BUFFER_BIT);
 
     GenericShader->Use();
     // GenericShader->SetMatrix4f("view", (const float *)(&SlimViewMatrix));

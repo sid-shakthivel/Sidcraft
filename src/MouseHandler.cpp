@@ -27,13 +27,13 @@ Vector4f MouseHandler::ConvertToClipSpace(Vector3f NDCVec)
 // Multiply by inverse of projection matrix to unproject it
 Vector4f MouseHandler::ConvertToCameraCoords(Vector4f ClipVec, glm::mat4 ProjectionMatrix)
 {
-    glm::vec4 CameraRay = glm::vec4(ClipVec.x, ClipVec.y, ClipVec.z, ClipVec.w) * inverse(ProjectionMatrix);
-    return Vector4f(CameraRay.x, CameraRay.y, 1.0f, 0.0f);
+    glm::vec4 CameraRay = inverse(ProjectionMatrix) * glm::vec4(ClipVec.x, ClipVec.y, ClipVec.z, ClipVec.w);
+    return Vector4f(CameraRay.x, CameraRay.y, -1.0f, 0.0f);
 }
 
 Vector3f MouseHandler::ConvertToWorld(Vector4f CameraVec, glm::mat4 ViewMatrix)
 {
-    glm::vec4 WorldRay = glm::vec4(CameraVec.x, CameraVec.y, CameraVec.z, CameraVec.w) * inverse(ViewMatrix);
+    glm::vec4 WorldRay = inverse(ViewMatrix) * glm::vec4(CameraVec.x, CameraVec.y, CameraVec.z, CameraVec.w);
     return Vector3f(WorldRay.x, WorldRay.y, WorldRay.z).ReturnNormalise();
 }
 

@@ -29,13 +29,23 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     // Extract actual position
     Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
 
+    Vec.x = round(Vec.x);
+    Vec.y = round(Vec.y);
+    Vec.z = round(Vec.z);
+
     // Check whether the vector is within this specific chunk
     if (Vec.y >= 0 && Vec.y <= CHUNK_HEIGHT)
         if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
             if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
-                return true;
+            {
+                // Check if there is a block nearby the position - with 1
+                if (Blocks[(int)Vec.x][9][(int)Vec.z] == true)
+                {
+                    std::cout << "Block detected within chunk: " << Vec.x << " , 9 , " << Vec.z << std::endl;
+                    return true;
+                }
+            }
 
-    // Perhaps in future also return which chunk data, etc
     return false;
 }
 
@@ -44,14 +54,12 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
     Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
     Vector3f RelativeVec = Position.Sub(ExtractedOffsetVec);
 
-    // RelativeVec.Print();
+    RelativeVec.x = round(RelativeVec.x);
+    RelativeVec.y = round(RelativeVec.y);
+    RelativeVec.z = round(RelativeVec.z);
 
-    // Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = false;
-
-    for (int x = 0; x < CHUNK_SIZE; x++)
-        for (int z = 0; z < CHUNK_SIZE; z++)
-            for (int y = 0; y < CHUNK_HEIGHT; y++)
-                Blocks[x][y][z] = false;
+    std::cout << "Block detected within chunk: " << Position.x << " , 10 , " << Position.z << std::endl;
+    Blocks[(int)RelativeVec.x][10][(int)RelativeVec.z] = true;
 }
 
 // Creates a new chunk
@@ -89,7 +97,7 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
 
             height *= CHUNK_HEIGHT;
 
-            // height = 10;
+            height = 10;
 
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;
