@@ -65,54 +65,13 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
-    std::cout << "LOADING SHADOW Shader" << std::endl;
-
-    Shader GeneralShader = Shader();
-    GeneralShader.AddShader("shaders/shadow.vs", GL_VERTEX_SHADER);
-    GeneralShader.AddShader("shaders/shadow.fs", GL_FRAGMENT_SHADER);
-    GeneralShader.LinkShader();
-
-    std::cout << "LOADING SKYBOX Shader" << std::endl;
-
-    Shader SkyboxShader = Shader();
-    SkyboxShader.AddShader("shaders/SkyboxShader.vs", GL_VERTEX_SHADER);
-    SkyboxShader.AddShader("shaders/SkyboxShader.fs", GL_FRAGMENT_SHADER);
-    SkyboxShader.LinkShader();
-
-    std::cout << "LOADING DEPTH Shader" << std::endl;
-
-    Shader DepthShader = Shader();
-    DepthShader.AddShader("shaders/DepthShader.vs", GL_VERTEX_SHADER);
-    DepthShader.AddShader("shaders/DepthShader.fs", GL_FRAGMENT_SHADER);
-    DepthShader.LinkShader();
-
-    std::cout << "LOADING HDR " << std::endl;
-
-    Shader HDRShader = Shader();
-    HDRShader.AddShader("shaders/HDRShader.vs", GL_VERTEX_SHADER);
-    HDRShader.AddShader("shaders/HDRShader.fs", GL_FRAGMENT_SHADER);
-    HDRShader.LinkShader();
-
-    std::cout << "LOADING BLUR Shader" << std::endl;
-
-    Shader BlurShader = Shader();
-    BlurShader.AddShader("shaders/BlurShader.vs", GL_VERTEX_SHADER);
-    BlurShader.AddShader("shaders/BlurShader.fs", GL_FRAGMENT_SHADER);
-    BlurShader.LinkShader();
-
-    std::cout << "LOADING BLEND Shader" << std::endl;
-
-    Shader BlendShader = Shader();
-    BlendShader.AddShader("shaders/BlendShader.vs", GL_VERTEX_SHADER);
-    BlendShader.AddShader("shaders/BlendShader.fs", GL_FRAGMENT_SHADER);
-    BlendShader.LinkShader();
-
-    std::cout << "LOADING QUAD Shader" << std::endl;
-
-    Shader QuadShader = Shader();
-    QuadShader.AddShader("shaders/QuadShader.vs", GL_VERTEX_SHADER);
-    QuadShader.AddShader("shaders/QuadShader.fs", GL_FRAGMENT_SHADER);
-    QuadShader.LinkShader();
+    Shader GeneralShader = Shader(std::string("shadow"));
+    Shader DepthShader = Shader(std::string("DepthShader"));
+    Shader HDRShader = Shader(std::string("HDRShader"));
+    Shader BlurShader = Shader(std::string("BlurShader"));
+    Shader BlendShader = Shader(std::string("BlendShader"));
+    Shader QuadShader = Shader(std::string("QuadShader"));
+    Shader SkyboxShader = Shader(std::string("SkyShader"));
 
     // Setup textures
     TextureAtlas::GetInstance();
@@ -194,7 +153,7 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    Camera::GetInstance(Vector3f(0.0f, 12.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(0.0f, 25.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -237,53 +196,57 @@ void HandleFPS(GLFWwindow *window)
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos)
 {
-    Camera::GetInstance()->Rotate(xpos, ypos);
+    // Camera::GetInstance()->Rotate(xpos, ypos);   
 }
 
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    double XPos, YPos;
+    glfwGetCursorPos(window, &XPos, &YPos);
+
+    Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
+
+    Vector3f PositionToTest;
+
+    for (int i = 1; i <= 16; i++)
     {
-        // std::cout << "ATTEMPTING TO REMOVE BLOCK" << std::endl;
-        double XPos, YPos;
-        glfwGetCursorPos(window, &XPos, &YPos);
+        PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
 
-        Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
+        PositionToTest.x = std::min<float>(PositionToTest.x, 159);
+        PositionToTest.z = std::min<float>(PositionToTest.z, 159);
 
-        bool IsFound = false;
+        PositionToTest.x = std::max<float>(PositionToTest.x, 0);
+        PositionToTest.z = std::max<float>(PositionToTest.z, 0);
 
-        Vector3f PositionToTest;
+        int X = floor(PositionToTest.x / 16);
+        int Z = floor(PositionToTest.z / 16);
 
-        for (int i = 1; i <= 16; i++)
+        Vector3f TargetOffset = Vector3f(X * 16, 0, Z * 16);
+
+        for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
         {
-            // PositionToTest = ((Camera::GetInstance()->CameraFront.Add(Ray)).Multiply(i)).Add(Camera::GetInstance()->GetCameraPos());
-            PositionToTest = (Ray).Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
-
-            auto Offset = World::GetInstance()->ChunkPositions.at(0);
-            auto TempChunk = &World::GetInstance()->ChunkData.at(0);
-
-            Camera::GetInstance()->GetCameraPos().Print();
+            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
+            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
 
             if (TempChunk->IsWithinChunk(PositionToTest, Offset))
             {
-                std::cout << " i = " << i << std::endl;
-
                 auto NewChunk = Chunk(TempChunk->Blocks);
-                NewChunk.ClearChunk(PositionToTest.Sub(Ray), Offset);
+
+                if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset);
+                else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+                    NewChunk.ClearChunk(PositionToTest, Offset);
+
                 NewChunk.CreateMesh();
 
-                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin());
-                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin());
+                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
+                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
 
                 World::GetInstance()->ChunkPositions.push_back(Offset);
                 World::GetInstance()->ChunkData.push_back(NewChunk);
 
-                IsFound = true;
                 break;
             }
-
-            if (IsFound)
-                break;
         }
     }
 }

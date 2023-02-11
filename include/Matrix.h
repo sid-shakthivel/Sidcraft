@@ -116,6 +116,13 @@ public:
         return Vector(x / magnitude, y / magnitude, z / magnitude);
     }
 
+    void RoundToNearestInt()
+    {
+        x = round(x);
+        y = round(y);
+        z = round(z);
+    }
+
     void Print()
     {
         std::cout << "Vector: " << x << " " << y << " " << z << "\n";
@@ -266,6 +273,11 @@ public:
     bool operator<(SquareMatrix const &b) const
     { // <-- note the *trailing* const!
         return (elements[0][0] <= b.elements[0][0]);
+    }
+
+    Vector3f ExtractTranslation()
+    {
+        return Vector3f(elements[3][0], elements[3][1], elements[3][2]);
     }
 
     void Rotate(double Degrees, Axis RotationAxis)

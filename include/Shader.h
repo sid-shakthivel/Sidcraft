@@ -15,7 +15,7 @@ protected:
     std::vector<unsigned int> shaderIdentifiers;
 
 public:
-    Shader();
+    Shader(const std::string &FileName);
     void AddShader(const char *filepath, GLenum shaderType);
     void LinkShader();
 

@@ -37,28 +37,26 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     if (Vec.y >= 0 && Vec.y <= CHUNK_HEIGHT)
         if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
             if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
-            {
                 if (Blocks[(int)round(Vec.x)][(int)round(Vec.y)][(int)round(Vec.z)] == true)
-                {
-                    // std::cout << "Block detected within chunk: " << Vec.x << " , 9 , " << Vec.z << std::endl;
                     return true;
-                }
-            }
 
     return false;
 }
 
+void Chunk::SetChunk(Vector3f Position, Matrix4f Offset)
+{
+    Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
+    RelativeVec.RoundToNearestInt();
+
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = true;
+}
+
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
 {
-    Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
-    Vector3f RelativeVec = Position.Sub(ExtractedOffsetVec);
+    Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
+    RelativeVec.RoundToNearestInt();
 
-    RelativeVec.x = round(RelativeVec.x);
-    RelativeVec.y = round(RelativeVec.y);
-    RelativeVec.z = round(RelativeVec.z);
-
-    std::cout << "Block changed within chunk: " << Position.x << " , 10 , " << Position.z << std::endl;
-    Blocks[(int)RelativeVec.x][10][(int)RelativeVec.z] = true;
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = false;
 }
 
 // Creates a new chunk
@@ -95,8 +93,6 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             height = (height + 1) / 4;
 
             height *= CHUNK_HEIGHT;
-
-            height = 10;
 
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;

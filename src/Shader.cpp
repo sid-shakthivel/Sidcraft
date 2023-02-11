@@ -10,9 +10,18 @@
 
 #include "../include/Shader.h"
 
-Shader::Shader()
+Shader::Shader(const std::string &FileName)
 {
+    auto Filepath1 = std::string("shaders/").append(FileName).append(std::string(".vs")).c_str();
+    auto Filepath2 = std::string("shaders/").append(FileName).append(std::string(".fs")).c_str();
+
     ProgramId = glCreateProgram();
+
+    std::cout << "LOADING: " << FileName << std::endl;
+
+    AddShader(Filepath1, GL_VERTEX_SHADER);
+    AddShader(Filepath2, GL_FRAGMENT_SHADER);
+    LinkShader();
 }
 
 void Shader::CheckCompileErrors(GLuint shader, GLenum Type)

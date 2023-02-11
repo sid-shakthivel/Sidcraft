@@ -19,6 +19,6 @@ public:
     void CreateMesh();
     void Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const;
     bool IsWithinChunk(Vector3f Vec, Matrix4f Offset) const;
+    void SetChunk(Vector3f Position, Matrix4f Offset);
     void ClearChunk(Vector3f Position, Matrix4f Offset);
-    // void ClearChunk(Vector3f Position) const;
 };
