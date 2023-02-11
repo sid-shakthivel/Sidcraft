@@ -194,7 +194,7 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    Camera::GetInstance(Vector3f(0.0f, 22.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(0.0f, 12.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -247,48 +247,43 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         // std::cout << "ATTEMPTING TO REMOVE BLOCK" << std::endl;
         double XPos, YPos;
         glfwGetCursorPos(window, &XPos, &YPos);
+
         Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
 
         bool IsFound = false;
 
         Vector3f PositionToTest;
 
-        std::cout << "New Left Click" << std::endl;
-
-        for (int i = 1; i <= 1; i++)
+        for (int i = 1; i <= 16; i++)
         {
-            PositionToTest = Camera::GetInstance()->GetCameraPos().Add(Ray.Multiply(i));
+            // PositionToTest = ((Camera::GetInstance()->CameraFront.Add(Ray)).Multiply(i)).Add(Camera::GetInstance()->GetCameraPos());
+            PositionToTest = (Ray).Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
 
-            PositionToTest.x = std::min<float>(PositionToTest.x, 159);
-            PositionToTest.z = std::min<float>(PositionToTest.z, 159);
+            auto Offset = World::GetInstance()->ChunkPositions.at(0);
+            auto TempChunk = &World::GetInstance()->ChunkData.at(0);
 
-            int X = floor(PositionToTest.x / 16) < 0 ? 0 : floor(PositionToTest.x / 16);
-            int Z = floor(PositionToTest.z / 16) < 0 ? 0 : floor(PositionToTest.z / 16);
+            Camera::GetInstance()->GetCameraPos().Print();
 
-            std::cout << "X = " << X << " Z = " << Z << std::endl;
+            if (TempChunk->IsWithinChunk(PositionToTest, Offset))
+            {
+                std::cout << " i = " << i << std::endl;
 
-            int Index = (X * 10) + Z;
-            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
-            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
+                auto NewChunk = Chunk(TempChunk->Blocks);
+                NewChunk.ClearChunk(PositionToTest.Sub(Ray), Offset);
+                NewChunk.CreateMesh();
 
-            Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
+                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin());
+                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin());
 
-            ExtractedOffsetVec.Print();
+                World::GetInstance()->ChunkPositions.push_back(Offset);
+                World::GetInstance()->ChunkData.push_back(NewChunk);
 
-            // if (TempChunk->IsWithinChunk(PositionToTest, Offset))
-            // {
-            //     auto NewChunk = Chunk(TempChunk->Blocks);
-            //     NewChunk.ClearChunk(PositionToTest, Offset);
-            //     NewChunk.CreateMesh();
+                IsFound = true;
+                break;
+            }
 
-            //     World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
-            //     World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
-
-            //     World::GetInstance()->ChunkPositions.push_back(Offset);
-            //     World::GetInstance()->ChunkData.push_back(NewChunk);
-
-            //     break;
-            // }
+            if (IsFound)
+                break;
         }
     }
 }

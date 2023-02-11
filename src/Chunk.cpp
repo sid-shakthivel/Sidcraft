@@ -38,10 +38,9 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
         if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
             if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
             {
-                // Check if there is a block nearby the position - with 1
-                if (Blocks[(int)Vec.x][9][(int)Vec.z] == true)
+                if (Blocks[(int)round(Vec.x)][(int)round(Vec.y)][(int)round(Vec.z)] == true)
                 {
-                    std::cout << "Block detected within chunk: " << Vec.x << " , 9 , " << Vec.z << std::endl;
+                    // std::cout << "Block detected within chunk: " << Vec.x << " , 9 , " << Vec.z << std::endl;
                     return true;
                 }
             }
@@ -58,7 +57,7 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
     RelativeVec.y = round(RelativeVec.y);
     RelativeVec.z = round(RelativeVec.z);
 
-    std::cout << "Block detected within chunk: " << Position.x << " , 10 , " << Position.z << std::endl;
+    std::cout << "Block changed within chunk: " << Position.x << " , 10 , " << Position.z << std::endl;
     Blocks[(int)RelativeVec.x][10][(int)RelativeVec.z] = true;
 }
 

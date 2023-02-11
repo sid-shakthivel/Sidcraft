@@ -20,9 +20,9 @@ World::World()
 
 void World::GenerateWorld()
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 1; i++)
     {
-        for (int j = 0; j < 10; j++)
+        for (int j = 0; j < 1; j++)
         {
             Matrix4f ModelMatrix = Matrix4f(1);
             ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, j * CHUNK_SIZE));
@@ -41,18 +41,18 @@ void World::GenerateWorld()
     // std::uniform_int_distribution<> WorldRange(0, 32);
 
     // Generate trees
-    for (int i = 0; i < 25; i++)
-    {
-        auto PosX = WorldRange(gen);
-        auto PosZ = WorldRange(gen);
+    // for (int i = 0; i < 25; i++)
+    // {
+    //     auto PosX = WorldRange(gen);
+    //     auto PosZ = WorldRange(gen);
 
-        // PosX = 8;
-        // PosZ = 8;
+    //     // PosX = 8;
+    //     // PosZ = 8;
 
-        auto Height = Heightmap[PosZ][PosX];
+    //     auto Height = Heightmap[PosZ][PosX];
 
-        Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
-        NewTree.CreateMesh();
-        TreeList.push_back(NewTree);
-    }
+    //     Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+    //     NewTree.CreateMesh();
+    //     TreeList.push_back(NewTree);
+    // }s
 }
