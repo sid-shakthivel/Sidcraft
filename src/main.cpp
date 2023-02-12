@@ -65,7 +65,7 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
-    Shader GeneralShader = Shader(std::string("shadow"));
+    Shader MainShader = Shader(std::string("MainShader"));
     Shader DepthShader = Shader(std::string("DepthShader"));
     Shader HDRShader = Shader(std::string("HDRShader"));
     Shader BlurShader = Shader(std::string("BlurShader"));
@@ -76,7 +76,7 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(0.0f, 12.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(0.0f, 25.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -91,7 +91,7 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        MasterRenderer.RenderScene(&GeneralShader);
+        MasterRenderer.RenderScene(&MainShader);
         MasterRenderer.RenderSkybox(&SkyboxShader, deltaTime);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
@@ -145,8 +145,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
             if (TempChunk->IsWithinChunk(PositionToTest, Offset))
             {
-                // Camera::GetInstance()->GetCameraPos().Print();
-
                 auto NewChunk = Chunk(TempChunk->Blocks);
 
                 if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)

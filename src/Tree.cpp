@@ -16,7 +16,7 @@
 
 #include "../include/Tree.h"
 
-Tree::Tree(Vector3f Offset) : CubeData(cube.GetCubeData())
+Tree::Tree(Vector3f Offset) : TrunkCubeData(TrunkCube.GetCubeData())
 {
     this->Offset = Offset;
 }
@@ -74,9 +74,9 @@ void Tree::CreateMesh()
                 LeavesPositionList.push_back(ModelMatrix);
             }
 
-    Vertices = CubeData.Vertices;
-    Faces = CubeData.Faces;
-    Indices = CubeData.Indices;
+    Vertices = TrunkCubeData.Vertices;
+    Faces = TrunkCubeData.Faces;
+    Indices = TrunkCubeData.Indices;
 
     Mesh::CreateMesh();
 }

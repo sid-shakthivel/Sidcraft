@@ -11,6 +11,7 @@ class Chunk : public Mesh
 {
 private:
     bool IsWithinRange(Vector3f Vec);
+    int LocalHeightmap[16][16];
 
 public:
     bool Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];

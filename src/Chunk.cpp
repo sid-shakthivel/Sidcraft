@@ -103,6 +103,7 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
 
             Heightmap[ZOffset][XOffset] = height;
+            LocalHeightmap[z][x] = height;
         }
 }
 
@@ -158,8 +159,23 @@ void Chunk::CreateMesh()
                             NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
                             NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
 
+                            auto DetermineBlockType = [](Vector3f Direction, float Y, float Height) -> float
+                            {
+                                if (Y == Height)
+                                    return Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
+                                else if (Y > (Height - 5))
+                                    return TextureAtlas::GetInstance()->FetchDirt();
+                                else
+                                    return TextureAtlas::GetInstance()->FetchStone();
+                            };
+
+                            // Determine block type
+                            int Height = LocalHeightmap[z][x];
+                            float TextureIndex = DetermineBlockType(Direction, y, Height);
+                            // auto TextureIndex = Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
+
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i]));
+                                Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));
 
                             Faces.push_back(Direction);
 
@@ -175,28 +191,6 @@ void Chunk::CreateMesh()
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
     MeshShader->SetMatrix4f("model", (const float *)(&Offset));
-
-    // Draw each face of the chunk
     glBindVertexArray(VAO);
-
-    // for (int i = 0; i < Faces.size(); i++)
-    // {
-    //     // auto TempFace = Faces[i];
-    //     // if (!isDepth)
-    //     // {
-    //     //     if (TempFace.IsEqual(TestList[0]) || TempFace.IsEqual(TestList[1]))
-    //     //     {
-    //     //         MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
-    //     //     }
-    //     //     else
-    //     //     {
-    //     //         MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassSide());
-    //     //     }
-    //     // }
-
-    //     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)((i * 6) * sizeof(GLuint)));
-    // }
-
-    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }

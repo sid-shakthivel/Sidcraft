@@ -124,7 +124,7 @@ void Shader::SetVector3f(const std::string &name, Vector3f *Vec) const
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform vec3\n";
+        std::cout << "Failed to create uniform vec3 " << name.c_str() << std::endl;
     glUniform3f(result, Vec->x, Vec->y, Vec->z);
 }
 
@@ -132,7 +132,7 @@ void Shader::SetFloat(const std::string &name, float value)
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform float\n";
+        std::cout << "Failed to create uniform float " << name.c_str() << std::endl;
     glUniform1f(result, value);
 }
 
@@ -140,7 +140,7 @@ void Shader::SetInt(const std::string &name, int value)
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform int\n";
+        std::cout << "Failed to create uniform int " << name.c_str() << std::endl;
     glUniform1i(result, value);
 }
 

@@ -20,7 +20,7 @@ struct MeshData
 class Cube : public Mesh
 {
 public:
-    Cube();
+    Cube(float TextureIndex = 0);
     MeshData GetCubeData();
 };
 

@@ -13,7 +13,7 @@
 
 std::vector<Vector3f> AnotherList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
 
-Cube::Cube()
+Cube::Cube(float TextureIndex)
 {
     // Generates a cube
     unsigned int indexer = 0;
@@ -40,7 +40,7 @@ Cube::Cube()
         NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
 
         for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-            Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i]));
+            Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));
 
         std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
                       { index += 4 * indexer; });

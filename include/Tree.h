@@ -6,8 +6,8 @@
 class Tree : public Mesh
 {
 private:
-    Cube cube = Cube();
-    MeshData CubeData;
+    Cube TrunkCube = Cube();
+    MeshData TrunkCubeData;
     std::vector<Matrix4f> PositionsList;
     std::vector<Matrix4f> LeavesPositionList;
 

@@ -77,8 +77,8 @@ void Renderer::DrawWorld(Shader *GenericShader)
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, false, World::GetInstance()->ChunkPositions.at(i));
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.Draw(GenericShader, false);
+    // for (auto const &Tree : World::GetInstance()->TreeList)
+    //     Tree.Draw(GenericShader, false);
 }
 
 void Renderer::SetupHDR()

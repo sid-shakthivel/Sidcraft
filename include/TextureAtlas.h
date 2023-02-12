@@ -21,6 +21,9 @@ public:
     float FetchGrassSide();
     float FetchTreeTrunk();
     float FetchTreeLeaves();
+    float FetchDirt();
+    float FetchStone();
+    float FetchSand();
 };
 
 inline TextureAtlas *TextureAtlas::TextureAtlasSingleton_ = nullptr;

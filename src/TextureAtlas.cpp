@@ -61,6 +61,16 @@ float TextureAtlas::FetchGrassSide()
     return 241.0f;
 }
 
+float TextureAtlas::FetchDirt()
+{
+    return 242.0f;
+}
+
+float TextureAtlas::FetchStone()
+{
+    return 243.0f;
+}
+
 float TextureAtlas::FetchTreeTrunk()
 {
     return 244.0f;
@@ -69,4 +79,9 @@ float TextureAtlas::FetchTreeTrunk()
 float TextureAtlas::FetchTreeLeaves()
 {
     return 246.0f;
+}
+
+float TextureAtlas::FetchSand()
+{
+    return 247.0f;
 }

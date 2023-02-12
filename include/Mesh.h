@@ -13,19 +13,19 @@ const Vector3f RIGHT = Vector3f(1.0f, 0.0f, 0.0f);
 const Vector3f FRONT = Vector3f(0.0f, 0.0f, 1.0f);
 const Vector3f BACK = Vector3f(0.0f, 0.0f, -1.0f);
 
-// std::vector<Vector3f> DirectionsList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
-
 struct Vertex
 {
     Vector3f Position;
     Vector3f Normal;
     Vector2f TextureCoordinates;
+    float TextureIndex;
 
-    Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates)
+    Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, float TextureIndex)
     {
         this->Position = Position;
         this->Normal = Normal;
         this->TextureCoordinates = TextureCoordinates;
+        this->TextureIndex = TextureIndex;
     }
 };
 

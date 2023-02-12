@@ -53,4 +53,7 @@ void Mesh::InitaliseData()
 
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
     glEnableVertexAttribArray(2); // Texture Coordinates
+
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+    glEnableVertexAttribArray(3); // Texture Index
 }
