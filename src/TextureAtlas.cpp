@@ -85,3 +85,8 @@ float TextureAtlas::FetchSand()
 {
     return 247.0f;
 }
+
+float TextureAtlas::FetchWater()
+{
+    return 248.0f;
+}

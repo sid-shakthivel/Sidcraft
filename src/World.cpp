@@ -47,6 +47,9 @@ void World::GenerateWorld()
 
         auto Height = Heightmap[PosZ][PosX];
 
+        if (Height == 0)
+            continue;
+
         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
         NewTree.CreateMesh();
         TreeList.push_back(NewTree);

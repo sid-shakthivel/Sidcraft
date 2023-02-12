@@ -70,6 +70,17 @@ Chunk::Chunk(const bool (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE])
                 Blocks[x][y][z] = BlocksToCopy[x][y][z];
 }
 
+float GetGradient(float X, float Z)
+{
+    float DistanceX = abs(X - 240 * 0.5f);
+    float DistanceZ = abs(Z - 240 * 0.5f);
+    float Distance = sqrt(DistanceX * DistanceX + DistanceZ * DistanceZ);
+
+    float MaxWidth = 240 * 0.5f - 15.0f;
+    float Delta = Distance / MaxWidth;
+    return Delta * Delta;
+}
+
 /*
     Determines whether a block should be rendered or not
     In future when we can delete blocks may come in handy
@@ -91,16 +102,19 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             int VoxelX = x + (Offset.x * CHUNK_SIZE);
             int VoxelZ = z + (Offset.z * CHUNK_SIZE);
 
+            int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + z;
+            int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
+
             auto height = glm::simplex(glm::vec2(VoxelX / 64.0f, VoxelZ / 64.0f));
+
             height = (height + 1) / 4;
+
+            height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
 
             height *= CHUNK_HEIGHT;
 
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;
-
-            int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + z;
-            int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
 
             Heightmap[ZOffset][XOffset] = height;
             LocalHeightmap[z][x] = height;
@@ -172,7 +186,6 @@ void Chunk::CreateMesh()
                             // Determine block type
                             int Height = LocalHeightmap[z][x];
                             float TextureIndex = DetermineBlockType(Direction, y, Height);
-                            // auto TextureIndex = Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
 
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
                                 Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));

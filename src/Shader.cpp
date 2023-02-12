@@ -116,7 +116,10 @@ void Shader::SetMatrix4f(const std::string &name, const float *Value) const
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform matrix " << name.c_str() << std::endl;
+    {
+        std::cout << "ERROR: UNKNOWN UNIFORM MATRIX " << name.c_str() << std::endl;
+        std::exit(0);
+    }
     glUniformMatrix4fv(result, 1, GL_FALSE, Value);
 }
 
@@ -124,7 +127,10 @@ void Shader::SetVector3f(const std::string &name, Vector3f *Vec) const
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform vec3 " << name.c_str() << std::endl;
+    {
+        std::cout << "ERROR: UNKNOWN UNIFORM VEC3 " << name.c_str() << std::endl;
+        std::exit(0);
+    }
     glUniform3f(result, Vec->x, Vec->y, Vec->z);
 }
 
@@ -132,7 +138,10 @@ void Shader::SetFloat(const std::string &name, float value)
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform float " << name.c_str() << std::endl;
+    {
+        std::cout << "ERROR: UNKNOWN UNIFORM FLOAT " << name.c_str() << std::endl;
+        std::exit(0);
+    }
     glUniform1f(result, value);
 }
 
@@ -140,7 +149,10 @@ void Shader::SetInt(const std::string &name, int value)
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());
     if (result < 0)
-        std::cout << "Failed to create uniform int " << name.c_str() << std::endl;
+    {
+        std::cout << "ERROR: UNKNOWN UNIFORM INT " << name.c_str() << std::endl;
+        std::exit(0);
+    }
     glUniform1i(result, value);
 }
 

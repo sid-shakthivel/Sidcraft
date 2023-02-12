@@ -24,6 +24,7 @@ public:
     float FetchDirt();
     float FetchStone();
     float FetchSand();
+    float FetchWater();
 };
 
 inline TextureAtlas *TextureAtlas::TextureAtlasSingleton_ = nullptr;

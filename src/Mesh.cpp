@@ -57,3 +57,8 @@ void Mesh::InitaliseData()
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
     glEnableVertexAttribArray(3); // Texture Index
 }
+
+unsigned int Mesh::GetVAO() const
+{
+    return VAO;
+}

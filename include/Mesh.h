@@ -45,4 +45,5 @@ public:
     void Draw(Shader *MeshShader, bool isDepth);
     void CreateMesh();
     void InitaliseData();
+    unsigned int GetVAO() const;
 };

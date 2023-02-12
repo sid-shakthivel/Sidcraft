@@ -4,6 +4,7 @@
 #include "../include/Camera.h"
 #include "../include/Shader.h"
 #include "../include/World.h"
+#include "../include/Quad.h"
 #include "../include/TextureAtlas.h"
 
 #include "../include/Renderer.h"
@@ -27,12 +28,99 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
 }
 
-void Renderer::RenderScene(Shader *GenericShader)
+void Renderer::RenderNormal(Shader *GenericShader)
 {
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    RenderScene(GenericShader);
+}
+
+void Renderer::RenderHDR(Shader *GenericShader)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RenderScene(GenericShader);
+}
+
+void Renderer::RenderBlur(Shader *BlurShader, Quad *FinalQuad)
+{
+    BlurShader->Use();
+
+    Horizontal = true;
+    bool FirstIteration = true;
+    int Amount = 20;
+
+    for (unsigned int i = 0; i < Amount; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, PingPongBuffers[Horizontal]);
+
+        BlurShader->SetInt("Horizontal", Horizontal);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(
+            GL_TEXTURE_2D, FirstIteration ? ColourBuffers[0] : PingPongBuffers[!Horizontal]);
+
+        BlurShader->SetInt("Image", 0);
+
+        FinalQuad->Draw();
+
+        Horizontal = !Horizontal;
+
+        if (FirstIteration)
+            FirstIteration = false;
+    }
+}
+
+void Renderer::RenderBloom(Shader *BlendShader, Quad *FinalQuad)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    BlendShader->Use();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, PingPongBuffers[!Horizontal]);
+
+    BlendShader->SetInt("Scene", 0);
+    BlendShader->SetInt("BloomBlur", 1);
+    BlendShader->SetFloat("Exposure", 0.45f);
+
+    FinalQuad->Draw();
+}
+
+void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    DrawSkybox(GenericShader, DeltaTime);
+}
+
+void Renderer::DrawSkybox(Shader *GenericShader, float DeltaTime)
+{
+    GenericShader->Use();
+    GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+    GenericShader->SetVector3f("FogColour", &SkyColour);
+
+    World::GetInstance()->skybox.Draw(GenericShader, DeltaTime);
+}
+
+void Renderer::Update()
+{
+    CameraViewPosition = Camera::GetInstance()->GetCameraPos();
+    ViewMatrix = Camera::GetInstance()->TestLookAt();
+    SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
+}
+
+void Renderer::RenderScene(Shader *GenericShader)
+{
     GenericShader->Use();
 
     glActiveTexture(GL_TEXTURE0);
@@ -52,40 +140,21 @@ void Renderer::RenderScene(Shader *GenericShader)
     DrawWorld(GenericShader);
 }
 
-void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
-{
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    GenericShader->Use();
-    // GenericShader->SetMatrix4f("view", (const float *)(&SlimViewMatrix));
-    GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
-    GenericShader->SetVector3f("FogColour", &SkyColour);
-
-    World::GetInstance()->skybox.Draw(GenericShader, DeltaTime);
-}
-
-void Renderer::Update()
-{
-    CameraViewPosition = Camera::GetInstance()->GetCameraPos();
-    ViewMatrix = Camera::GetInstance()->TestLookAt();
-    SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
-}
-
 void Renderer::DrawWorld(Shader *GenericShader)
 {
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, false, World::GetInstance()->ChunkPositions.at(i));
 
-    // for (auto const &Tree : World::GetInstance()->TreeList)
-    //     Tree.Draw(GenericShader, false);
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.Draw(GenericShader, false);
 }
 
 void Renderer::SetupHDR()
 {
+    // Create 2 floating point colour buffers (1 for normal rendering, 1 for brightness threshold values)
     glGenFramebuffers(1, &HdrFBO);
-    glGenTextures(2, &ColourBuffers[0]);
     glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+    glGenTextures(2, &ColourBuffers[0]);
 
     for (int i = 0; i < 2; i++)
     {
@@ -99,16 +168,18 @@ void Renderer::SetupHDR()
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, ColourBuffers[i], 0);
     }
 
+    // Create and attach depth buffer
     glGenRenderbuffers(1, &RboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, RboDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
+    // Determine which colour attachements are used
     unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, Attachments);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
+
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
+        std::cout << "ERROR: INCOMPLETE HDR FRAMEBUFFER" << std::endl;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -129,10 +200,10 @@ void Renderer::SetupBloom()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, PingPongBuffers[i], 0);
-    }
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete!" << std::endl;
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cout << "ERROR: INCOMPLETE PINGPONG FRAMEBUFFER" << std::endl;
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -144,6 +215,7 @@ void Renderer::SetupDepth()
     glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
                  SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -153,6 +225,9 @@ void Renderer::SetupDepth()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR: INCOMPLETE DEPTH FRAMEBUFFER" << std::endl;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

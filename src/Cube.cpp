@@ -54,6 +54,11 @@ Cube::Cube(float TextureIndex)
     }
 }
 
+void Cube::CreateMesh()
+{
+    Mesh::CreateMesh();
+}
+
 MeshData Cube::GetCubeData()
 {
     return MeshData(Vertices, Indices, Faces);

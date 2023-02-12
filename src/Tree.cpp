@@ -16,16 +16,19 @@
 
 #include "../include/Tree.h"
 
-Tree::Tree(Vector3f Offset) : TrunkCubeData(TrunkCube.GetCubeData())
+Tree::Tree(Vector3f Offset)
 {
     this->Offset = Offset;
+
+    TrunkCube = Cube(TextureAtlas::GetInstance()->FetchTreeTrunk());
+    TrunkCube.CreateMesh();
+    LeafCube = Cube(TextureAtlas::GetInstance()->FetchTreeLeaves());
+    LeafCube.CreateMesh();
 }
 
 void Tree::Draw(Shader *MeshShader, bool isDepth) const
 {
-    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchTreeTrunk());
-
-    glBindVertexArray(VAO);
+    glBindVertexArray(TrunkCube.GetVAO());
 
     for (unsigned int i = 0; i < PositionsList.size(); i++)
     {
@@ -33,7 +36,7 @@ void Tree::Draw(Shader *MeshShader, bool isDepth) const
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 
-    MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchTreeLeaves());
+    glBindVertexArray(LeafCube.GetVAO());
 
     for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
     {
@@ -73,10 +76,4 @@ void Tree::CreateMesh()
                 ModelMatrix.Translate(Vector3f(i + Offset.x, TrunkHeight + Offset.y + k, j + Offset.z));
                 LeavesPositionList.push_back(ModelMatrix);
             }
-
-    Vertices = TrunkCubeData.Vertices;
-    Faces = TrunkCubeData.Faces;
-    Indices = TrunkCubeData.Indices;
-
-    Mesh::CreateMesh();
 }

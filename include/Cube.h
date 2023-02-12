@@ -22,6 +22,7 @@ class Cube : public Mesh
 public:
     Cube(float TextureIndex = 0);
     MeshData GetCubeData();
+    void CreateMesh();
 };
 
 std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position);

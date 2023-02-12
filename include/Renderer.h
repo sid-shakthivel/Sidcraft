@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <tuple>
 #include "Shader.h"
+#include "Quad.h"
 
 class Renderer
 {
@@ -34,17 +35,25 @@ private:
     unsigned int DepthMapFBO;
     unsigned int DepthMapTexture;
 
+    bool Horizontal = true;
+
     void DrawWorld(Shader *GenericShader);
 
 protected:
+    void RenderScene(Shader *GenericShader);
+
 public:
     Renderer();
 
     void SetupHDR();
     void SetupBloom();
     void SetupDepth();
-    void RenderScene(Shader *GenericShader);
-    void RenderSkybox(Shader *GenericShader, float DeltaTime);
+    void RenderHDR(Shader *GenericShader);
+    void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
+    void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
+    void RenderNormal(Shader *GenericShader);
+    void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
+    void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void Update();
 
     std::tuple<glm::mat4, glm::mat4> GetMatrices();
