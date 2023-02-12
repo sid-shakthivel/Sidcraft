@@ -26,8 +26,9 @@ bool Chunk::IsWithinRange(Vector3f Vec)
 
 bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
 {
-    // Extract actual position
-    Vector3f ExtractedOffsetVec = Vector3f(Offset.elements[3][0], Offset.elements[3][1], Offset.elements[3][2]);
+    // Extract both the offset and calculate the relative postion
+    Vector3f ExtractedOffsetVec = Offset.ExtractTranslation();
+    Vector3f RelativeVec = Vec.Sub(ExtractedOffsetVec);
 
     Vec.x = round(Vec.x);
     Vec.y = round(Vec.y);
@@ -37,7 +38,7 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     if (Vec.y >= 0 && Vec.y <= CHUNK_HEIGHT)
         if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
             if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
-                if (Blocks[(int)round(Vec.x)][(int)round(Vec.y)][(int)round(Vec.z)] == true)
+                if (Blocks[(int)round(RelativeVec.x)][(int)round(RelativeVec.y)][(int)round(RelativeVec.z)] == true)
                     return true;
 
     return false;
@@ -47,14 +48,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[160][1
 {
 
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
-
-    Offset.ExtractTranslation().Print();
-    Position.Print();
-    RelativeVec.Print();
-
     RelativeVec.RoundToNearestInt();
-
-    // float HeightFromMap = (float)(*Heightmap[(int)round(Position.z), (int)round(Position.x)]);
 
     Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = true;
 }
@@ -101,8 +95,6 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             height = (height + 1) / 4;
 
             height *= CHUNK_HEIGHT;
-
-            height = 10;
 
             for (int y = 0; y < height; y++)
                 Blocks[x][y][z] = true;
@@ -189,21 +181,20 @@ void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 
     // for (int i = 0; i < Faces.size(); i++)
     // {
-    //     auto TempFace = Faces[i];
-    //     if (!isDepth)
-    //     {
-    //         if (TempFace.IsEqual(TestList[0]) || TempFace.IsEqual(TestList[1]))
-    //         {
-    //             MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
-    //         }
-    //         else
-    //         {
-    //             MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassSide());
-    //         }
-    //     }
+    //     // auto TempFace = Faces[i];
+    //     // if (!isDepth)
+    //     // {
+    //     //     if (TempFace.IsEqual(TestList[0]) || TempFace.IsEqual(TestList[1]))
+    //     //     {
+    //     //         MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());
+    //     //     }
+    //     //     else
+    //     //     {
+    //     //         MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassSide());
+    //     //     }
+    //     // }
 
     //     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)((i * 6) * sizeof(GLuint)));
-    //     // glDrawRangeElements(GL_TRIANGLES, i * 6, (i + 1) * 6, 6, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
     // }
 
     MeshShader->SetFloat("TestIndex", TextureAtlas::GetInstance()->FetchGrassTop());

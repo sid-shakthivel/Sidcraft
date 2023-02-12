@@ -76,7 +76,7 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(0.0f, 25.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(0.0f, 12.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -138,11 +138,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         PositionToTest.x = std::max<float>(PositionToTest.x, 0);
         PositionToTest.z = std::max<float>(PositionToTest.z, 0);
 
-        int X = floor(PositionToTest.x / 16);
-        int Z = floor(PositionToTest.z / 16);
-
-        Vector3f TargetOffset = Vector3f(X * 16, 0, Z * 16);
-
         for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
         {
             auto Offset = World::GetInstance()->ChunkPositions.at(Index);
@@ -150,6 +145,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
             if (TempChunk->IsWithinChunk(PositionToTest, Offset))
             {
+                // Camera::GetInstance()->GetCameraPos().Print();
+
                 auto NewChunk = Chunk(TempChunk->Blocks);
 
                 if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
