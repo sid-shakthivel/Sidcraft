@@ -38,7 +38,7 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     if (Vec.y >= 0 && Vec.y <= CHUNK_HEIGHT)
         if (Vec.x >= ExtractedOffsetVec.x && Vec.x <= (ExtractedOffsetVec.x + CHUNK_SIZE))
             if (Vec.z >= ExtractedOffsetVec.z && Vec.z <= (ExtractedOffsetVec.z + CHUNK_SIZE))
-                if (Blocks[(int)round(RelativeVec.x)][(int)round(RelativeVec.y)][(int)round(RelativeVec.z)] == true)
+                if (Blocks[(int)round(RelativeVec.x)][(int)round(RelativeVec.y)][(int)round(RelativeVec.z)] != BlockType::Air)
                     return true;
 
     return false;
@@ -50,7 +50,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[160][1
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = true;
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = BlockType::Grass;
 }
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
@@ -58,16 +58,20 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = false;
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = BlockType::Air;
 }
 
 // Creates a new chunk
-Chunk::Chunk(const bool (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE])
+Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE], const int (&HeightmapToCopy)[CHUNK_SIZE][CHUNK_SIZE])
 {
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int z = 0; z < CHUNK_SIZE; z++)
             for (int y = 0; y < CHUNK_HEIGHT; y++)
                 Blocks[x][y][z] = BlocksToCopy[x][y][z];
+
+    for (int x = 0; x < CHUNK_SIZE; x++)
+        for (int z = 0; z < CHUNK_SIZE; z++)
+            LocalHeightmap[z][x] = HeightmapToCopy[z][x];
 }
 
 float GetGradient(float X, float Z)
@@ -90,7 +94,7 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int z = 0; z < CHUNK_SIZE; z++)
             for (int y = 0; y < CHUNK_HEIGHT; y++)
-                Blocks[x][y][z] = false;
+                Blocks[x][y][z] = BlockType::Air;
 
     /*
         Uses perlin noise to determine height
@@ -114,7 +118,7 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             height *= CHUNK_HEIGHT;
 
             for (int y = 0; y < height; y++)
-                Blocks[x][y][z] = true;
+                Blocks[x][y][z] = BlockType::Grass;
 
             Heightmap[ZOffset][XOffset] = height;
             LocalHeightmap[z][x] = height;
@@ -141,7 +145,7 @@ void Chunk::CreateMesh()
 
                     if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == false)
                     {
-                        if (Blocks[x][y][z] == true)
+                        if (Blocks[x][y][z] != BlockType::Air)
                         {
                             // Fix for Up/Down
                             if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))

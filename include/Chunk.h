@@ -5,18 +5,20 @@ static const unsigned int CHUNK_HEIGHT = 48;
 
 #include "Mesh.h"
 #include "Shader.h"
+#include "Block.h"
 
 // Represents a number of cubes together
 class Chunk : public Mesh
 {
 private:
     bool IsWithinRange(Vector3f Vec);
-    int LocalHeightmap[16][16];
 
 public:
-    bool Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+    BlockType Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+    int LocalHeightmap[CHUNK_SIZE][CHUNK_SIZE];
+
     Chunk(Vector3f Offset, int (&Heightmap)[160][160]);
-    Chunk(const bool (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE]);
+    Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE], const int (&HeightmapToCopy)[CHUNK_SIZE][CHUNK_SIZE]);
     void CreateMesh();
     void Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const;
     bool IsWithinChunk(Vector3f Vec, Matrix4f Offset) const;

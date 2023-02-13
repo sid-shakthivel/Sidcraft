@@ -50,6 +50,17 @@ int main()
         return -1;
     }
 
+    // Update dimensions
+    int FramebufferHeight, FramebufferWidth;
+    glfwGetFramebufferSize(window, &FramebufferWidth, &FramebufferHeight);
+
+    std::cout << FramebufferWidth << " " << FramebufferHeight << std::endl;
+
+    SCREEN_WIDTH = FramebufferWidth;
+    SCREEN_HEIGHT = FramebufferHeight;
+
+    std::cout << SCREEN_WIDTH << " " << SCREEN_HEIGHT << std::endl;
+
     glfwMakeContextCurrent(window); // Contexts stores all of state assocaiated with this instance of OpenGL
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     glfwSetCursorPosCallback(window, MouseCallback);
@@ -95,10 +106,12 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
+        // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
+
+        MasterRenderer.RenderNormal(&MainShader);
         MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
-        MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
-        MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+        // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
+        // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -151,7 +164,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 
             if (TempChunk->IsWithinChunk(PositionToTest, Offset))
             {
-                auto NewChunk = Chunk(TempChunk->Blocks);
+                auto NewChunk = Chunk(TempChunk->Blocks, TempChunk->LocalHeightmap);
 
                 if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
                     NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
