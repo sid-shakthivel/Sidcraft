@@ -59,16 +59,15 @@ void main()
     // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     vec3 lighting = (ambient  + diffuse + specular) * mix(SkyColour, color, fs_in.Visibility);    
 
-    // FragColor = vec4(1.0, 0.0, 0.0, 1.0);    
-
     FragColor = vec4(lighting, 1.0);
 
     float gamma = 2.2;
     FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
+
+    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 1.0)
+        BrightColour = vec4(FragColor.rgb, 1.0);
+    else
+        BrightColour = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
-// float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-// if(brightness > 1.0)
-//     BrightColour = vec4(FragColor.rgb, 1.0);
-// else
-//     BrightColour = vec4(0.0, 0.0, 0.0, 1.0);

@@ -2,6 +2,7 @@
 
 static const unsigned int CHUNK_SIZE = 16;
 static const unsigned int CHUNK_HEIGHT = 48;
+static const unsigned int WATER_LEVEL = 15;
 
 #include "Mesh.h"
 #include "Shader.h"

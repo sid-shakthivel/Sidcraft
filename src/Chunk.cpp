@@ -12,6 +12,7 @@
 #include "../include/Mesh.h"
 #include "../include/Cube.h"
 #include "../include/TextureAtlas.h"
+#include "../include/World.h"
 
 #include "../include/Chunk.h"
 
@@ -58,6 +59,9 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
+    BlockType *CurrentBlock = &Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z];
+    World::GetInstance()->Inventory.insert_or_assign(*CurrentBlock, World::GetInstance()->Inventory[*CurrentBlock]++);
+
     Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = BlockType::Air;
 }
 
@@ -96,6 +100,16 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             for (int y = 0; y < CHUNK_HEIGHT; y++)
                 Blocks[x][y][z] = BlockType::Air;
 
+    auto DetermineBlockType = [](float Y, float Height) -> BlockType
+    {
+        if (Y == Height)
+            return BlockType::Grass;
+        else if (Y > (Height - 1))
+            return BlockType::Dirt;
+        else
+            return BlockType::Stone;
+    };
+
     /*
         Uses perlin noise to determine height
         Build terrain by making each column a different / same height
@@ -115,18 +129,43 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
 
             height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
 
-            height *= CHUNK_HEIGHT;
+            height *= CHUNK_HEIGHT * 1.75;
 
             for (int y = 0; y < height; y++)
-                Blocks[x][y][z] = BlockType::Grass;
+                Blocks[x][y][z] = DetermineBlockType(y, height);
 
             Heightmap[ZOffset][XOffset] = height;
             LocalHeightmap[z][x] = height;
         }
+
+    /*
+        Generate water by setting a limit for regions where water can be if it's currently air
+    */
+
+    for (int z = 0; z < CHUNK_SIZE; z++)
+        for (int x = 0; x < CHUNK_SIZE; x++)
+            for (int y = 0; y < WATER_LEVEL; y++)
+                if (Blocks[x][y][z] == BlockType::Air)
+                    Blocks[x][y][z] = BlockType::Water;
 }
 
 void Chunk::CreateMesh()
 {
+    auto GetTextureIndex = [](BlockType TypeBlock, Vector3f Direction) -> float
+    {
+        switch (TypeBlock)
+        {
+        case BlockType::Grass:
+            return Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
+        case BlockType::Dirt:
+            return TextureAtlas::GetInstance()->FetchDirt();
+        case BlockType::Stone:
+            return TextureAtlas::GetInstance()->FetchStone();
+        case BlockType::Water:
+            return TextureAtlas::GetInstance()->FetchWater();
+        }
+    };
+
     /*
             Loop through each block, and check if adjacent blocks are within the chunk
             If an adjacent block is within the chunk, it need not be rendered
@@ -177,19 +216,8 @@ void Chunk::CreateMesh()
                             NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
                             NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
 
-                            auto DetermineBlockType = [](Vector3f Direction, float Y, float Height) -> float
-                            {
-                                if (Y == Height)
-                                    return Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
-                                else if (Y > (Height - 5))
-                                    return TextureAtlas::GetInstance()->FetchDirt();
-                                else
-                                    return TextureAtlas::GetInstance()->FetchStone();
-                            };
-
                             // Determine block type
-                            int Height = LocalHeightmap[z][x];
-                            float TextureIndex = DetermineBlockType(Direction, y, Height);
+                            float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
 
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
                                 Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));

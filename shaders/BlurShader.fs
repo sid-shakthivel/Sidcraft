@@ -15,7 +15,7 @@ void main() {
     bool H = Horizontal;
 
     if (Horizontal) {
-       for (int i = 0; i < 3; ++i) 
+       for (int i = 0; i < 5; ++i) 
        {
             Result += texture(Image, TexCoords + vec2(TexOffset.x * i, 0.0)).rgb * Weight[i];
             Result += texture(Image, TexCoords - vec2(TexOffset.x * i, 0.0)).rgb * Weight[i];
@@ -23,7 +23,7 @@ void main() {
     } 
     else 
     {
-        for (int i = 0; i < 20; ++i) 
+        for (int i = 0; i < 5; ++i) 
         {
             Result += texture(Image, TexCoords + vec2(0.0, TexOffset.y * i)).rgb * Weight[i];
             Result += texture(Image, TexCoords - vec2(0.0, TexOffset.y * i)).rgb * Weight[i];

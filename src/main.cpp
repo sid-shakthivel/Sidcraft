@@ -106,12 +106,12 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
+        MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
 
-        MasterRenderer.RenderNormal(&MainShader);
+        // MasterRenderer.RenderNormal(&MainShader);
         MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
-        // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
-        // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+        MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
+        MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

@@ -4,6 +4,7 @@
 #include "Tree.h"
 #include "Chunk.h"
 #include "Skybox.h"
+#include "Block.h"
 
 #include <map>
 #include <vector>
@@ -25,10 +26,10 @@ public:
     static World *GetInstance();
 
     std::vector<Tree> TreeList;
-    std::map<Matrix4f, Chunk> TerrainData;
-
     std::vector<Matrix4f> ChunkPositions;
     std::vector<Chunk> ChunkData;
+
+    std::map<BlockType, int> Inventory;
 
     int Heightmap[160][160];
 

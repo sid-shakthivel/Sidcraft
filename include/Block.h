@@ -6,4 +6,5 @@ enum BlockType
     Grass = 1,
     Dirt = 2,
     Stone = 3,
+    Water = 4,
 };

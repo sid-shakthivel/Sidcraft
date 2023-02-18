@@ -90,7 +90,7 @@ void Renderer::RenderBloom(Shader *BlendShader, Quad *FinalQuad)
 
     BlendShader->SetInt("Scene", 0);
     BlendShader->SetInt("BloomBlur", 1);
-    BlendShader->SetFloat("Exposure", 0.45f);
+    BlendShader->SetFloat("Exposure", 0.20f);
 
     FinalQuad->Draw();
 }
