@@ -45,7 +45,7 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     return false;
 }
 
-void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[160][160])
+void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[240][240])
 {
 
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
@@ -80,7 +80,7 @@ Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZ
 
 float GetGradient(float X, float Z)
 {
-    float Length = 225;
+    float Length = 15 * 15;
 
     float DistanceX = abs(X - Length * 0.5f);
     float DistanceZ = abs(Z - Length * 0.5f);
@@ -95,7 +95,7 @@ float GetGradient(float X, float Z)
     Determines whether a block should be rendered or not
     In future when we can delete blocks may come in handy
 */
-Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
+Chunk::Chunk(Vector3f Offset, int (&Heightmap)[240][240])
 {
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int z = 0; z < CHUNK_SIZE; z++)
@@ -104,9 +104,9 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
 
     auto DetermineBlockType = [](float Y, float Height) -> BlockType
     {
-        if (Y == Height)
+        if (Y > (Height - 1))
             return BlockType::Grass;
-        else if (Y > (Height - 1))
+        else if (Y > (Height - 3))
             return BlockType::Dirt;
         else
             return BlockType::Stone;
@@ -133,7 +133,7 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
 
             height *= CHUNK_HEIGHT * 1.75;
 
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y <= height; y++)
                 Blocks[x][y][z] = DetermineBlockType(y, height);
 
             Heightmap[ZOffset][XOffset] = height;
@@ -149,6 +149,11 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
                 if (Blocks[x][y][z] == BlockType::Air)
                 {
                     Blocks[x][y][z] = BlockType::Water;
+
+                    int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + z;
+                    int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
+
+                    Heightmap[ZOffset][XOffset] = WATER_LEVEL;
 
                     for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
                         for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
@@ -174,6 +179,9 @@ void Chunk::CreateMesh()
             return TextureAtlas::GetInstance()->FetchWater();
         case BlockType::Sand:
             return TextureAtlas::GetInstance()->FetchSand();
+        default:
+            std::cout << "ERROR: Unknown Block Type" << std::endl;
+            std::exit(0);
         }
     };
 

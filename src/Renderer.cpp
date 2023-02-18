@@ -30,6 +30,7 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
 
 void Renderer::RenderNormal(Shader *GenericShader)
 {
+    // std::cout << SCREEN_WIDTH << " " << SCREEN_HEIGHT << std::endl;
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -90,7 +91,7 @@ void Renderer::RenderBloom(Shader *BlendShader, Quad *FinalQuad)
 
     BlendShader->SetInt("Scene", 0);
     BlendShader->SetInt("BloomBlur", 1);
-    BlendShader->SetFloat("Exposure", 0.20f);
+    BlendShader->SetFloat("Exposure", 0.10f);
 
     FinalQuad->Draw();
 }

@@ -61,5 +61,7 @@ public:
 
 static unsigned int SCREEN_WIDTH = 800;
 static unsigned int SCREEN_HEIGHT = 600;
+// static unsigned int SCREEN_WIDTH = 800 * 4;
+// static unsigned int SCREEN_HEIGHT = 600 * 4;
 const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;

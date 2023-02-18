@@ -21,7 +21,6 @@
 #include "../include/Renderer.h"
 #include "../include/MouseHandler.h"
 
-// void MouseCallback(GLFWwindow *window, double xpos, double ypos);
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void HandleFPS(GLFWwindow *window);
 
@@ -87,7 +86,7 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(0.0f, 25.0f, 0.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(10.0f, 25.0f, 10.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -106,9 +105,8 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
-
         MasterRenderer.RenderNormal(&MainShader);
+        // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
         MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);

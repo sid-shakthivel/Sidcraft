@@ -19,6 +19,7 @@ private:
     float Pitch = 0;
 
     float ConvertToRadians(float Degrees);
+    void Jump();
 
 protected:
     Camera(Vector3f cameraPos, Vector3f cameraTarget);
@@ -40,8 +41,7 @@ public:
     glm::vec3 TestValue();
     Matrix4f RetrieveSlimLookAtMatrix();
 
-    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[160][160]);
-
+    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240]);
     void Rotate(double XPos, double YPos);
 };
 

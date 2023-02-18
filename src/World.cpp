@@ -47,7 +47,7 @@ void World::GenerateWorld()
 
         auto Height = Heightmap[PosZ][PosX];
 
-        if (Height == 0)
+        if (Height == 0 || Height < 7)
             continue;
 
         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));

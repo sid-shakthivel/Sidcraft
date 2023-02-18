@@ -36,6 +36,8 @@ void main()
 
     vec4 PosRelativeCam = view * model * vec4(aPos, 1.0);
     float Distance = length(PosRelativeCam.xyz);
+
+    // Fog stuff
     // vs_out.Visibility = exp(-pow(Distance * density, gradient));
     vs_out.Visibility = 1;
     // vs_out.Visibility = clamp(vs_out.Visibility, 0.0, 1.0);
