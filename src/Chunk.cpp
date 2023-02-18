@@ -80,11 +80,13 @@ Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZ
 
 float GetGradient(float X, float Z)
 {
-    float DistanceX = abs(X - 240 * 0.5f);
-    float DistanceZ = abs(Z - 240 * 0.5f);
+    float Length = 225;
+
+    float DistanceX = abs(X - Length * 0.5f);
+    float DistanceZ = abs(Z - Length * 0.5f);
     float Distance = sqrt(DistanceX * DistanceX + DistanceZ * DistanceZ);
 
-    float MaxWidth = 240 * 0.5f - 15.0f;
+    float MaxWidth = Length * 0.5f - 15.0f;
     float Delta = Distance / MaxWidth;
     return Delta * Delta;
 }
@@ -138,15 +140,22 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[160][160])
             LocalHeightmap[z][x] = height;
         }
 
-    /*
-        Generate water by setting a limit for regions where water can be if it's currently air
-    */
-
+    const int OFFSET = 5;
+    // Generate water by setting a limit for regions where water can be if it's currently air
+    // Generate sand which is generated around water
     for (int z = 0; z < CHUNK_SIZE; z++)
         for (int x = 0; x < CHUNK_SIZE; x++)
             for (int y = 0; y < WATER_LEVEL; y++)
                 if (Blocks[x][y][z] == BlockType::Air)
+                {
                     Blocks[x][y][z] = BlockType::Water;
+
+                    for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
+                        for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
+                            for (int k = y - 2; k <= (y + OFFSET); k++)
+                                if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
+                                    Blocks[i][k][j] = BlockType::Sand;
+                }
 }
 
 void Chunk::CreateMesh()
@@ -163,6 +172,8 @@ void Chunk::CreateMesh()
             return TextureAtlas::GetInstance()->FetchStone();
         case BlockType::Water:
             return TextureAtlas::GetInstance()->FetchWater();
+        case BlockType::Sand:
+            return TextureAtlas::GetInstance()->FetchSand();
         }
     };
 

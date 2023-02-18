@@ -132,10 +132,10 @@ void Camera::Rotate(double XPos, double YPos)
     Pitch += YOffset;
 
     // Constrain the value
-    // if (Pitch > 89.0f)
-    //     Pitch = 89.0f;
-    // if (Pitch < -89.0f)
-    //     Pitch = -89.0f;
+    if (Pitch > 89.0f)
+        Pitch = 89.0f;
+    if (Pitch < -89.0f)
+        Pitch = -89.0f;
 
     float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
     float y = sin(ConvertToRadians(Pitch));

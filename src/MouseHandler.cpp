@@ -6,6 +6,7 @@
 #include "../include/Matrix.h"
 #include "../include/World.h"
 #include "../include/Renderer.h"
+#include "../include/Camera.h"
 
 #include "../include/MouseHandler.h"
 
@@ -51,5 +52,5 @@ Vector3f MouseHandler::GetRay(double ViewportXPos, double ViewportYPos, glm::mat
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos)
 {
-    // Camera::GetInstance()->Rotate(xpos, ypos);
+    Camera::GetInstance()->Rotate(xpos, ypos);
 }

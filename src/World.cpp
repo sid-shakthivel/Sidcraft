@@ -20,9 +20,9 @@ World::World()
 
 void World::GenerateWorld()
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 15; i++)
     {
-        for (int j = 0; j < 10; j++)
+        for (int j = 0; j < 15; j++)
         {
             Matrix4f ModelMatrix = Matrix4f(1);
             ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, (j)*CHUNK_SIZE));
