@@ -30,12 +30,11 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
 
 void Renderer::RenderNormal(Shader *GenericShader, float DeltaTime)
 {
-    // std::cout << SCREEN_WIDTH << " " << SCREEN_HEIGHT << std::endl;
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderScene(GenericShader, DeltaTime);
+    RenderScene(GenericShader, DeltaTime, false);
 }
 
 void Renderer::RenderHDR(Shader *GenericShader, float DeltaTime)
@@ -44,7 +43,7 @@ void Renderer::RenderHDR(Shader *GenericShader, float DeltaTime)
     glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderScene(GenericShader, DeltaTime);
+    RenderScene(GenericShader, DeltaTime, false);
 }
 
 void Renderer::RenderBlur(Shader *BlurShader, Quad *FinalQuad)
@@ -120,14 +119,18 @@ void Renderer::Update()
     SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
 }
 
-void Renderer::RenderScene(Shader *GenericShader, float DeltaTime)
+void Renderer::RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth)
 {
     GenericShader->Use();
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+
     GenericShader->SetInt("diffuseTexture", 0);
+    GenericShader->SetInt("shadowMap", 1);
 
     GenericShader->SetVector3f("viewPos", &CameraViewPosition);
     GenericShader->SetVector3f("lightPos", &CustomLightDir);
@@ -138,19 +141,19 @@ void Renderer::RenderScene(Shader *GenericShader, float DeltaTime)
     GenericShader->SetMatrix4f("view", (const float *)(&ViewMatrix));
     GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
 
-    DrawWorld(GenericShader, DeltaTime);
+    DrawWorld(GenericShader, DeltaTime, IsDepth);
 }
 
-void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime)
+void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
 {
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, false, World::GetInstance()->ChunkPositions.at(i));
+        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, IsDepth, World::GetInstance()->ChunkPositions.at(i));
 
     for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.Draw(GenericShader, false, DeltaTime);
+        Tree.Draw(GenericShader, IsDepth, DeltaTime);
 
-    for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i));
+    // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
+    //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i));
 }
 
 void Renderer::SetupHDR()
@@ -210,6 +213,29 @@ void Renderer::SetupBloom()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
+{
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    DrawWorld(DepthShader, DeltaTime, true);
+}
+
+void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+
+    GenericShader->Use();
+    GenericShader->SetInt("Image", 0);
+    FinalQuad->Draw();
 }
 
 void Renderer::SetupDepth()

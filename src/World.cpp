@@ -88,7 +88,7 @@ void World::GenerateWorld()
             FlowerCount += 1;
         }
 
-        if (FlowerCount >= 20)
+        if (FlowerCount >= 50)
             break;
     }
 }

@@ -44,8 +44,10 @@ void main()
     // vs_out.Visibility = clamp(vs_out.Visibility, 0.0, 1.0);
 
     if (PerlinOffset != 1) {
-        vec3 Test = vec3(aPos.x, aPos.y + 0.1 * sin(PerlinOffset + 5.0 * aPos.x), aPos.z);
-        gl_Position = projection * view * model * vec4(Test, 1.0);
+        float WaveX = aPos.x + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.z));
+        float WaveY = aPos.y + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.x));
+        float WaveZ = aPos.z + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.x));
+        gl_Position = projection * view * model * vec4(WaveX, WaveY, WaveZ ,1.0);
     } else {
         gl_Position = projection * view * model * vec4(aPos, 1.0);
     }

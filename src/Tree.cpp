@@ -34,7 +34,10 @@ void Tree::Draw(Shader *MeshShader, bool isDepth, float deltaTime) const
     for (unsigned int i = 0; i < PositionsList.size(); i++)
     {
         MeshShader->SetMatrix4f("model", (const float *)(&PositionsList[i]));
-        MeshShader->SetFloat("PerlinOffset", 1.0f);
+
+        if (!isDepth)
+            MeshShader->SetFloat("PerlinOffset", 1.0f);
+
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 
@@ -44,7 +47,10 @@ void Tree::Draw(Shader *MeshShader, bool isDepth, float deltaTime) const
     {
         Vector3f ExtractedPosition = LeavesPositionList.at(i).ExtractTranslation();
         MeshShader->SetMatrix4f("model", (const float *)(&LeavesPositionList[i]));
-        MeshShader->SetFloat("PerlinOffset", deltaTime);
+
+        if (!isDepth)
+            MeshShader->SetFloat("PerlinOffset", 1.0f);
+
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 }

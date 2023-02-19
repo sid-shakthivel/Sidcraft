@@ -93,17 +93,18 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
 
     UpdateBlend(DeltaTime, MeshShader);
 
-    // std::cout << BlendFactor << std::endl;
-
-    RotationAngle += SPEED * DeltaTime;
+    RotationAngle += 3.0f * DeltaTime;
     auto AnglesInRadians = RotationAngle * 3.14159 / 180;
-    ModelMatrix.Rotate(AnglesInRadians, Y_AXIS);
 
-    MeshShader->SetMatrix4f("model", (const float *)(&ModelMatrix));
+    ModelMatrix.Rotate(AnglesInRadians, Y_AXIS);
 
     glDepthFunc(GL_LEQUAL);
 
     glBindVertexArray(VAO);
+
+    MeshShader->SetMatrix4f("model", (const float *)(&ModelMatrix));
+
+    MeshShader->SetFloat("BlendFactor", BlendFactor);
 
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 

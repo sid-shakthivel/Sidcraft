@@ -256,7 +256,10 @@ void Chunk::CreateMesh()
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
     MeshShader->SetMatrix4f("model", (const float *)(&Offset));
-    MeshShader->SetFloat("PerlinOffset", 1.0f);
+
+    if (!isDepth)
+        MeshShader->SetFloat("PerlinOffset", 1.0f);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }

@@ -19,11 +19,10 @@ void main()
 
     vec4 FinalColour = mix(texture1, texture2, BlendFactor);
 
-    // float Factor = (TexCoords.y - LowerLimit) / (UpperLimit - LowerLimit);
-    // Factor = clamp(Factor, 0.0, 1.0);
+    float Factor = (TexCoords.y - LowerLimit) / (UpperLimit - LowerLimit);
+    Factor = clamp(Factor, 0.0, 1.0);
 
-    // FragColour = mix(vec4(FogColour, 1.0), FinalColour, Factor);
-    FragColour = vec4(FogColour, 1.0);
+    FragColour = mix(vec4(FogColour, 1.0), FinalColour, Factor);
 
     FragColour = FinalColour;
-}  
+} 

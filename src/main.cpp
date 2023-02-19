@@ -28,9 +28,9 @@ static MouseHandler MainMouseHandler = MouseHandler();
 static glm::mat4 TestProjection;
 static glm::mat4 TestView;
 
-static float deltaTime = 0.0f; // Time between current frame and last frame
-float lastFrame = 0.0f;        // Time of last frame
-unsigned int counter = 0;      //
+float deltaTime = 0.0f;   // Time between current frame and last frame
+float lastFrame = 0.0f;   // Time of last frame
+unsigned int counter = 0; //
 
 int main()
 {
@@ -52,8 +52,6 @@ int main()
     // Update dimensions
     int FramebufferHeight, FramebufferWidth;
     glfwGetFramebufferSize(window, &FramebufferWidth, &FramebufferHeight);
-
-    std::cout << FramebufferWidth << " " << FramebufferHeight << std::endl;
 
     SCREEN_WIDTH = FramebufferWidth;
     SCREEN_HEIGHT = FramebufferHeight;
@@ -92,8 +90,11 @@ int main()
 
     Quad FinalQuad = Quad();
 
-    MasterRenderer.SetupHDR();
-    MasterRenderer.SetupBloom();
+    // MasterRenderer.SetupHDR();
+    // MasterRenderer.SetupBloom();
+
+    MasterRenderer.SetupDepth();
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -105,10 +106,13 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
+        // MasterRenderer.RenderDepth(&DepthShader, deltaTime);
+        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+
         MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
         // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
-        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
-        MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
+        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 

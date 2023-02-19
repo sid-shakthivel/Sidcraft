@@ -65,7 +65,7 @@ private:
             3, 7, 6,
             6, 2, 3};
 
-    float RotationAngle;
+    float RotationAngle = 0.0f;
     Matrix4f ModelMatrix;
 
     static constexpr float SPEED = 3.0f;

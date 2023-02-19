@@ -37,10 +37,10 @@ private:
 
     bool Horizontal = true;
 
-    void DrawWorld(Shader *GenericShader, float DeltaTime);
+    void DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth);
 
 protected:
-    void RenderScene(Shader *GenericShader, float DeltaTime);
+    void RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth);
 
 public:
     Renderer();
@@ -52,6 +52,8 @@ public:
     void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
     void RenderNormal(Shader *GenericShader, float DeltaTime);
+    void RenderDepth(Shader *DepthShader, float DeltaTime);
+    void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
     void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void Update();
