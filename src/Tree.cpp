@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/noise.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <tuple>
@@ -26,13 +27,14 @@ Tree::Tree(Vector3f Offset)
     LeafCube.CreateMesh();
 }
 
-void Tree::Draw(Shader *MeshShader, bool isDepth) const
+void Tree::Draw(Shader *MeshShader, bool isDepth, float deltaTime) const
 {
     glBindVertexArray(TrunkCube.GetVAO());
 
     for (unsigned int i = 0; i < PositionsList.size(); i++)
     {
         MeshShader->SetMatrix4f("model", (const float *)(&PositionsList[i]));
+        MeshShader->SetFloat("PerlinOffset", 1.0f);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 
@@ -40,7 +42,9 @@ void Tree::Draw(Shader *MeshShader, bool isDepth) const
 
     for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
     {
+        Vector3f ExtractedPosition = LeavesPositionList.at(i).ExtractTranslation();
         MeshShader->SetMatrix4f("model", (const float *)(&LeavesPositionList[i]));
+        MeshShader->SetFloat("PerlinOffset", deltaTime);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }
 }
@@ -50,7 +54,7 @@ void Tree::CreateMesh()
     // Generate trunks of tree
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> TrunkRange(7, 12);
+    std::uniform_int_distribution<> TrunkRange(5, 7);
 
     auto TrunkHeight = TrunkRange(gen);
 
@@ -62,7 +66,7 @@ void Tree::CreateMesh()
     }
 
     // Generate leaves
-    std::uniform_int_distribution<> LeafRange(3, 6);
+    std::uniform_int_distribution<> LeafRange(2, 4);
 
     auto LeavesLength = LeafRange(gen);
     auto LeavesWidth = LeafRange(gen);

@@ -275,7 +275,7 @@ public:
         return (elements[0][0] <= b.elements[0][0]);
     }
 
-    Vector3f ExtractTranslation()
+    Vector3f ExtractTranslation() const
     {
         return Vector3f(elements[3][0], elements[3][1], elements[3][2]);
     }

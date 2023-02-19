@@ -18,6 +18,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
 uniform mat4 lightSpaceMatrix;
+uniform float PerlinOffset;
 
 const float density = 0.007;
 const float gradient = 0.5;
@@ -42,5 +43,10 @@ void main()
     vs_out.Visibility = 1;
     // vs_out.Visibility = clamp(vs_out.Visibility, 0.0, 1.0);
 
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    if (PerlinOffset != 1) {
+        vec3 Test = vec3(aPos.x, aPos.y + 0.1 * sin(PerlinOffset + 5.0 * aPos.x), aPos.z);
+        gl_Position = projection * view * model * vec4(Test, 1.0);
+    } else {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+    }
 }

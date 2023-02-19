@@ -81,7 +81,7 @@ Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZ
 
 float GetGradient(float X, float Z)
 {
-    float Length = 15 * 15;
+    float Length = 17 * 17;
 
     float DistanceX = abs(X - Length * 0.5f);
     float DistanceZ = abs(Z - Length * 0.5f);
@@ -256,6 +256,7 @@ void Chunk::CreateMesh()
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
     MeshShader->SetMatrix4f("model", (const float *)(&Offset));
+    MeshShader->SetFloat("PerlinOffset", 1.0f);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }

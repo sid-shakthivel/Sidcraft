@@ -28,9 +28,9 @@ static MouseHandler MainMouseHandler = MouseHandler();
 static glm::mat4 TestProjection;
 static glm::mat4 TestView;
 
-float deltaTime = 0.0f;   // Time between current frame and last frame
-float lastFrame = 0.0f;   // Time of last frame
-unsigned int counter = 0; //
+static float deltaTime = 0.0f; // Time between current frame and last frame
+float lastFrame = 0.0f;        // Time of last frame
+unsigned int counter = 0;      //
 
 int main()
 {
@@ -105,7 +105,7 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        MasterRenderer.RenderNormal(&MainShader);
+        MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
         // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
         // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));

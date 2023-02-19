@@ -16,6 +16,6 @@ private:
 
 public:
     Tree(Vector3f Offset);
-    void Draw(Shader *MeshShader, bool isDepth) const;
+    void Draw(Shader *MeshShader, bool isDepth, float deltaTime) const;
     void CreateMesh();
 };
