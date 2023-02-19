@@ -4,6 +4,7 @@
 
 #include "../include/Chunk.h"
 #include "../include/TextureAtlas.h"
+#include "../include/Vegetation.h"
 #include "../include/World.h"
 
 World *World::World_ = nullptr;
@@ -42,38 +43,52 @@ void World::GenerateWorld()
     std::uniform_int_distribution<> WorldRange(0, 239);
 
     // Generate trees
-    for (int i = 0; i < 25; i++)
+    unsigned int TreeCount = 0;
+
+    for (;;)
     {
         auto PosX = WorldRange(gen);
         auto PosZ = WorldRange(gen);
 
         auto Height = Heightmap[PosZ][PosX];
 
-        if (Height <= WATER_LEVEL)
-            continue;
+        if (Height > WATER_LEVEL)
+        {
+            Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+            NewTree.CreateMesh();
+            TreeList.push_back(NewTree);
 
-        Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
-        NewTree.CreateMesh();
-        TreeList.push_back(NewTree);
+            TreeCount += 1;
+        }
+
+        if (TreeCount >= 15)
+            break;
     }
 
     // Generate flowers
-    for (int i = 0; i < 50; i++)
+    unsigned int FlowerCount = 0;
+
+    for (;;)
     {
         auto PosX = WorldRange(gen);
         auto PosZ = WorldRange(gen);
 
         auto Height = Heightmap[PosZ][PosX];
 
-        if (Height <= WATER_LEVEL)
-            continue;
+        if (Height > WATER_LEVEL)
+        {
+            Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower());
+            NewFlower.CreateMesh();
+            FlowerList.push_back(NewFlower);
 
-        Cube NewFlower = Cube(TextureAtlas::GetInstance()->FetchFlower());
-        NewFlower.CreateMesh();
-        FlowerList.push_back(NewFlower);
+            Matrix4f ModelMatrix = Matrix4f(1);
+            ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
+            FlowerPositions.push_back(ModelMatrix);
 
-        Matrix4f ModelMatrix = Matrix4f(1);
-        ModelMatrix.Translate(Vector3f(PosX, Height + 5, PosZ));
-        FlowerPositions.push_back(ModelMatrix);
+            FlowerCount += 1;
+        }
+
+        if (FlowerCount >= 20)
+            break;
     }
 }
