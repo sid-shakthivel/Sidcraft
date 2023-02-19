@@ -2,6 +2,8 @@
 #include <random>
 #include <map>
 
+#include "../include/Chunk.h"
+#include "../include/TextureAtlas.h"
 #include "../include/World.h"
 
 World *World::World_ = nullptr;
@@ -37,7 +39,7 @@ void World::GenerateWorld()
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> WorldRange(0, 159);
+    std::uniform_int_distribution<> WorldRange(0, 239);
 
     // Generate trees
     for (int i = 0; i < 25; i++)
@@ -47,11 +49,31 @@ void World::GenerateWorld()
 
         auto Height = Heightmap[PosZ][PosX];
 
-        if (Height == 0 || Height < 7)
+        if (Height <= WATER_LEVEL)
             continue;
 
         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
         NewTree.CreateMesh();
         TreeList.push_back(NewTree);
+    }
+
+    // Generate flowers
+    for (int i = 0; i < 50; i++)
+    {
+        auto PosX = WorldRange(gen);
+        auto PosZ = WorldRange(gen);
+
+        auto Height = Heightmap[PosZ][PosX];
+
+        if (Height <= WATER_LEVEL)
+            continue;
+
+        Cube NewFlower = Cube(TextureAtlas::GetInstance()->FetchFlower());
+        NewFlower.CreateMesh();
+        FlowerList.push_back(NewFlower);
+
+        Matrix4f ModelMatrix = Matrix4f(1);
+        ModelMatrix.Translate(Vector3f(PosX, Height + 5, PosZ));
+        FlowerPositions.push_back(ModelMatrix);
     }
 }

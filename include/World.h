@@ -5,6 +5,7 @@
 #include "Chunk.h"
 #include "Skybox.h"
 #include "Block.h"
+#include "Cube.h"
 
 #include <map>
 #include <vector>
@@ -28,6 +29,8 @@ public:
     std::vector<Tree> TreeList;
     std::vector<Matrix4f> ChunkPositions;
     std::vector<Chunk> ChunkData;
+    std::vector<Cube> FlowerList;
+    std::vector<Matrix4f> FlowerPositions;
 
     std::map<BlockType, int> Inventory;
 

@@ -69,8 +69,8 @@ private:
     Matrix4f ModelMatrix;
 
     static constexpr float SPEED = 3.0f;
-    float TotalTime;
-    float BlendFactor;
+    float TotalTime = 0.0f;
+    float BlendFactor = 0.0f;
 
     void UpdateBlend(float DeltaTime, Shader *MeshShader);
 

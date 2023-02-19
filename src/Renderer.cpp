@@ -148,6 +148,9 @@ void Renderer::DrawWorld(Shader *GenericShader)
 
     for (auto const &Tree : World::GetInstance()->TreeList)
         Tree.Draw(GenericShader, false);
+
+    for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
+        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i));
 }
 
 void Renderer::SetupHDR()

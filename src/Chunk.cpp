@@ -13,6 +13,7 @@
 #include "../include/Cube.h"
 #include "../include/TextureAtlas.h"
 #include "../include/World.h"
+#include "../include/Camera.h"
 
 #include "../include/Chunk.h"
 
@@ -51,7 +52,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[240][2
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = BlockType::Grass;
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)

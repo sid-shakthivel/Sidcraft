@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "../include/Matrix.h"
+#include "../include/Chunk.h"
 #include "../include/Camera.h"
 
 const float GRAVITY = -50.0f;
@@ -67,11 +68,18 @@ Matrix4f Camera::RetrieveSlimLookAtMatrix()
     return CreateSlimLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
 }
 
+BlockType Camera::GetSelectedBlockType()
+{
+    return SelectedBlock;
+}
+
 void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240])
 {
     auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
 
     float CameraSpeed = DeltaTime * 32.0f;
+
+    // Handle all inputs
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         CameraPos = CameraPos.Add(CameraFront.Multiply(CameraSpeed));
@@ -87,16 +95,16 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240
         Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
         CameraPos = CameraPos.Add(Direction.Multiply(CameraSpeed));
     }
-    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        CameraPos = CameraPos.Add(Up.ReturnNormalise().Multiply(CameraSpeed));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        CameraPos = CameraPos.Sub(Up.ReturnNormalise().Multiply(CameraSpeed));
-    }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         Jump();
+    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        SelectedBlock = BlockType::Grass;
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        SelectedBlock = BlockType::Dirt;
+    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+        SelectedBlock = BlockType::Stone;
+    else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+        SelectedBlock = BlockType::Sand;
 
     UpwardsSpeed += GRAVITY * DeltaTime;
     CameraPos.y += UpwardsSpeed * DeltaTime;

@@ -90,3 +90,13 @@ float TextureAtlas::FetchWater()
 {
     return 248.0f;
 }
+
+float TextureAtlas::FetchFlower()
+{
+    return 250.0f;
+}
+
+float TextureAtlas::FetchTallGrass()
+{
+    return 251.0f;
+}

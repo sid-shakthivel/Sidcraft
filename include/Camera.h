@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "Matrix.h"
+#include "Block.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -20,6 +21,8 @@ private:
 
     float ConvertToRadians(float Degrees);
     void Jump();
+
+    BlockType SelectedBlock = BlockType::Stone;
 
 protected:
     Camera(Vector3f cameraPos, Vector3f cameraTarget);
@@ -40,6 +43,8 @@ public:
     Vector3f GetCameraPos();
     glm::vec3 TestValue();
     Matrix4f RetrieveSlimLookAtMatrix();
+
+    BlockType GetSelectedBlockType();
 
     void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240]);
     void Rotate(double XPos, double YPos);

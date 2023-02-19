@@ -64,6 +64,13 @@ MeshData Cube::GetCubeData()
     return MeshData(Vertices, Indices, Faces);
 }
 
+void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const
+{
+    MeshShader->SetMatrix4f("model", (const float *)(&Offset));
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+}
+
 std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position)
 {
     std::vector<Vector3f> FaceVertices;

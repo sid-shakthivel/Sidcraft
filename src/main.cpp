@@ -107,7 +107,8 @@ int main()
 
         MasterRenderer.RenderNormal(&MainShader);
         // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
-        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
