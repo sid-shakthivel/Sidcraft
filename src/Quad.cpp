@@ -31,8 +31,9 @@ void Quad::CreateMesh()
 void Quad::Draw()
 {
     glBindVertexArray(VAO);
-    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    // glBindVertexArray(0);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+
+    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    // glBindVertexArray(0);
 }

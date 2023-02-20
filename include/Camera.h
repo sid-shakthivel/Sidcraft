@@ -46,7 +46,7 @@ public:
 
     BlockType GetSelectedBlockType();
 
-    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240]);
+    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     void Rotate(double XPos, double YPos);
 };
 

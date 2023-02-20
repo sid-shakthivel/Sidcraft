@@ -73,11 +73,14 @@ BlockType Camera::GetSelectedBlockType()
     return SelectedBlock;
 }
 
-void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240])
+void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 {
     auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
 
-    float CameraSpeed = DeltaTime * 32.0f;
+    if (CameraPos.z < 0 || CameraPos.x < 0)
+        Height = 6;
+
+    float CameraSpeed = DeltaTime * 10.0f;
 
     // Handle all inputs
 
@@ -97,6 +100,10 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240
     }
     else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         Jump();
+    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        CameraPos = CameraPos.Add(Up.ReturnNormalise().Multiply(CameraSpeed));
+    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        CameraPos = CameraPos.Sub(Up.ReturnNormalise().Multiply(CameraSpeed));
     else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
         SelectedBlock = BlockType::Grass;
     else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
@@ -106,8 +113,8 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[240][240
     else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
         SelectedBlock = BlockType::Sand;
 
-    UpwardsSpeed += GRAVITY * DeltaTime;
-    CameraPos.y += UpwardsSpeed * DeltaTime;
+    // UpwardsSpeed += GRAVITY * DeltaTime;
+    // CameraPos.y += UpwardsSpeed * DeltaTime;
 
     if (CameraPos.y < (Height + 5))
     {

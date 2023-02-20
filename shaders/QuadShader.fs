@@ -7,7 +7,7 @@ uniform sampler2D Image;
 out vec4 FragColour;
 
 float near = 1.0; 
-float far  = 7.5; 
+float far  = 100.0; 
   
 float LinearizeDepth(float depth) 
 {
@@ -16,6 +16,8 @@ float LinearizeDepth(float depth)
 }
 
 void main() {
+    // float depthValue = texture(Image, TexCoords).r;
+    // FragColour = vec4(vec3(LinearizeDepth(depthValue) / far), 1.0);
     float depthValue = texture(Image, TexCoords).r;
-    FragColour = vec4(vec3(LinearizeDepth(depthValue) / far), 1.0);
+    FragColour = vec4(vec3(depthValue), 1.0);
 }

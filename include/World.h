@@ -35,7 +35,7 @@ public:
 
     std::map<BlockType, int> Inventory;
 
-    int Heightmap[240][240];
+    int Heightmap[WORLD_SIZE][WORLD_SIZE];
 
     Skybox skybox;
 };

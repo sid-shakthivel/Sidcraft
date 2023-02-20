@@ -13,12 +13,14 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
 {
     // Setup matrices and vectors
     SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
-    LightDir = glm::vec3(0.5f, 0.5f, 0.5f);
-    LightPosition = glm::vec3(2.0f, 3.0f, -4.0f);
+
+    LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
-    LightProjectionMatrix = glm::ortho(-40.0f, 40.0f, -40.0f, 40.0f, 1.0f, 7.5f);
-    LightViewMatrix = glm::lookAt(LightPosition, LightPosition + LightDir, glm::vec3(0.0, 1.0, 0.0));
+    LightPosition = glm::vec3(3.0f, 17.0f, -3.0f);
+
+    LightProjectionMatrix = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 25.0f);
+    LightViewMatrix = glm::lookAt(LightPosition, glm::vec3(8.0f, 10.0f, 8.0f), glm::vec3(0.0, 1.0, 0.0));
     LightSpaceMatrix = LightProjectionMatrix * LightViewMatrix;
 
     ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -149,11 +151,69 @@ void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, IsDepth, World::GetInstance()->ChunkPositions.at(i));
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.Draw(GenericShader, IsDepth, DeltaTime);
+    // for (auto const &Tree : World::GetInstance()->TreeList)
+    //     Tree.Draw(GenericShader, IsDepth, DeltaTime);
 
     // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
     //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i));
+}
+
+void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
+{
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE0, DepthMapTexture);
+
+    DepthShader->Use();
+
+    DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+    DrawWorld(DepthShader, DeltaTime, true);
+}
+
+void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+
+    GenericShader->Use();
+    GenericShader->SetInt("Image", 0);
+    FinalQuad->Draw();
+}
+
+void Renderer::SetupDepth()
+{
+    glGenFramebuffers(1, &DepthMapFBO);
+    glGenTextures(1, &DepthMapTexture);
+    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR: INCOMPLETE DEPTH FRAMEBUFFER" << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+std::tuple<glm::mat4, glm::mat4> Renderer::GetMatrices()
+{
+    return std::make_tuple(ProjectionMatrix, ViewMatrix);
 }
 
 void Renderer::SetupHDR()
@@ -213,56 +273,4 @@ void Renderer::SetupBloom()
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
-{
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    DrawWorld(DepthShader, DeltaTime, true);
-}
-
-void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
-{
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
-
-    GenericShader->Use();
-    GenericShader->SetInt("Image", 0);
-    FinalQuad->Draw();
-}
-
-void Renderer::SetupDepth()
-{
-    glGenFramebuffers(1, &DepthMapFBO);
-    glGenTextures(1, &DepthMapTexture);
-    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR: INCOMPLETE DEPTH FRAMEBUFFER" << std::endl;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-std::tuple<glm::mat4, glm::mat4> Renderer::GetMatrices()
-{
-    return std::make_tuple(ProjectionMatrix, ViewMatrix);
 }

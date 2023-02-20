@@ -18,11 +18,11 @@ public:
     BlockType Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
     int LocalHeightmap[CHUNK_SIZE][CHUNK_SIZE];
 
-    Chunk(Vector3f Offset, int (&Heightmap)[240][240]);
+    Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE], const int (&HeightmapToCopy)[CHUNK_SIZE][CHUNK_SIZE]);
     void CreateMesh();
     void Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const;
     bool IsWithinChunk(Vector3f Vec, Matrix4f Offset) const;
-    void SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[240][240]);
+    void SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     void ClearChunk(Vector3f Position, Matrix4f Offset);
 };

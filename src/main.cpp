@@ -84,7 +84,7 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(10.0f, 25.0f, 10.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(10.0f, 15.0f, -5.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -94,6 +94,8 @@ int main()
     // MasterRenderer.SetupBloom();
 
     MasterRenderer.SetupDepth();
+
+    bool ShowDepth = true;
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -106,12 +108,25 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        // MasterRenderer.RenderDepth(&DepthShader, deltaTime);
-        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+        MasterRenderer.RenderDepth(&DepthShader, deltaTime);
 
-        MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
+        if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+        {
+            ShowDepth = false;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        {
+            ShowDepth = true;
+        }
+
+        if (!ShowDepth)
+            MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
+
+        if (ShowDepth)
+            MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+
         // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
-        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         // MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
@@ -154,8 +169,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
 
-        PositionToTest.x = std::min<float>(PositionToTest.x, 159);
-        PositionToTest.z = std::min<float>(PositionToTest.z, 159);
+        PositionToTest.x = std::min<float>(PositionToTest.x, WORLD_SIZE - 1);
+        PositionToTest.z = std::min<float>(PositionToTest.z, WORLD_SIZE - 1);
 
         PositionToTest.x = std::max<float>(PositionToTest.x, 0);
         PositionToTest.z = std::max<float>(PositionToTest.z, 0);

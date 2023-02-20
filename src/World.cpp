@@ -23,9 +23,9 @@ World::World()
 
 void World::GenerateWorld()
 {
-    for (int i = 0; i < 15; i++)
+    for (int i = 0; i < CHUNK_NUM; i++)
     {
-        for (int j = 0; j < 15; j++)
+        for (int j = 0; j < CHUNK_NUM; j++)
         {
             Matrix4f ModelMatrix = Matrix4f(1);
             ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, (j)*CHUNK_SIZE));
@@ -40,30 +40,40 @@ void World::GenerateWorld()
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> WorldRange(0, 239);
+    std::uniform_int_distribution<> WorldRange(0, WORLD_SIZE - 1);
 
     // Generate trees
     unsigned int TreeCount = 0;
 
-    for (;;)
-    {
-        auto PosX = WorldRange(gen);
-        auto PosZ = WorldRange(gen);
+    // for (;;)
+    // {
+    //     auto PosX = WorldRange(gen);
+    //     auto PosZ = WorldRange(gen);
 
-        auto Height = Heightmap[PosZ][PosX];
+    //     auto Height = Heightmap[PosZ][PosX];
 
-        if (Height > WATER_LEVEL)
-        {
-            Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
-            NewTree.CreateMesh();
-            TreeList.push_back(NewTree);
+    //     if (Height > WATER_LEVEL)
+    //     {
+    //         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+    //         NewTree.CreateMesh();
+    //         TreeList.push_back(NewTree);
 
-            TreeCount += 1;
-        }
+    //         TreeCount += 1;
+    //     }
 
-        if (TreeCount >= 15)
-            break;
-    }
+    //     if (TreeCount >= 2)
+    //         break;
+    // }
+
+    auto Height = Heightmap[10][5];
+    Tree NewTree = Tree(Vector3f(5, Height, 10));
+    NewTree.CreateMesh();
+    TreeList.push_back(NewTree);
+
+    // Height = Heightmap[PosZ][PosX];
+    // Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+    // NewTree.CreateMesh();
+    // TreeList.push_back(NewTree);
 
     // Generate flowers
     unsigned int FlowerCount = 0;
@@ -88,7 +98,7 @@ void World::GenerateWorld()
             FlowerCount += 1;
         }
 
-        if (FlowerCount >= 50)
+        if (FlowerCount >= CHUNK_NUM * 4)
             break;
     }
 }

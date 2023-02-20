@@ -46,13 +46,14 @@ bool Chunk::IsWithinChunk(Vector3f Vec, Matrix4f Offset) const
     return false;
 }
 
-void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[240][240])
+void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 {
 
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
+    for (int i = 0; i < 5; i++)
+        Blocks[(int)RelativeVec.x][(int)RelativeVec.y + i][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
@@ -96,7 +97,7 @@ float GetGradient(float X, float Z)
     Determines whether a block should be rendered or not
     In future when we can delete blocks may come in handy
 */
-Chunk::Chunk(Vector3f Offset, int (&Heightmap)[240][240])
+Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 {
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int z = 0; z < CHUNK_SIZE; z++)
@@ -130,9 +131,11 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[240][240])
 
             height = (height + 1) / 4;
 
-            height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
+            // height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
 
-            height *= CHUNK_HEIGHT * 1.75;
+            // height *= CHUNK_HEIGHT * 1.75;
+
+            height = 10;
 
             for (int y = 0; y <= height; y++)
                 Blocks[x][y][z] = DetermineBlockType(y, height);

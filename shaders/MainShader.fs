@@ -40,14 +40,17 @@ void main()
     vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
     
     vec3 normal = normalize(fs_in.Normal);
-    vec3 lightColor = vec3(0.3f);
+    vec3 lightColor = vec3(1.0);
+
     // ambient
-    vec3 ambient = 0.3 * lightColor;
+    vec3 ambient = 0.15 * lightColor;
+
     // diffuse
     // vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     vec3 lightDir = normalize(-lightPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * lightColor;
+
     // specular
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
@@ -55,10 +58,13 @@ void main()
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;    
+    
     // calculate shadow
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
-    // vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
-    vec3 lighting = (ambient  + diffuse + specular) * mix(SkyColour, color, fs_in.Visibility);    
+
+    vec3 lighting = (ambient  + diffuse + specular) * mix(SkyColour, color, fs_in.Visibility); 
+
+    lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;       
 
     FragColor = vec4(lighting, 1.0);
 
@@ -67,11 +73,11 @@ void main()
     float gamma = 2.2;
     FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
 
-    float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    // float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
 
-    if(brightness > 1.0)
-        BrightColour = vec4(FragColor.rgb, 1.0);
-    else
-        BrightColour = vec4(1.0, 0.0, 0.0, 1.0);
+    // if(brightness > 1.0)
+    //     BrightColour = vec4(FragColor.rgb, 1.0);
+    // else
+    //     BrightColour = vec4(1.0, 0.0, 0.0, 1.0);
 }
 
