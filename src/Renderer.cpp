@@ -17,9 +17,9 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
-    LightPosition = glm::vec3(3.0f, 20.0f, 3.0f);
+    LightPosition = glm::vec3(3.0f, 15.0f, 3.0f);
 
-    LightProjectionMatrix = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 25.0f);
+    LightProjectionMatrix = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 20.0f);
     LightViewMatrix = glm::lookAt(LightPosition, glm::vec3(8.0f, 0.0f, 8.0f), glm::vec3(0.0, 1.0, 0.0));
     LightSpaceMatrix = LightProjectionMatrix * LightViewMatrix;
 

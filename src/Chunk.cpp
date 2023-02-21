@@ -52,7 +52,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < 1; i++)
         Blocks[(int)RelativeVec.x][(int)RelativeVec.y + i][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
