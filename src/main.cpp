@@ -84,7 +84,7 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(10.0f, 15.0f, -5.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(10.0f, 45.0f, -5.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -111,13 +111,9 @@ int main()
         MasterRenderer.RenderDepth(&DepthShader, deltaTime);
 
         if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-        {
             ShowDepth = false;
-        }
         else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-        {
             ShowDepth = true;
-        }
 
         if (!ShowDepth)
             MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
@@ -125,8 +121,8 @@ int main()
         if (ShowDepth)
             MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
-        // MasterRenderer.RenderHDR(&MainShader); // Render scene to HDR buffer
-        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.RenderHDR(&MainShader, deltaTime); // Render scene to HDR buffer
+        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         // MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);

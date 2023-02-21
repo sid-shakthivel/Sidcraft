@@ -17,10 +17,10 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
-    LightPosition = glm::vec3(3.0f, 15.0f, 3.0f);
+    LightPosition = glm::vec3(0.0f, 40.0f, 0.0f);
 
-    LightProjectionMatrix = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 20.0f);
-    LightViewMatrix = glm::lookAt(LightPosition, glm::vec3(8.0f, 0.0f, 8.0f), glm::vec3(0.0, 1.0, 0.0));
+    LightProjectionMatrix = glm::ortho(-120.0f, 120.0f, -120.0f, 120.0f, 1.0f, 500.0f);
+    LightViewMatrix = glm::lookAt(LightPosition, glm::vec3(120.0f, 10.0f, 120.0f), glm::vec3(0.0, 1.0, 0.0));
     LightSpaceMatrix = LightProjectionMatrix * LightViewMatrix;
 
     ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -108,7 +108,7 @@ void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
 void Renderer::DrawSkybox(Shader *GenericShader, float DeltaTime)
 {
     GenericShader->Use();
-    GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+    GenericShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
     GenericShader->SetVector3f("FogColour", &SkyColour);
 
     World::GetInstance()->skybox.Draw(GenericShader, DeltaTime);
@@ -131,17 +131,17 @@ void Renderer::RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
 
-    GenericShader->SetInt("diffuseTexture", 0);
-    GenericShader->SetInt("shadowMap", 1);
+    GenericShader->SetInt("MainTexture", 0);
+    GenericShader->SetInt("ShadowMap", 1);
 
-    GenericShader->SetVector3f("viewPos", &CameraViewPosition);
-    GenericShader->SetVector3f("lightPos", &CustomLightDir);
+    GenericShader->SetVector3f("ViewPos", &CameraViewPosition);
+    GenericShader->SetVector3f("LightDirection", &CustomLightDir);
 
     GenericShader->SetVector3f("SkyColour", &SkyColour);
 
-    GenericShader->SetMatrix4f("lightSpaceMatrix", (const float *)(&LightSpaceMatrix));
-    GenericShader->SetMatrix4f("view", (const float *)(&ViewMatrix));
-    GenericShader->SetMatrix4f("projection", (const float *)(&ProjectionMatrix));
+    GenericShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+    GenericShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
+    GenericShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
 
     DrawWorld(GenericShader, DeltaTime, IsDepth);
 }
@@ -151,11 +151,11 @@ void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, IsDepth, World::GetInstance()->ChunkPositions.at(i));
 
-    // for (auto const &Tree : World::GetInstance()->TreeList)
-    //     Tree.Draw(GenericShader, IsDepth, DeltaTime);
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.Draw(GenericShader, IsDepth, DeltaTime);
 
-    // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-    //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i));
+    for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
+        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i), IsDepth);
 }
 
 void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)

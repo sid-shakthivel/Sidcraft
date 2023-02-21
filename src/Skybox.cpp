@@ -102,7 +102,7 @@ void Skybox::Draw(Shader *MeshShader, float DeltaTime)
 
     glBindVertexArray(VAO);
 
-    MeshShader->SetMatrix4f("model", (const float *)(&ModelMatrix));
+    MeshShader->SetMatrix4f("Model", (const float *)(&ModelMatrix));
 
     MeshShader->SetFloat("BlendFactor", BlendFactor);
 

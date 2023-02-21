@@ -1,10 +1,14 @@
 #version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoords;
-layout (location = 3) in float aTextureIndex;
+layout (location = 0) in vec3 InputPos;
+layout (location = 1) in vec3 InputNormal;
+layout (location = 2) in vec2 InputTexCoords;
+layout (location = 3) in float InputTexIndex;
 
-out vec2 TexCoords;
+uniform mat4 Projection;
+uniform mat4 View;
+uniform mat4 Model;
+uniform mat4 LightSpaceMatrix;
+uniform float Time;
 
 out VS_OUT {
     vec3 FragPos;
@@ -12,51 +16,44 @@ out VS_OUT {
     vec2 TexCoords;
     vec4 FragPosLightSpace;
     float Visibility;
-} vs_out;
+} VSOutput;
 
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 model;
-uniform mat4 lightSpaceMatrix;
-uniform float PerlinOffset;
-
-const float density = 0.007;
-const float gradient = 0.5;
+const float Density = 0.007;
+const float Gradient = 0.5;
 
 void main()
 {
-    float Column = mod(aTextureIndex, 16);
+    // Handle texture atlas
+    float Column = mod(InputTexIndex, 16);
+    float Row = floor(InputTexIndex / 16);
     float XOffset = Column / 16;
-    float Row = floor(aTextureIndex / 16);
     float YOffset = Row / 16;
 
-    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
-    // vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
+    // Compute output variables for FS
+    VSOutput.FragPos = vec3(Model * vec4(InputPos, 1.0));
+    VSOutput.Normal = transpose(inverse(mat3(Model))) * InputNormal;
+    VSOutput.TexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
+    VSOutput.FragPosLightSpace = LightSpaceMatrix * vec4(VSOutput.FragPos, 1.0);
 
-    vs_out.Normal = aNormal;
-    
-    vs_out.TexCoords = (aTexCoords / 16) + vec2(XOffset, YOffset);
-    vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+    // Handle fog
+    // vec4 PosRelativeCam = View * Model * vec4(InputPos, 1.0);
+    // float Distance = length(PosRelativeCam.xyz);
+    // VSOutput.Visibility = exp(-pow(Distance * Density, Gradient));
+    // VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
+     VSOutput.Visibility = 1;
 
-    vec4 PosRelativeCam = view * model * vec4(aPos, 1.0);
-    float Distance = length(PosRelativeCam.xyz);
+    /*
+        Time is only not 1, if waviness is required eg for trees
+        Time is 1, for everthing but trees
+    */
+    if (Time != 1) {
+        // Transform the position by offset using sin
 
-    // Fog stuff
-    // vs_out.Visibility = exp(-pow(Distance * density, gradient));
-    vs_out.Visibility = 1;
-    // vs_out.Visibility = clamp(vs_out.Visibility, 0.0, 1.0);
-
-    float test = PerlinOffset;
-
-    // if (PerlinOffset != 1) {
-    //     float WaveX = aPos.x + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.z));
-    //     float WaveY = aPos.y + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.x));
-    //     float WaveZ = aPos.z + 0.1 * sin(3 * (PerlinOffset + 5.0 * aPos.x));
-    //     gl_Position = projection * view * model * vec4(WaveX, WaveY, WaveZ ,1.0);
-    // } else {
-    //     gl_Position = projection * view * model * vec4(aPos, 1.0);
-    // }
-    
-
-     gl_Position = projection * view * model * vec4(aPos, 1.0);
+        float WaveX = InputPos.x + 0.1 * sin(3 * (Time + 5.0 * InputPos.z));
+        float WaveY = InputPos.y + 0.1 * sin(3 * (Time + 5.0 * InputPos.x));
+        float WaveZ = InputPos.z + 0.1 * sin(3 * (Time + 5.0 * InputPos.x));
+        gl_Position = Projection * View * Model * vec4(WaveX, WaveY, WaveZ ,1.0);
+    } else {
+        gl_Position = Projection * View * Model * vec4(InputPos, 1.0);
+    }
 }

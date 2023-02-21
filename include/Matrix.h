@@ -137,6 +137,11 @@ public:
     {
         return Vector(x * VecB.x, y * VecB.y, z * VecB.z);
     }
+
+    bool operator<(Vector const &b) const
+    { // <-- note the *trailing* const!
+        return (x < b.x) && (y < b.y) && (z < b.z);
+    }
 };
 
 typedef Vector<float, 4> Vector4f;

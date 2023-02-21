@@ -77,10 +77,7 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
 {
     auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
 
-    if (CameraPos.z < 0 || CameraPos.x < 0)
-        Height = 6;
-
-    float CameraSpeed = DeltaTime * 10.0f;
+    float CameraSpeed = DeltaTime * 64.0f;
 
     // Handle all inputs
 
@@ -113,14 +110,14 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
     else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
         SelectedBlock = BlockType::Sand;
 
-    // UpwardsSpeed += GRAVITY * DeltaTime;
-    // CameraPos.y += UpwardsSpeed * DeltaTime;
+    UpwardsSpeed += GRAVITY * DeltaTime;
+    CameraPos.y += UpwardsSpeed * DeltaTime;
 
-    // if (CameraPos.y < (Height + 5))
-    // {
-    //     UpwardsSpeed = 0;
-    //     CameraPos.y = Height + 5;
-    // }
+    if (CameraPos.y < (Height + 5))
+    {
+        UpwardsSpeed = 0;
+        CameraPos.y = Height + 5;
+    }
 };
 
 void Camera::Jump()

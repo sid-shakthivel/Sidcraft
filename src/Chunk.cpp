@@ -52,7 +52,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 10; i++)
         Blocks[(int)RelativeVec.x][(int)RelativeVec.y + i][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
@@ -131,11 +131,9 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
             height = (height + 1) / 4;
 
-            // height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
+            height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
 
-            // height *= CHUNK_HEIGHT * 1.75;
-
-            height = 10;
+            height *= CHUNK_HEIGHT * 1.5;
 
             for (int y = 0; y <= height; y++)
                 Blocks[x][y][z] = DetermineBlockType(y, height);
@@ -201,7 +199,7 @@ void Chunk::CreateMesh()
             {
                 Vector3f Position = Vector3f(x, y, z);
 
-                for (Vector3f Direction : TestList)
+                for (Vector3f Direction : Cube::DirectionList)
                 {
                     Vector3f PositionToCheck = Position.Add(Direction);
 
@@ -213,19 +211,20 @@ void Chunk::CreateMesh()
                             if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
                                 PositionToCheck = Position;
 
-                            auto [CubeFaceVertices, CubeNormal] = GetCubeData(Direction, PositionToCheck);
+                            auto Index = Cube::ConvertDirectionToNumber(Direction);
 
-                            // std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
-                            //               { index += 4 * indexer; });
+                            Vector3f Normal = Cube::FaceNormals[Index];
+                            auto CubeFaceVertices = Cube::FaceVertices[Index];
 
-                            for (auto index : FaceIndices)
+                            // Sort out indices
+                            for (auto index : Cube::FaceIndices)
                                 Indices.push_back(index + 4 * indexer);
 
                             // Determine block type
                             float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
 
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                Vertices.push_back(Vertex(CubeFaceVertices[i], CubeNormal, TextureCoordinatesList[i], TextureIndex));
+                                Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
 
                             Faces.push_back(Direction);
 
@@ -240,10 +239,10 @@ void Chunk::CreateMesh()
 
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 {
-    MeshShader->SetMatrix4f("model", (const float *)(&Offset));
+    MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
 
     if (!isDepth)
-        MeshShader->SetFloat("PerlinOffset", 1.0f);
+        MeshShader->SetFloat("Time", 1.0f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));

@@ -9,6 +9,6 @@ class Vegetation : public Mesh
 private:
 public:
     Vegetation(float TextureIndex);
-    void Draw(Shader *MeshShader, Matrix4f Offset) const;
+    void Draw(Shader *MeshShader, Matrix4f Offset, bool IsDepth) const;
     void CreateMesh();
 };

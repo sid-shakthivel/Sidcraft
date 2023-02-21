@@ -6,89 +6,89 @@ in VS_OUT {
     vec2 TexCoords;
     vec4 FragPosLightSpace;
     float Visibility;
-} fs_in;
+} FSInput;
 
-uniform sampler2D diffuseTexture;
-uniform sampler2D shadowMap;
-
-uniform vec3 lightPos; // Light pos is actually directoin
-uniform vec3 viewPos;
-
+uniform sampler2D MainTexture;
+uniform sampler2D ShadowMap;
+uniform vec3 LightDirection; 
+uniform vec3 ViewPos;
 uniform vec3 SkyColour;
 
-layout (location = 0) out vec4 FragColor;
+layout (location = 0) out vec4 FragColour;
 layout (location = 1) out vec4 BrightColour;
 
-float ShadowCalculation(vec4 fragPosLightSpace, float Bias)
-{
-    // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - 0.05 > closestDepth  ? 1.0 : 0.0;
+const float Gamma = 2.2;
 
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+float CalculateShadow(vec4 FragPosLightSpace, float Bias)
+{
+    // Perform perspective divide
+    vec3 ProjCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+
+    // Transform to [0,1] range (NDC)
+    ProjCoords = ProjCoords * 0.5 + 0.5;
+
+    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float ClosestDepth = texture(ShadowMap, ProjCoords.xy).r; 
+
+    // Get depth of current fragment from light's perspective
+    float CurrentDepth = ProjCoords.z;
+
+    // Perform Percentage Closer Filtering (PCF) which produces softer shadows
+    float Shadow = 0.0;
+    vec2 TexelSize = 1.0 / textureSize(ShadowMap, 0);
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - Bias > pcfDepth ? 1.0 : 0.0;        
+            float PCFDepth = texture(ShadowMap, ProjCoords.xy + vec2(x, y) * TexelSize).r; 
+            Shadow += CurrentDepth - Bias > PCFDepth ? 1.0 : 0.0;        
         }    
     }
-    shadow /= 9.0;
+    Shadow /= 9.0;
 
-    return shadow;
+    return Shadow;
 }
 
 void main()
 {           
-    vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
+    // Setup basic variables
+    vec3 Colour = texture(MainTexture, FSInput.TexCoords).rgb;
+    vec3 Normal = normalize(FSInput.Normal);
+    vec3 LightColour = vec3(1.0);
+
+    // Perform Blinn-Phong lighting mode starting with ambient light
+    vec3 Ambient = 0.15 * LightColour;
+
+    // Diffuse lighting
+    vec3 LightDir = normalize(-LightDirection);
+    float Diff = max(dot(LightDir, Normal), 0.0);
+    vec3 Diffuse = Diff * LightColour;
+
+    // Specular lighting
+    vec3 ViewDir = normalize(ViewPos - FSInput.FragPos);
+    vec3 ReflectDir = reflect(-LightDir, Normal);
+    vec3 HalfwayDir = normalize(LightDir + ViewDir);  
+    float Spec = pow(max(dot(Normal, HalfwayDir), 0.0), 64.0);
+    vec3 Specular = Spec * LightColour;    
+
+    // Calculate the shadow using a bias
+    float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);  
+    float Shadow = CalculateShadow(FSInput.FragPosLightSpace, Bias);                      
+
+    // Put everything together
+    vec3 Lighting = (Ambient  + Diffuse + Specular) * mix(SkyColour, Colour, FSInput.Visibility); 
+    Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
     
-    vec3 normal = normalize(fs_in.Normal);
-    vec3 lightColor = vec3(1.0);
+    FragColour = vec4(Lighting, 1.0);
+    if (FragColour.rgb == vec3(0,0,0)) discard;
 
-    // ambient
-    vec3 ambient = 0.15 * lightColor;
+    // Perform gamma correction
+    FragColour.rgb = pow(FragColour.rgb, vec3(1.0/Gamma));
 
-    // diffuse
-    vec3 lightDir = normalize(-lightPos);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * lightColor;
-
-    // specular
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-    vec3 specular = spec * lightColor;    
-
-    // calculate shadow
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace, bias);                      
-
-    vec3 lighting = (ambient  + diffuse + specular) * mix(SkyColour, color, fs_in.Visibility); 
-
-    lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;       
-
-    FragColor = vec4(lighting, 1.0);
-
-    if (FragColor.rgb == vec3(0,0,0)) discard;
-
-    float gamma = 2.2;
-    FragColor.rgb = pow(FragColor.rgb, vec3(1.0/gamma));
-
-    // float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-
+    // Bloom stuff  
+    // float brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722));
     // if(brightness > 1.0)
-    //     BrightColour = vec4(FragColor.rgb, 1.0);
+    //     BrightColour = vec4(FragColour.rgb, 1.0);
     // else
     //     BrightColour = vec4(1.0, 0.0, 0.0, 1.0);
 }

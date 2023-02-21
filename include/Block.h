@@ -10,5 +10,5 @@ enum BlockType
     Sand = 5,
 };
 
-const unsigned int CHUNK_NUM = 1;
+const unsigned int CHUNK_NUM = 15;
 constexpr unsigned int WORLD_SIZE = 16 * CHUNK_NUM;

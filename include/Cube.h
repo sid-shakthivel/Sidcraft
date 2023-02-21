@@ -2,6 +2,7 @@
 #include "Mesh.h"
 
 #include <array>
+#include <map>
 
 #pragma once
 
@@ -26,7 +27,11 @@ public:
     MeshData GetCubeData();
     void CreateMesh();
     void Draw(Shader *MeshShader, Matrix4f Offset) const;
-};
 
-static constexpr std::array<unsigned int, 6> FaceIndices = {0, 1, 2, 2, 3, 0};
-std::tuple<std::vector<Vector3f>, Vector3f> GetCubeData(Vector3f Direction, Vector3f Position);
+    static std::array<unsigned int, 6> FaceIndices;
+    static std::array<Vector3f, 6> DirectionList;
+    static std::map<unsigned int, Vector3f> FaceNormals;
+    static std::map<unsigned int, std::array<Vector3f, 4>> FaceVertices;
+
+    static unsigned int ConvertDirectionToNumber(Vector3f Direction);
+};

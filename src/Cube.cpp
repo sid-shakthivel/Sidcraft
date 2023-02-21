@@ -4,6 +4,7 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <array>
 #include <string>
 
 #include "../include/Mesh.h"
@@ -11,47 +12,27 @@
 
 #include "../include/Cube.h"
 
-std::vector<Vector3f> AnotherList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
-
 Cube::Cube(float TextureIndex)
 {
     // Generates a cube
-    // unsigned int indexer = 0;
-    // for (Vector3f Direction : AnotherList)
-    // {
-    //     auto [CubeFaceVertices, CubeFaceIndices] = ::GetCubeData(Direction, Vector3f(0, 0, 0));
+    unsigned int indexer = 0;
+    for (Vector3f Direction : DirectionList)
+    {
+        auto Index = Cube::ConvertDirectionToNumber(Direction);
 
-    //     std::vector<Vector3f> NormalsList;
+        Vector3f Normal = Cube::FaceNormals[Index];
+        auto CubeFaceVertices = Cube::FaceVertices[Index];
 
-    //     auto Tri1Corn1 = CubeFaceVertices[0];
-    //     auto Tri1Corn2 = CubeFaceVertices[1];
-    //     auto Tri1Corn3 = CubeFaceVertices[2];
+        for (auto index : Cube::FaceIndices)
+            Indices.push_back(index + 4 * indexer);
 
-    //     auto Tri2Corn1 = CubeFaceVertices[2];
-    //     auto Tri2Corn2 = CubeFaceVertices[3];
-    //     auto Tri2Corn3 = CubeFaceVertices[0];
+        for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+            Vertices.push_back(Vertex(CubeFaceVertices[i], Normal, TextureCoordinatesList[i], TextureIndex));
 
-    //     NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-    //     NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-    //     NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+        Faces.push_back(Direction);
 
-    //     NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-    //     NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-    //     NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-
-    //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-    //         Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));
-
-    //     std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
-    //                   { index += 4 * indexer; });
-
-    //     for (auto index : CubeFaceIndices)
-    //         Indices.push_back(index);
-
-    //     Faces.push_back(Direction);
-
-    //     indexer += 1;
-    // }
+        indexer += 1;
+    }
 }
 
 void Cube::CreateMesh()
@@ -71,72 +52,33 @@ void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
 
-std::tuple<std::vector<Vector3f>, Vector3f> GetCubeData(Vector3f Direction, Vector3f Position)
+std::map<unsigned int, Vector3f> Cube::FaceNormals = {
+    {0, Vector3f(0, -1, 0)},
+    {1, Vector3f(0, 1, 0)},
+    {2, Vector3f(-1, 0, 0)},
+    {3, Vector3f(1, 0, 0)},
+    {4, Vector3f(0, 0, -1)},
+    {5, Vector3f(0, 0, 1)},
+};
+
+std::array<unsigned int, 6> Cube::FaceIndices = {0, 1, 2, 2, 3, 0};
+std::array<Vector3f, 6> Cube::DirectionList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
+
+std::map<unsigned int, std::array<Vector3f, 4>> Cube::FaceVertices = {
+    {0, {Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
+    {1, {Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, -0.5f)}},
+    {2, {Vector3f(0.5f, -0.5f, -0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, -0.5f)}},
+    {3, {Vector3f(-0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
+    {4, {Vector3f(-0.5f, -0.5f, -0.5f), Vector3f(0.5f, -0.5f, -0.5f), Vector3f(0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
+    {5, {Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f)}},
+};
+
+unsigned int Cube::ConvertDirectionToNumber(Vector3f Direction)
 {
-    std::vector<Vector3f> FaceVertices;
-    Vector3f Normal;
+    for (unsigned int i = 0; i < DirectionList.size(); i++)
+        if (DirectionList.at(i).IsEqual(Direction))
+            return i;
 
-    if (Direction.IsEqual(UP))
-    {
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));  // 1
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));   // 2
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));  // 3
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f)); // 4
-
-        Normal = Vector3f(0, -1, 0);
-    }
-    else if (Direction.IsEqual(DOWN))
-    {
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-
-        Normal = Vector3f(0, 1, 0);
-    }
-    else if (Direction.IsEqual(LEFT))
-    {
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
-
-        Normal = Vector3f(-1, 0, 0);
-    }
-    else if (Direction.IsEqual(RIGHT))
-    {
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
-
-        Normal = Vector3f(1, 0, 0);
-    }
-    else if (Direction.IsEqual(FRONT))
-    {
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, -0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, -0.5f));
-
-        Normal = Vector3f(0, 0, -1);
-    }
-    else
-    {
-        // Back
-        FaceVertices.push_back(Vector3f(-0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, -0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(0.5f, 0.5f, 0.5f));
-        FaceVertices.push_back(Vector3f(-0.5f, 0.5f, 0.5f));
-
-        Normal = Vector3f(0, 0, 1);
-
-        // This is front actually?
-    }
-
-    // Vertex positions must be offsetted by the position
-    std::for_each(FaceVertices.begin(), FaceVertices.end(), [Position](auto &vertex)
-                  { vertex = vertex.Add(Position); });
-
-    return {FaceVertices, Normal};
+    std::cout << "oh no";
+    return -1;
 }

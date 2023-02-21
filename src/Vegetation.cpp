@@ -32,10 +32,13 @@ Vegetation::Vegetation(float TextureIndex)
         Vertices.push_back(Vertex(SecondFaceVertices[i], SecondFaceNormals[i], TextureCoordinatesList[i], TextureIndex));
 }
 
-void Vegetation::Draw(Shader *MeshShader, Matrix4f Offset) const
+void Vegetation::Draw(Shader *MeshShader, Matrix4f Offset, bool IsDepth) const
 {
-    MeshShader->SetMatrix4f("model", (const float *)(&Offset));
-    MeshShader->SetFloat("PerlinOffset", 1.0f);
+    MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
+
+    if (!IsDepth)
+        MeshShader->SetFloat("Time", 1.0f);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
