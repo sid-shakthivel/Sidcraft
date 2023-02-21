@@ -95,7 +95,7 @@ int main()
 
     MasterRenderer.SetupDepth();
 
-    bool ShowDepth = true;
+    bool ShowDepth = false;
 
     // Render loop
     while (!glfwWindowShouldClose(window))

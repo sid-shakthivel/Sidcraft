@@ -1,6 +1,8 @@
 #include "Matrix.h"
 #include "Mesh.h"
 
+#include <array>
+
 #pragma once
 
 struct MeshData
@@ -26,4 +28,5 @@ public:
     void Draw(Shader *MeshShader, Matrix4f Offset) const;
 };
 
-std::tuple<std::vector<Vector3f>, std::vector<unsigned int>> GetCubeData(Vector3f Direction, Vector3f Position);
+static constexpr std::array<unsigned int, 6> FaceIndices = {0, 1, 2, 2, 3, 0};
+std::tuple<std::vector<Vector3f>, Vector3f> GetCubeData(Vector3f Direction, Vector3f Position);

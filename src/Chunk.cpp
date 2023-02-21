@@ -52,7 +52,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 2; i++)
         Blocks[(int)RelativeVec.x][(int)RelativeVec.y + i][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
@@ -213,37 +213,19 @@ void Chunk::CreateMesh()
                             if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
                                 PositionToCheck = Position;
 
-                            auto [CubeFaceVertices, CubeFaceIndices] = GetCubeData(Direction, PositionToCheck);
+                            auto [CubeFaceVertices, CubeNormal] = GetCubeData(Direction, PositionToCheck);
 
-                            std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
-                                          { index += 4 * indexer; });
+                            // std::for_each(CubeFaceIndices.begin(), CubeFaceIndices.end(), [indexer](unsigned int &index)
+                            //               { index += 4 * indexer; });
 
-                            for (auto index : CubeFaceIndices)
-                                Indices.push_back(index);
-
-                            std::vector<Vector3f> NormalsList;
-
-                            auto Tri1Corn1 = CubeFaceVertices[0];
-                            auto Tri1Corn2 = CubeFaceVertices[1];
-                            auto Tri1Corn3 = CubeFaceVertices[2];
-
-                            auto Tri2Corn1 = CubeFaceVertices[2];
-                            auto Tri2Corn2 = CubeFaceVertices[3];
-                            auto Tri2Corn3 = CubeFaceVertices[0];
-
-                            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-                            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-                            NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-
-                            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-                            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-                            NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+                            for (auto index : FaceIndices)
+                                Indices.push_back(index + 4 * indexer);
 
                             // Determine block type
                             float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
 
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                Vertices.push_back(Vertex(CubeFaceVertices[i], NormalsList[i], TextureCoordinatesList[i], TextureIndex));
+                                Vertices.push_back(Vertex(CubeFaceVertices[i], CubeNormal, TextureCoordinatesList[i], TextureIndex));
 
                             Faces.push_back(Direction);
 
