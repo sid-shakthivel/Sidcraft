@@ -80,20 +80,20 @@ int main()
     Shader BlendShader = Shader(std::string("BlendShader"));
     Shader QuadShader = Shader(std::string("QuadShader"));
     Shader SkyboxShader = Shader(std::string("SkyShader"));
+    Shader WaterShader = Shader(std::string("WaterShader"));
 
     // Setup textures
     TextureAtlas::GetInstance();
 
     Camera::GetInstance(Vector3f(10.0f, 45.0f, -5.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
-    World::GetInstance();
+    // World::GetInstance();
 
     Quad FinalQuad = Quad();
 
-    // MasterRenderer.SetupHDR();
-    // MasterRenderer.SetupBloom();
-
-    MasterRenderer.SetupDepth();
+    // MasterRenderer.SetupDepth();
+    MasterRenderer.SetupReflection();
+    MasterRenderer.SetupRefraction();
 
     bool ShowDepth = false;
 
@@ -102,30 +102,30 @@ int main()
     {
         HandleFPS(window);
         MasterRenderer.Update();
-        Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
+        // Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
 
         std::tuple<glm::mat4, glm::mat4> Matrices = MasterRenderer.GetMatrices();
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        MasterRenderer.RenderDepth(&DepthShader, deltaTime);
+        // glEnable(GL_CLIP_DISTANCE0);
 
-        if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-            ShowDepth = false;
-        else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-            ShowDepth = true;
+        // float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
+        // Camera::GetInstance()->CameraPos.y -= Distance;
+        // Camera::GetInstance()->InvertPitch();
 
-        if (!ShowDepth)
-            MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
+        // MasterRenderer.RenderReflection(&MainShader);
 
-        if (ShowDepth)
-            MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+        // Camera::GetInstance()->CameraPos.y += Distance;
+        // Camera::GetInstance()->InvertPitch();
 
-        // MasterRenderer.RenderHDR(&MainShader, deltaTime); // Render scene to HDR buffer
-        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
-        // MasterRenderer.RenderSkybox(&SkyboxShader, abs(deltaTime));
-        // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
-        // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+        // Camera::GetInstance()->InvertPitch();
+        // MasterRenderer.RenderRefraction(&MainShader);
+
+        // glDisable(GL_CLIP_DISTANCE0);
+
+        // MasterRenderer.RenderNormal(&MainShader, lastFrame);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -134,6 +134,17 @@ int main()
     glfwTerminate();
     return 0;
 }
+
+// if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
+//             ShowDepth = false;
+//         else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+//             ShowDepth = true;
+
+//         if (!ShowDepth)
+//             MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
+
+//         if (ShowDepth)
+//             MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
 void HandleFPS(GLFWwindow *window)
 {

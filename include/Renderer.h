@@ -27,13 +27,25 @@ private:
     glm::mat4 LightViewMatrix;
     glm::mat4 LightSpaceMatrix;
 
+    Vector4f ReflectionPlane;
+    Vector4f RefractionPlane;
+
     unsigned int HdrFBO;
-    unsigned int ColourBuffers[2];
-    unsigned int RboDepth;
     unsigned int PingPongFBO[2];
-    unsigned int PingPongBuffers[2];
     unsigned int DepthMapFBO;
+    unsigned int WaterReflectionFBO;
+    unsigned int WaterRefractionFBO;
+
+    unsigned int ColourBuffers[2];
+    unsigned int PingPongBuffers[2];
+
     unsigned int DepthMapTexture;
+    unsigned int WaterReflectionColour;
+    unsigned int WaterRefractionDepth;
+    unsigned int WaterRefractionColour;
+
+    unsigned int RboDepth;
+    unsigned int WaterReflectionRBO;
 
     bool Horizontal = true;
 
@@ -48,6 +60,9 @@ public:
     void SetupHDR();
     void SetupBloom();
     void SetupDepth();
+    void SetupRefraction();
+    void SetupReflection();
+
     void RenderHDR(Shader *GenericShader, float DeltaTime);
     void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
@@ -56,6 +71,10 @@ public:
     void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
     void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
+    void RenderRefraction(Shader *GenericShader);
+    void RenderReflection(Shader *GenericShader);
+    void RenderWater(Shader *WaterShader);
+
     void Update();
 
     std::tuple<glm::mat4, glm::mat4> GetMatrices();
@@ -67,3 +86,9 @@ static unsigned int SCREEN_HEIGHT = 600;
 // static unsigned int SCREEN_HEIGHT = 600 * 4;
 const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;
+
+const unsigned int REFLECTION_WIDTH = 320;
+const unsigned int REFLECTION_HEIGHT = 180;
+
+const unsigned int REFRACTION_WIDTH = 1280;
+const unsigned int REFRACTION_HEIGHT = 720;

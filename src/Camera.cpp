@@ -29,7 +29,7 @@ Camera *Camera::GetInstance()
     return Camera_;
 }
 
-Camera::Camera(Vector3f cameraPos, Vector3f cameraTarget) : CameraPos(0.0f, 0.0f, 0.0f), CameraTarget(0.0f, 0.0f, 0.0f)
+Camera::Camera(Vector3f cameraPos, Vector3f cameraTarget) : CameraTarget(0.0f, 0.0f, 0.0f)
 {
     CameraPos = cameraPos;
     CameraTarget = cameraTarget;
@@ -123,6 +123,11 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
 void Camera::Jump()
 {
     UpwardsSpeed = JUMP_POWER;
+}
+
+void Camera::InvertPitch()
+{
+    Pitch = -Pitch;
 }
 
 void Camera::Rotate(double XPos, double YPos)

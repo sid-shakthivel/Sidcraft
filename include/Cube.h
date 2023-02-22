@@ -10,13 +10,11 @@ struct MeshData
 {
     std::vector<Vertex> Vertices;
     std::vector<unsigned int> Indices;
-    std::vector<Vector3f> Faces;
 
-    MeshData(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices, std::vector<Vector3f> Faces)
+    MeshData(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices)
     {
         this->Vertices = Vertices;
         this->Indices = Indices;
-        this->Faces = Faces;
     }
 };
 

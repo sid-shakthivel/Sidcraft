@@ -43,52 +43,52 @@ void World::GenerateWorld()
     std::uniform_int_distribution<> WorldRange(0, WORLD_SIZE - 1);
 
     // Generate trees
-    unsigned int TreeCount = 0;
+    // unsigned int TreeCount = 0;
 
-    for (;;)
-    {
-        auto PosX = WorldRange(gen);
-        auto PosZ = WorldRange(gen);
+    // for (;;)
+    // {
+    //     auto PosX = WorldRange(gen);
+    //     auto PosZ = WorldRange(gen);
 
-        auto Height = Heightmap[PosZ][PosX];
+    //     auto Height = Heightmap[PosZ][PosX];
 
-        if (Height > WATER_LEVEL)
-        {
-            Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
-            NewTree.CreateMesh();
-            TreeList.push_back(NewTree);
+    //     if (Height > WATER_LEVEL)
+    //     {
+    //         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+    //         NewTree.CreateMesh();
+    //         TreeList.push_back(NewTree);
 
-            TreeCount += 1;
-        }
+    //         TreeCount += 1;
+    //     }
 
-        if (TreeCount >= CHUNK_NUM * 3)
-            break;
-    }
+    //     if (TreeCount >= CHUNK_NUM * 3)
+    //         break;
+    // }
 
     // Generate flowers
-    unsigned int FlowerCount = 0;
+    // unsigned int FlowerCount = 0;
 
-    for (;;)
-    {
-        auto PosX = WorldRange(gen);
-        auto PosZ = WorldRange(gen);
+    // for (;;)
+    // {
+    //     auto PosX = WorldRange(gen);
+    //     auto PosZ = WorldRange(gen);
     
-        auto Height = Heightmap[PosZ][PosX];
+    //     auto Height = Heightmap[PosZ][PosX];
 
-        if (Height > WATER_LEVEL)
-        {
-            Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower());
-            NewFlower.CreateMesh();
-            FlowerList.push_back(NewFlower);
+    //     if (Height > WATER_LEVEL)
+    //     {
+    //         Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower());
+    //         NewFlower.CreateMesh();
+    //         FlowerList.push_back(NewFlower);
 
-            Matrix4f ModelMatrix = Matrix4f(1);
-            ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
-            FlowerPositions.push_back(ModelMatrix);
+    //         Matrix4f ModelMatrix = Matrix4f(1);
+    //         ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
+    //         FlowerPositions.push_back(ModelMatrix);
 
-            FlowerCount += 1;
-        }
+    //         FlowerCount += 1;
+    //     }
 
-        if (FlowerCount >= CHUNK_NUM * 3)
-            break;
-    }
+    //     if (FlowerCount >= CHUNK_NUM * 3)
+    //         break;
+    // }
 }

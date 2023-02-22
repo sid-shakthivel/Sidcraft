@@ -9,6 +9,7 @@ uniform mat4 View;
 uniform mat4 Model;
 uniform mat4 LightSpaceMatrix;
 uniform float Time;
+uniform vec4 HorizontalPlane;
 
 out VS_OUT {
     vec3 FragPos;
@@ -20,6 +21,8 @@ out VS_OUT {
 
 const float Density = 0.007;
 const float Gradient = 0.5;
+
+// uniform HorizontalPlane = vec4(0, -1, 0, 7);
 
 void main()
 {
@@ -34,6 +37,9 @@ void main()
     VSOutput.Normal = transpose(inverse(mat3(Model))) * InputNormal;
     VSOutput.TexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
     VSOutput.FragPosLightSpace = LightSpaceMatrix * vec4(VSOutput.FragPos, 1.0);
+
+    // Handle clip distance for reflections
+    gl_ClipDistance[0] = dot(vec4(VSOutput.FragPos, 1.0), HorizontalPlane);
 
     // Handle fog
     // vec4 PosRelativeCam = View * Model * vec4(InputPos, 1.0);

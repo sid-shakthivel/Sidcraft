@@ -134,6 +134,17 @@ void Shader::SetVector3f(const std::string &name, Vector3f *Vec) const
     glUniform3f(result, Vec->x, Vec->y, Vec->z);
 }
 
+void Shader::SetVector4f(const std::string &name, Vector4f *Vec) const
+{
+    int result = glGetUniformLocation(ProgramId, name.c_str());
+    if (result < 0)
+    {
+        std::cout << "ERROR: UNKNOWN UNIFORM VEC4 " << name.c_str() << std::endl;
+        std::exit(0);
+    }
+    glUniform4f(result, Vec->x, Vec->y, Vec->z, Vec->w);
+}
+
 void Shader::SetFloat(const std::string &name, float value)
 {
     int result = glGetUniformLocation(ProgramId, name.c_str());

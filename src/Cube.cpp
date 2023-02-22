@@ -29,8 +29,6 @@ Cube::Cube(float TextureIndex)
         for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
             Vertices.push_back(Vertex(CubeFaceVertices[i], Normal, TextureCoordinatesList[i], TextureIndex));
 
-        Faces.push_back(Direction);
-
         indexer += 1;
     }
 }
@@ -42,7 +40,7 @@ void Cube::CreateMesh()
 
 MeshData Cube::GetCubeData()
 {
-    return MeshData(Vertices, Indices, Faces);
+    return MeshData(Vertices, Indices);
 }
 
 void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const

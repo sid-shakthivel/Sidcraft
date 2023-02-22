@@ -14,6 +14,9 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     // Setup matrices and vectors
     SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
 
+    ReflectionPlane = Vector4f(0, 1, 0, WATER_LEVEL);
+    RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL);
+
     LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
@@ -158,6 +161,54 @@ void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
         World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i), IsDepth);
 }
 
+void Renderer::RenderReflection(Shader *GenericShader)
+{
+    glEnable(GL_CLIP_DISTANCE0);
+
+    glViewport(0, 0, REFLECTION_WIDTH, REFLECTION_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, WaterReflectionFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GenericShader->Use();
+    GenericShader->SetVector4f("HorizontalPlane", &ReflectionPlane);
+
+    RenderScene(GenericShader, 1, false);
+}
+
+void Renderer::RenderRefraction(Shader *GenericShader)
+{
+    glEnable(GL_CLIP_DISTANCE0);
+
+    glViewport(0, 0, REFRACTION_WIDTH, REFRACTION_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, WaterRefractionFBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GenericShader->Use();
+    GenericShader->SetVector4f("HorizontalPlane", &RefractionPlane);
+
+    RenderScene(GenericShader, 1, false);
+}
+
+void Renderer::RenderWater(Shader *WaterShader)
+{
+    WaterShader->Use();
+
+    WaterShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
+    WaterShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
+
+    WaterShader->SetInt("ReflectionTexture", 0);
+    WaterShader->SetInt("RefractionTexture", 1);
+
+    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+        World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));
+}
+
 void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
 {
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -251,6 +302,65 @@ void Renderer::SetupHDR()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Renderer::SetupReflection()
+{
+    glGenFramebuffers(1, &WaterReflectionFBO);
+    glGenTextures(1, &WaterReflectionColour);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, WaterReflectionFBO);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F,
+                 REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, WaterReflectionColour, 0);
+
+    glGenRenderbuffers(1, &WaterReflectionRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, WaterReflectionRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, REFLECTION_WIDTH, REFLECTION_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, WaterReflectionRBO);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::SetupRefraction()
+{
+    glGenFramebuffers(1, &WaterRefractionFBO);
+    glGenTextures(1, &WaterRefractionColour);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, WaterReflectionFBO);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F,
+                 REFRACTION_WIDTH, REFRACTION_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, WaterRefractionColour, 0);
+
+    glGenTextures(1, &WaterRefractionDepth);
+    glBindTexture(GL_TEXTURE_2D, WaterRefractionDepth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, WaterRefractionDepth, 0);
+}
+
 void Renderer::SetupBloom()
 {
     glGenFramebuffers(2, &PingPongFBO[0]);
@@ -274,3 +384,14 @@ void Renderer::SetupBloom()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+
+// glBindTexture(GL_TEXTURE_2D, WaterReflectionDepth);
+//     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+//                  SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL); // CHECK THIS PLEASE
+
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, WaterReflectionDepth, 0); // CHECK THIS PLEASE

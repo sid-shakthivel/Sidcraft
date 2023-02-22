@@ -34,7 +34,6 @@ class Mesh
 protected:
     std::vector<Vertex> Vertices;
     std::vector<unsigned int> Indices;
-    std::vector<Vector3f> Faces;
     std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
 
     unsigned int VAO, VBO, EBO;
@@ -67,6 +66,6 @@ public:
     Mesh();
     void Draw(Shader *MeshShader, bool isDepth);
     void CreateMesh();
-    void InitaliseData();
+    void InitaliseData(unsigned int *TempVAO, unsigned int *TempVBO, unsigned int *TempEBO, std::vector<Vertex> *TempVertices, std::vector<unsigned int> *TempIndices);
     unsigned int GetVAO() const;
 };

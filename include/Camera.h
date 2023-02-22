@@ -10,7 +10,6 @@
 class Camera
 {
 private:
-    Vector3f CameraPos;
     Vector3f CameraTarget;
 
     bool IsFirstMouse = true;
@@ -29,6 +28,7 @@ protected:
     static Camera *Camera_;
 
 public:
+    Vector3f CameraPos;
     Vector3f CameraFront = Vector3f(0.0f, 0.0f, 1.0f);
     Vector3f Up = Vector3f(0.0f, 1.0f, 0.0f);
 
@@ -43,6 +43,8 @@ public:
     Vector3f GetCameraPos();
     glm::vec3 TestValue();
     Matrix4f RetrieveSlimLookAtMatrix();
+
+    void InvertPitch();
 
     BlockType GetSelectedBlockType();
 

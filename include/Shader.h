@@ -21,6 +21,7 @@ public:
 
     void SetMatrix4f(const std::string &name, const float *Value) const;
     void SetVector3f(const std::string &name, Vector3f *Vec) const;
+    void SetVector4f(const std::string &name, Vector4f *Vec) const;
     void SetFloat(const std::string &name, float value);
     void SetInt(const std::string &name, int value);
 

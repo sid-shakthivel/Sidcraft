@@ -163,6 +163,8 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
                                 if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
                                     Blocks[i][k][j] = BlockType::Sand;
                 }
+
+    InitaliseData(&WaterVAO, &WaterVBO, &WaterEBO, &WaterVertices, &WaterIndices);
 }
 
 void Chunk::CreateMesh()
@@ -192,7 +194,8 @@ void Chunk::CreateMesh()
             If an adjacent block is within the chunk, it need not be rendered
             Else the adjacent block is an air block and thus this face might be visible so can be rendered
         */
-    unsigned int indexer = 0;
+    unsigned int Indexer = 0;
+    unsigned int WaterIndexer = 0;
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int y = 0; y < CHUNK_HEIGHT; y++)
             for (int z = 0; z < CHUNK_SIZE; z++)
@@ -212,23 +215,41 @@ void Chunk::CreateMesh()
                                 PositionToCheck = Position;
 
                             auto Index = Cube::ConvertDirectionToNumber(Direction);
-
                             Vector3f Normal = Cube::FaceNormals[Index];
                             auto CubeFaceVertices = Cube::FaceVertices[Index];
-
-                            // Sort out indices
-                            for (auto index : Cube::FaceIndices)
-                                Indices.push_back(index + 4 * indexer);
 
                             // Determine block type
                             float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
 
-                            for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+                            /*
+                                Water is separated from the other materials
+                                Water has special properties and has a specific shader
+                            */
 
-                            Faces.push_back(Direction);
+                            if (Blocks[x][y][z] == BlockType::Water)
+                            {
+                                // Sort out indices
+                                for (auto index : Cube::FaceIndices)
+                                    WaterIndices.push_back(index + 4 * WaterIndexer);
 
-                            indexer += 1;
+                                // Sort out vertices
+                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                    WaterVertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+
+                                WaterIndexer += 1;
+                            }
+                            else
+                            {
+                                // Sort out indices
+                                for (auto index : Cube::FaceIndices)
+                                    Indices.push_back(index + 4 * Indexer);
+
+                                // Sort out vertices
+                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                    Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+
+                                Indexer += 1;
+                            }
                         }
                     }
                 }
@@ -246,4 +267,12 @@ void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+}
+
+void Chunk::DrawWater(Shader *WaterShader, Matrix4f Offset) const
+{
+    WaterShader->SetMatrix4f("Model", (const float *)(&Offset));
+
+    glBindVertexArray(WaterVAO);
+    glDrawElements(GL_TRIANGLES, WaterIndices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
