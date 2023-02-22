@@ -115,7 +115,7 @@ int main()
         Camera::GetInstance()->CameraPos.y -= Distance;
         Camera::GetInstance()->InvertPitch();
         MasterRenderer.RenderReflection(&MainShader);
-        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
         Camera::GetInstance()->CameraPos.y += Distance;
         Camera::GetInstance()->InvertPitch();
@@ -124,7 +124,7 @@ int main()
         glDisable(GL_CLIP_DISTANCE0);
 
         MasterRenderer.RenderNormal(&MainShader, lastFrame);
-        MasterRenderer.RenderWater(&WaterShader);
+        MasterRenderer.RenderWater(&WaterShader, lastFrame);
         MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
         // MasterRenderer.DrawLightQuad(&QuadShader, &FinalQuad);

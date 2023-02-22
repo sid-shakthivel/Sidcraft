@@ -8,9 +8,11 @@ layout (location = 3) in float InputTexIndex;
 uniform mat4 Projection;
 uniform mat4 View;
 uniform mat4 Model;
+uniform vec3 CameraPos;
 
 out vec4 ClipSpaceCoords;
 out vec2 TexCoords;
+out vec3 ToCameraVector;
 
 void main() {
     float Column = mod(InputTexIndex, 16);
@@ -18,7 +20,10 @@ void main() {
     float XOffset = Column / 16;
     float YOffset = Row / 16;
 
-    ClipSpaceCoords = Projection * View * Model * vec4(InputPos, 1.0);
+    vec4 WorldPostion = Model * vec4(InputPos, 1.0);
+    ClipSpaceCoords = Projection * View * WorldPostion;
     TexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
+    ToCameraVector = CameraPos - WorldPostion.xyz;
+
     gl_Position = ClipSpaceCoords;
 }

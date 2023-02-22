@@ -9,6 +9,8 @@
 #include "Shader.h"
 #include "Quad.h"
 
+const float WAVE_SPEED = 0.03f;
+
 class Renderer
 {
 private:
@@ -47,6 +49,9 @@ private:
     unsigned int RboDepth;
     unsigned int WaterReflectionRBO;
 
+    unsigned int DuDvMap;
+    float MoveFactor = 0;
+
     bool Horizontal = true;
 
     void DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth);
@@ -72,7 +77,7 @@ public:
     void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void RenderRefraction(Shader *GenericShader);
     void RenderReflection(Shader *GenericShader);
-    void RenderWater(Shader *WaterShader);
+    void RenderWater(Shader *WaterShader, float RunningTime);
 
     void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void DrawLightQuad(Shader *GenericShader, Quad *FinalQuad);
