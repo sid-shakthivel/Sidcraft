@@ -79,6 +79,9 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
 
     float CameraSpeed = DeltaTime * 64.0f;
 
+    if (CameraPos.x < 0 || CameraPos.z < 0)
+        Height = 7;
+
     // Handle all inputs
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

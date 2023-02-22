@@ -68,12 +68,14 @@ public:
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
     void RenderNormal(Shader *GenericShader, float DeltaTime);
     void RenderDepth(Shader *DepthShader, float DeltaTime);
-    void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
     void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void RenderRefraction(Shader *GenericShader);
     void RenderReflection(Shader *GenericShader);
     void RenderWater(Shader *WaterShader);
+
+    void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
+    void DrawLightQuad(Shader *GenericShader, Quad *FinalQuad);
 
     void Update();
 

@@ -72,7 +72,7 @@ void World::GenerateWorld()
     // {
     //     auto PosX = WorldRange(gen);
     //     auto PosZ = WorldRange(gen);
-    
+
     //     auto Height = Heightmap[PosZ][PosX];
 
     //     if (Height > WATER_LEVEL)

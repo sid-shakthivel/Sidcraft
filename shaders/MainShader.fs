@@ -10,6 +10,7 @@ in VS_OUT {
 
 uniform sampler2D MainTexture;
 uniform sampler2D ShadowMap;
+
 uniform vec3 LightDirection; 
 uniform vec3 ViewPos;
 uniform vec3 SkyColour;
@@ -78,9 +79,10 @@ void main()
     // Put everything together
     vec3 Lighting = (Ambient  + Diffuse + Specular) * mix(SkyColour, Colour, FSInput.Visibility); 
     Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
+    Lighting = (Ambient  + Diffuse + Specular) * Colour;
     
     FragColour = vec4(Lighting, 1.0);
-    if (FragColour.rgb == vec3(0,0,0)) discard;
+    // if (FragColour.rgb == vec3(0,0,0)) discard;
 
     // Perform gamma correction
     FragColour.rgb = pow(FragColour.rgb, vec3(1.0/Gamma));

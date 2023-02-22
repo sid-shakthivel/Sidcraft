@@ -14,7 +14,7 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     // Setup matrices and vectors
     SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
 
-    ReflectionPlane = Vector4f(0, 1, 0, WATER_LEVEL);
+    ReflectionPlane = Vector4f(0, 1, 0, -WATER_LEVEL);
     RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL);
 
     LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
@@ -31,15 +31,6 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
 
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
     SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
-}
-
-void Renderer::RenderNormal(Shader *GenericShader, float DeltaTime)
-{
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    RenderScene(GenericShader, DeltaTime, false);
 }
 
 void Renderer::RenderHDR(Shader *GenericShader, float DeltaTime)
@@ -124,6 +115,15 @@ void Renderer::Update()
     SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
 }
 
+void Renderer::RenderNormal(Shader *GenericShader, float DeltaTime)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    RenderScene(GenericShader, DeltaTime, false);
+}
+
 void Renderer::RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth)
 {
     GenericShader->Use();
@@ -202,8 +202,12 @@ void Renderer::RenderWater(Shader *WaterShader)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
 
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+
     WaterShader->SetInt("ReflectionTexture", 0);
     WaterShader->SetInt("RefractionTexture", 1);
+    WaterShader->SetInt("MainTexture", 2);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));
@@ -232,6 +236,20 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+
+    GenericShader->Use();
+    GenericShader->SetInt("Image", 0);
+    FinalQuad->Draw();
+}
+
+void Renderer::DrawLightQuad(Shader *GenericShader, Quad *FinalQuad)
+{
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
@@ -334,7 +352,7 @@ void Renderer::SetupRefraction()
     glGenFramebuffers(1, &WaterRefractionFBO);
     glGenTextures(1, &WaterRefractionColour);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, WaterReflectionFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, WaterRefractionFBO);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
@@ -351,7 +369,7 @@ void Renderer::SetupRefraction()
     glGenTextures(1, &WaterRefractionDepth);
     glBindTexture(GL_TEXTURE_2D, WaterRefractionDepth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                 REFRACTION_WIDTH, REFRACTION_WIDTH, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -384,14 +402,3 @@ void Renderer::SetupBloom()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
-// glBindTexture(GL_TEXTURE_2D, WaterReflectionDepth);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-//                  SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL); // CHECK THIS PLEASE
-
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, WaterReflectionDepth, 0); // CHECK THIS PLEASE

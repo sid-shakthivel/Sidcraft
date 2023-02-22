@@ -6,7 +6,7 @@
 
 static const unsigned int CHUNK_SIZE = 16;
 static const unsigned int CHUNK_HEIGHT = 48;
-static const unsigned int WATER_LEVEL = 7;
+static const int WATER_LEVEL = 7;
 
 // Represents a number of cubes together
 class Chunk : public Mesh

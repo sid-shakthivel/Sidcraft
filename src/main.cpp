@@ -85,13 +85,13 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
-    Camera::GetInstance(Vector3f(10.0f, 45.0f, -5.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(10.0f, 45.0f, 5.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
-    // World::GetInstance();
+    World::GetInstance();
 
     Quad FinalQuad = Quad();
 
-    // MasterRenderer.SetupDepth();
+    MasterRenderer.SetupDepth();
     MasterRenderer.SetupReflection();
     MasterRenderer.SetupRefraction();
 
@@ -102,30 +102,32 @@ int main()
     {
         HandleFPS(window);
         MasterRenderer.Update();
-        // Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
+        Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
 
         std::tuple<glm::mat4, glm::mat4> Matrices = MasterRenderer.GetMatrices();
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        // glEnable(GL_CLIP_DISTANCE0);
+        glEnable(GL_CLIP_DISTANCE0);
 
-        // float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
-        // Camera::GetInstance()->CameraPos.y -= Distance;
-        // Camera::GetInstance()->InvertPitch();
+        float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
 
-        // MasterRenderer.RenderReflection(&MainShader);
+        Camera::GetInstance()->CameraPos.y -= Distance;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderReflection(&MainShader);
+        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
-        // Camera::GetInstance()->CameraPos.y += Distance;
-        // Camera::GetInstance()->InvertPitch();
+        Camera::GetInstance()->CameraPos.y += Distance;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderRefraction(&MainShader);
 
-        // Camera::GetInstance()->InvertPitch();
-        // MasterRenderer.RenderRefraction(&MainShader);
+        glDisable(GL_CLIP_DISTANCE0);
 
-        // glDisable(GL_CLIP_DISTANCE0);
+        MasterRenderer.RenderNormal(&MainShader, lastFrame);
+        MasterRenderer.RenderWater(&WaterShader);
+        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
-        // MasterRenderer.RenderNormal(&MainShader, lastFrame);
-        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.DrawLightQuad(&QuadShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

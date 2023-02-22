@@ -22,8 +22,6 @@ out VS_OUT {
 const float Density = 0.007;
 const float Gradient = 0.5;
 
-// uniform HorizontalPlane = vec4(0, -1, 0, 7);
-
 void main()
 {
     // Handle texture atlas

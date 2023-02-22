@@ -163,8 +163,6 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
                                 if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
                                     Blocks[i][k][j] = BlockType::Sand;
                 }
-
-    InitaliseData(&WaterVAO, &WaterVBO, &WaterEBO, &WaterVertices, &WaterIndices);
 }
 
 void Chunk::CreateMesh()
@@ -255,7 +253,53 @@ void Chunk::CreateMesh()
                 }
             }
 
-    Mesh::CreateMesh();
+    // Setup general
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertex), &Vertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(0); // Position
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
+    glEnableVertexAttribArray(1); // Normals
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
+    glEnableVertexAttribArray(2); // Texture Coordinates
+
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+    glEnableVertexAttribArray(3); // Texture Index
+
+    // // Setup water
+    glGenVertexArrays(1, &WaterVAO);
+    glBindVertexArray(WaterVAO);
+
+    glGenBuffers(1, &WaterVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
+    glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &WaterEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WaterEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, WaterIndices.size() * sizeof(unsigned int), &WaterIndices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(0); // Position
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
+    glEnableVertexAttribArray(1); // Normals
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
+    glEnableVertexAttribArray(2); // Texture Coordinates
+
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+    glEnableVertexAttribArray(3); // Texture Index
 }
 
 void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
