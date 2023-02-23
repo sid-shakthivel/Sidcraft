@@ -35,7 +35,29 @@ Cube::Cube(float TextureIndex)
 
 void Cube::CreateMesh()
 {
-    Mesh::CreateMesh();
+    // Setup general
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertex), &Vertices[0], GL_STATIC_DRAW);
+
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glEnableVertexAttribArray(0); // Position
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
+    glEnableVertexAttribArray(1); // Normals
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
+    glEnableVertexAttribArray(2); // Texture Coordinates
+
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+    glEnableVertexAttribArray(3); // Texture Index
 }
 
 MeshData Cube::GetCubeData()
@@ -45,9 +67,12 @@ MeshData Cube::GetCubeData()
 
 void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const
 {
-    MeshShader->SetMatrix4f("model", (const float *)(&Offset));
+    MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
+
+    // std::cout << Indices.size() << std::endl;
+
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
 
 std::map<unsigned int, Vector3f> Cube::FaceNormals = {

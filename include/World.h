@@ -32,6 +32,8 @@ public:
     std::vector<Chunk> ChunkData;
     std::vector<Vegetation> FlowerList;
     std::vector<Matrix4f> FlowerPositions;
+    std::vector<Cube> LightCubes;
+    std::vector<Matrix4f> LightCubePositions;
 
     std::map<BlockType, int> Inventory;
 

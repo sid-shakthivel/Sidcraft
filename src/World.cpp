@@ -42,6 +42,33 @@ void World::GenerateWorld()
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> WorldRange(0, WORLD_SIZE - 1);
 
+    // Generate light boxes for bloom
+    unsigned int LightBoxCount = 0;
+
+    for (;;)
+    {
+        auto PosX = WorldRange(gen);
+        auto PosZ = WorldRange(gen);
+
+        auto Height = Heightmap[PosZ][PosX];
+
+        if (Height > WATER_LEVEL)
+        {
+            Cube NewLightCube = Cube(35.0f);
+            NewLightCube.CreateMesh();
+            LightCubes.push_back(NewLightCube);
+
+            Matrix4f ModelMatrix = Matrix4f(1);
+            ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
+            LightCubePositions.push_back(ModelMatrix);
+
+            LightBoxCount += 1;
+        }
+
+        if (LightBoxCount >= CHUNK_NUM * 3)
+            break;
+    }
+
     // Generate trees
     // unsigned int TreeCount = 0;
 

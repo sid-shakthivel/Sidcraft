@@ -6,6 +6,7 @@ in VS_OUT {
     vec2 TexCoords;
     vec4 FragPosLightSpace;
     float Visibility;
+    float InputTexIndex;
 } FSInput;
 
 uniform sampler2D MainTexture;
@@ -57,6 +58,11 @@ void main()
     vec3 Normal = normalize(FSInput.Normal);
     vec3 LightColour = vec3(1.0);
 
+    // If the InputTexIndex is 0, it must be a light     
+    if (FSInput.InputTexIndex == 35.0) {
+        Colour = vec3(15.0, 15.0, 15.0);
+    }
+
     // Perform Blinn-Phong lighting mode starting with ambient light
     vec3 Ambient = 0.15 * LightColour;
 
@@ -74,24 +80,26 @@ void main()
 
     // Calculate the shadow using a bias
     float Bias = max(0.05 * (1.0 - dot(Normal, LightDir)), 0.005);  
-    float Shadow = CalculateShadow(FSInput.FragPosLightSpace, Bias);                      
+    float Shadow = CalculateShadow(FSInput.FragPosLightSpace, Bias);          
 
     // Put everything together
     vec3 Lighting = (Ambient  + Diffuse + Specular) * mix(SkyColour, Colour, FSInput.Visibility); 
-    Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
+    // Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
     Lighting = (Ambient  + Diffuse + Specular) * Colour;
-    
+
     FragColour = vec4(Lighting, 1.0);
-    // if (FragColour.rgb == vec3(0,0,0)) discard;
+    if (FragColour.rgb == vec3(0,0,0)) discard;
 
     // Perform gamma correction
     FragColour.rgb = pow(FragColour.rgb, vec3(1.0/Gamma));
 
     // Bloom stuff  
-    // float brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722));
-    // if(brightness > 1.0)
-    //     BrightColour = vec4(FragColour.rgb, 1.0);
-    // else
-    //     BrightColour = vec4(1.0, 0.0, 0.0, 1.0);
+    float brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 1.0) {
+        BrightColour = vec4(FragColour.rgb, 1.0);
+    }
+    else {
+        BrightColour = vec4(0.0, 0.0, 0.0, 1.0);
+    }
 }
 

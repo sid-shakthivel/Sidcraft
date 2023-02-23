@@ -224,30 +224,40 @@ void Chunk::CreateMesh()
                                 Water has special properties and has a specific shader
                             */
 
-                            if (Blocks[x][y][z] == BlockType::Water)
-                            {
-                                // Sort out indices
-                                for (auto index : Cube::FaceIndices)
-                                    WaterIndices.push_back(index + 4 * WaterIndexer);
+                            // if (Blocks[x][y][z] == BlockType::Water)
+                            // {
+                            //     // Sort out indices
+                            //     for (auto index : Cube::FaceIndices)
+                            //         WaterIndices.push_back(index + 4 * WaterIndexer);
 
-                                // Sort out vertices
-                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                    WaterVertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+                            //     // Sort out vertices
+                            //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                            //         WaterVertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
 
-                                WaterIndexer += 1;
-                            }
-                            else
-                            {
-                                // Sort out indices
-                                for (auto index : Cube::FaceIndices)
-                                    Indices.push_back(index + 4 * Indexer);
+                            //     WaterIndexer += 1;
+                            // }
+                            // else
+                            // {
+                            //     // Sort out indices
+                            //     for (auto index : Cube::FaceIndices)
+                            //         Indices.push_back(index + 4 * Indexer);
 
-                                // Sort out vertices
-                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                    Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+                            //     // Sort out vertices
+                            //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                            //         Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
 
-                                Indexer += 1;
-                            }
+                            //     Indexer += 1;
+                            // }
+
+                            // Sort out indices
+                            for (auto index : Cube::FaceIndices)
+                                Indices.push_back(index + 4 * Indexer);
+
+                            // Sort out vertices
+                            for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+
+                            Indexer += 1;
                         }
                     }
                 }

@@ -1,7 +1,8 @@
 #version 330 core
 
 in vec4 ClipSpaceCoords;
-in vec2 TexCoords;
+in vec2 MainTexCoords;
+in vec2 DistortionTexCoords;
 in vec3 ToCameraVector;
 
 uniform sampler2D ReflectionTexture;
@@ -20,8 +21,8 @@ void main() {
     vec2 ReflectCoords = vec2(NDCoords.x, -NDCoords.y);
     vec2 RefractCoords = vec2(NDCoords.x, NDCoords.y);
 
-    vec2 Distortion1 = (texture(DuDvMap, vec2(TexCoords.x + MoveFactor, TexCoords.y)).rg * 2.0 - 1.0) * WaveStrength;
-    vec2 Distortion2 = (texture(DuDvMap, vec2(-TexCoords.x + MoveFactor, TexCoords.y + MoveFactor)).rg * 2.0 - 1.0) * WaveStrength;
+    vec2 Distortion1 = (texture(DuDvMap, vec2(DistortionTexCoords.x + MoveFactor, DistortionTexCoords.y)).rg * 2.0 - 1.0) * WaveStrength;
+    vec2 Distortion2 = (texture(DuDvMap, vec2(-DistortionTexCoords.x + MoveFactor, DistortionTexCoords.y + MoveFactor)).rg * 2.0 - 1.0) * WaveStrength;
     vec2 TotalDistortion = Distortion1;
 
     ReflectCoords += TotalDistortion;
@@ -33,7 +34,7 @@ void main() {
 
     vec4 ReflectColour = texture(ReflectionTexture, ReflectCoords);
     vec4 RefractColour = texture(RefractionTexture, RefractCoords);
-    vec4 WaterColour = texture(MainTexture, TexCoords);
+    vec4 WaterColour = texture(MainTexture, MainTexCoords);
 
     vec3 ViewVector = normalize(ToCameraVector);
     float RefractiveFactor = dot(ViewVector, vec3(0, 1, 0));

@@ -23,6 +23,7 @@ private:
 
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ProjectionMatrix = Matrix4f(1);
+    Matrix4f TestViewMatrix = Matrix4f(1);
 
     Matrix4f LightProjectionMatrix = Matrix4f(1);
     Matrix4f LightViewMatrix = Matrix4f(1);
@@ -39,6 +40,7 @@ private:
 
     unsigned int ColourBuffers[2];
     unsigned int PingPongBuffers[2];
+    unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 
     unsigned int DepthMapTexture;
     unsigned int WaterReflectionColour;
@@ -79,7 +81,7 @@ public:
     void RenderWater(Shader *WaterShader, float RunningTime);
 
     void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
-    void DrawLightQuad(Shader *GenericShader, Quad *FinalQuad);
+    void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
 
     void Update();
 

@@ -17,6 +17,7 @@ out VS_OUT {
     vec2 TexCoords;
     vec4 FragPosLightSpace;
     float Visibility;
+    float InputTexIndex;
 } VSOutput;
 
 const float Density = 0.007;
@@ -35,6 +36,7 @@ void main()
     VSOutput.Normal = transpose(inverse(mat3(Model))) * InputNormal;
     VSOutput.TexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
     VSOutput.FragPosLightSpace = LightSpaceMatrix * vec4(VSOutput.FragPos, 1.0);
+    VSOutput.InputTexIndex = InputTexIndex;
 
     // Handle clip distance for reflections
     gl_ClipDistance[0] = dot(vec4(VSOutput.FragPos, 1.0), HorizontalPlane);
