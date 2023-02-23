@@ -88,8 +88,9 @@ public:
         x, y, z -= Scalar;
     }
 
-    T DotProduct()
+    T DotProduct(Vector VecA, Vector VecB)
     {
+        return VecA.x * VecB.x + VecA.y * VecB.y + VecA.z * VecB.z;
     }
 
     Vector CrossProduct(Vector VecA, Vector VecB)
@@ -121,6 +122,11 @@ public:
         x = round(x);
         y = round(y);
         z = round(z);
+    }
+
+    Vector Negate()
+    {
+        return Vector(-x, -y, -z);
     }
 
     void Print()
@@ -193,8 +199,10 @@ public:
                 elements[i][j] -= MatrixB.elements[i][j];
     }
 
-    void Multiply(SquareMatrix MatrixB)
+    SquareMatrix Multiply(SquareMatrix MatrixB)
     {
+        SquareMatrix<T, Size> NewMatrix = SquareMatrix<T, Size>(1);
+
         T elementsCopy[Size][Size];
 
         for (int i = 0; i < Size; i++)
@@ -207,7 +215,13 @@ public:
 
         for (int i = 0; i < Size; i++)
             for (int j = 0; j < Size; j++)
-                elements[i][j] = elementsCopy[i][j];
+                NewMatrix.elements[i][j] = elementsCopy[i][j];
+
+        return NewMatrix;
+    }
+
+    SquareMatrix Invert() {
+         SquareMatrix<T, Size> NewMatrix = SquareMatrix<T, Size>(1);
     }
 
     void Multiply(T Scalar)
@@ -358,68 +372,64 @@ inline Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float
     return ProjectionMatrix;
 }
 
+inline Matrix4f CreateOrthographicProjectionMatrix(float Bottom, float Top, float Left, float Right, float Near, float Far)
+{
+    Matrix4f MatrixA = Matrix4f(1);
+
+    MatrixA.elements[0][0] = 2 / (Right - Left);
+    MatrixA.elements[0][1] = 0;
+    MatrixA.elements[0][2] = 0;
+    MatrixA.elements[0][3] = 0;
+
+    MatrixA.elements[1][0] = 0;
+    MatrixA.elements[1][1] = 2 / (Top - Bottom);
+    MatrixA.elements[1][2] = 0;
+    MatrixA.elements[1][3] = 0;
+
+    MatrixA.elements[2][0] = 0;
+    MatrixA.elements[2][1] = 0;
+    MatrixA.elements[2][2] = -2 / (Far - Near);
+    MatrixA.elements[2][3] = 0;
+
+    MatrixA.elements[3][0] = -(Right + Left) / (Right - Left);
+    MatrixA.elements[3][1] = -(Top + Bottom) / (Top - Bottom);
+    MatrixA.elements[3][2] = -(Far + Near) / (Far - Near);
+    MatrixA.elements[3][3] = 1;
+
+    return MatrixA;
+}
+
 inline Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
 {
     Matrix4f MatrixA = Matrix4f(1);
 
-    Vector3f DirectionVector = TargetVector.Sub(PositionVector);
-    DirectionVector.Normalise();
+    Vector3f ZAxis = TargetVector.Sub(PositionVector).ReturnNormalise();
+    Vector3f XAxis = ZAxis.CrossProduct(ZAxis, UpVector).ReturnNormalise();
+    Vector3f YAxis = XAxis.CrossProduct(XAxis, ZAxis);
 
-    Vector3f RightVector = DirectionVector.CrossProduct(UpVector, DirectionVector);
-    RightVector.Normalise();
+    ZAxis = ZAxis.Negate();
 
-    Vector3f RelativeUpVector = RightVector.CrossProduct(DirectionVector, RightVector);
+    MatrixA.elements[0][0] = XAxis.x;
+    MatrixA.elements[0][1] = XAxis.y;
+    MatrixA.elements[0][2] = XAxis.z;
+    MatrixA.elements[0][3] = -XAxis.DotProduct(XAxis, PositionVector);
 
-    MatrixA.elements[0][0] = RightVector.x;
-    MatrixA.elements[0][1] = RelativeUpVector.x;
-    MatrixA.elements[0][2] = DirectionVector.x;
-    MatrixA.elements[0][3] = 0;
+    MatrixA.elements[1][0] = YAxis.x;
+    MatrixA.elements[1][1] = YAxis.y;
+    MatrixA.elements[1][2] = YAxis.z;
+    MatrixA.elements[1][3] = -YAxis.DotProduct(YAxis, PositionVector);
 
-    MatrixA.elements[1][0] = RightVector.y;
-    MatrixA.elements[1][1] = RelativeUpVector.y;
-    MatrixA.elements[1][2] = DirectionVector.y;
-    MatrixA.elements[1][3] = 0;
-
-    MatrixA.elements[2][0] = RightVector.z;
-    MatrixA.elements[2][1] = RelativeUpVector.z;
-    MatrixA.elements[2][2] = DirectionVector.z;
-    MatrixA.elements[2][3] = 0;
+    MatrixA.elements[2][0] = ZAxis.x;
+    MatrixA.elements[2][1] = ZAxis.y;
+    MatrixA.elements[2][2] = ZAxis.z;
+    MatrixA.elements[2][3] = -ZAxis.DotProduct(ZAxis, PositionVector);
 
     MatrixA.elements[3][0] = 0;
     MatrixA.elements[3][1] = 0;
     MatrixA.elements[3][2] = 0;
     MatrixA.elements[3][3] = 1;
 
-    Matrix4f MatrixB = Matrix4f(1);
-    PositionVector.NegateVector();
-    MatrixB.Translate(PositionVector);
-
-    MatrixA.Multiply(MatrixB);
-
-    return MatrixA;
-}
-
-inline Matrix4f CreateSlimLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector)
-{
-    Matrix4f MatrixA = Matrix4f(1);
-
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            MatrixA.elements[i][j] = 0;
-
-    Matrix4f LookAtMatrix = CreateLookAtMatrix(PositionVector, TargetVector, UpVector);
-
-    MatrixA.elements[0][0] = LookAtMatrix.elements[0][0];
-    MatrixA.elements[0][1] = LookAtMatrix.elements[0][1];
-    MatrixA.elements[0][2] = LookAtMatrix.elements[0][2];
-
-    MatrixA.elements[1][0] = LookAtMatrix.elements[1][0];
-    MatrixA.elements[1][1] = LookAtMatrix.elements[1][1];
-    MatrixA.elements[1][2] = LookAtMatrix.elements[1][2];
-
-    MatrixA.elements[2][0] = LookAtMatrix.elements[2][0];
-    MatrixA.elements[2][1] = LookAtMatrix.elements[2][1];
-    MatrixA.elements[2][2] = LookAtMatrix.elements[2][2];
+    MatrixA.ConvertToColumnMajorOrder();
 
     return MatrixA;
 }

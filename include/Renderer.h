@@ -15,19 +15,18 @@ class Renderer
 {
 private:
     Vector3f SkyColour;
-    glm::vec3 LightDir;
+
     Vector3f CustomLightDir;
-    glm::vec3 LightPosition;
+    Vector3f LightPosition;
 
     Vector3f CameraViewPosition;
-    Matrix4f SlimViewMatrix;
 
-    glm::mat4 ViewMatrix;
-    glm::mat4 ProjectionMatrix;
+    Matrix4f ViewMatrix = Matrix4f(1);
+    Matrix4f ProjectionMatrix = Matrix4f(1);
 
-    glm::mat4 LightProjectionMatrix;
-    glm::mat4 LightViewMatrix;
-    glm::mat4 LightSpaceMatrix;
+    Matrix4f LightProjectionMatrix = Matrix4f(1);
+    Matrix4f LightViewMatrix = Matrix4f(1);
+    Matrix4f LightSpaceMatrix = Matrix4f(1);
 
     Vector4f ReflectionPlane;
     Vector4f RefractionPlane;
@@ -84,7 +83,7 @@ public:
 
     void Update();
 
-    std::tuple<glm::mat4, glm::mat4> GetMatrices();
+    std::tuple<Matrix4f, Matrix4f> GetMatrices();
 };
 
 static unsigned int SCREEN_WIDTH = 800;

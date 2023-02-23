@@ -18,7 +18,6 @@ private:
     float Yaw = 90.0f;
     float Pitch = 0;
 
-    float ConvertToRadians(float Degrees);
     void Jump();
 
     BlockType SelectedBlock = BlockType::Stone;
@@ -39,14 +38,13 @@ public:
     static Camera *GetInstance();
 
     Matrix4f RetrieveLookAt();
-    glm::mat4 TestLookAt();
     Vector3f GetCameraPos();
-    glm::vec3 TestValue();
-    Matrix4f RetrieveSlimLookAtMatrix();
 
     void InvertPitch();
 
     BlockType GetSelectedBlockType();
+
+    static float ConvertToRadians(float Degrees);
 
     void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     void Rotate(double XPos, double YPos);

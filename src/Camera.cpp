@@ -45,29 +45,6 @@ Matrix4f Camera::RetrieveLookAt()
     return CreateLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
 }
 
-glm::vec3 Camera::TestValue()
-{
-    glm::vec3 GCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
-    glm::vec3 GCameraFront = glm::vec3(CameraFront.x, CameraFront.y, CameraFront.z);
-
-    return GCameraPos;
-}
-
-glm::mat4 Camera::TestLookAt()
-{
-    glm::vec3 GCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
-    glm::vec3 GCameraFront = glm::vec3(CameraFront.x, CameraFront.y, CameraFront.z);
-    glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    glm::mat4 CorrectLookAt = glm::lookAt(GCameraPos, GCameraPos + GCameraFront, cameraUp);
-    return CorrectLookAt;
-}
-
-Matrix4f Camera::RetrieveSlimLookAtMatrix()
-{
-    return CreateSlimLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
-}
-
 BlockType Camera::GetSelectedBlockType()
 {
     return SelectedBlock;

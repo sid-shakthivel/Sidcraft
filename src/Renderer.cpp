@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/gtx/string_cast.hpp>
+
 #include "../include/Camera.h"
 #include "../include/Shader.h"
 #include "../include/World.h"
@@ -9,7 +11,7 @@
 
 #include "../include/Renderer.h"
 
-Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtMatrix())
+Renderer::Renderer()
 {
     // Setup matrices and vectors
     SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
@@ -17,20 +19,16 @@ Renderer::Renderer() : SlimViewMatrix(Camera::GetInstance()->RetrieveSlimLookAtM
     ReflectionPlane = Vector4f(0, 1, 0, -WATER_LEVEL);
     RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL);
 
-    LightDir = glm::vec3(2.0f, 3.0f, -4.0f);
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
+    LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
 
-    LightPosition = glm::vec3(0.0f, 40.0f, 0.0f);
+    LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 1.0f, 500.0f);
+    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(120.0f, 120.0f, 120.0f), Vector3f(0.0f, 1.0f, 0.0f));
+    LightSpaceMatrix = LightProjectionMatrix.Multiply(LightViewMatrix);
 
-    LightProjectionMatrix = glm::ortho(-120.0f, 120.0f, -120.0f, 120.0f, 1.0f, 500.0f);
-    LightViewMatrix = glm::lookAt(LightPosition, glm::vec3(120.0f, 10.0f, 120.0f), glm::vec3(0.0, 1.0, 0.0));
-    LightSpaceMatrix = LightProjectionMatrix * LightViewMatrix;
-
-    ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
-    ViewMatrix = Camera::GetInstance()->TestLookAt();
-
+    ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+    ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
-    SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
 
     DuDvMap = LoadTextureFromFile("res/waterDUDV.png");
 }
@@ -113,8 +111,7 @@ void Renderer::DrawSkybox(Shader *GenericShader, float DeltaTime)
 void Renderer::Update()
 {
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
-    ViewMatrix = Camera::GetInstance()->TestLookAt();
-    SlimViewMatrix = Camera::GetInstance()->RetrieveSlimLookAtMatrix();
+    ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
 }
 
 void Renderer::RenderNormal(Shader *GenericShader, float DeltaTime)
@@ -202,9 +199,9 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
     WaterShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
     WaterShader->SetFloat("MoveFactor", MoveFactor);
 
-    Vector3f Test = Camera::GetInstance()->GetCameraPos();
+    Vector3f CameraPos = Camera::GetInstance()->GetCameraPos();
 
-    WaterShader->SetVector3f("CameraPos", &Test);
+    WaterShader->SetVector3f("CameraPos", &CameraPos);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
@@ -294,7 +291,7 @@ void Renderer::SetupDepth()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-std::tuple<glm::mat4, glm::mat4> Renderer::GetMatrices()
+std::tuple<Matrix4f, Matrix4f> Renderer::GetMatrices()
 {
     return std::make_tuple(ProjectionMatrix, ViewMatrix);
 }
