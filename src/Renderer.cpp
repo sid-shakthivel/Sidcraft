@@ -17,7 +17,7 @@ Renderer::Renderer()
     SkyColour = Vector3f(0.5f, 0.5f, 0.5f);
 
     ReflectionPlane = Vector4f(0, 1, 0, -WATER_LEVEL);
-    RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL);
+    RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL + 5);
 
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
     LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
@@ -64,7 +64,7 @@ void Renderer::RenderBlur(Shader *BlurShader, Quad *FinalQuad)
 
     Horizontal = true;
     bool FirstIteration = true;
-    int Amount = 10;
+    int Amount = 20;
 
     for (unsigned int i = 0; i < Amount; i++)
     {
@@ -173,7 +173,7 @@ void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
         Tree.Draw(GenericShader, IsDepth, DeltaTime);
 
     for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, World::GetInstance()->FlowerPositions.at(i), IsDepth);
+        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, IsDepth);
 
     for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
         World::GetInstance()->LightCubes.at(i).Draw(GenericShader, World::GetInstance()->LightCubePositions.at(i));
@@ -204,12 +204,20 @@ void Renderer::RenderRefraction(Shader *GenericShader)
     GenericShader->Use();
     GenericShader->SetVector4f("HorizontalPlane", &RefractionPlane);
 
-    RenderScene(GenericShader, 1, false);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+
+    GenericShader->SetInt("MainTexture", 0);
+
+    GenericShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
+    GenericShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
+
+    DrawWorld(GenericShader, 1, false);
 }
 
 void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
 {
-    MoveFactor += WAVE_SPEED * RunningTime;
+    MoveFactor = RunningTime;
     MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
 
     WaterShader->Use();

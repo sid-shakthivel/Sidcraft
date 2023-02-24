@@ -68,16 +68,12 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
 }
 
 // Creates a new chunk
-Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE], const int (&HeightmapToCopy)[CHUNK_SIZE][CHUNK_SIZE])
+Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE])
 {
     for (int x = 0; x < CHUNK_SIZE; x++)
         for (int z = 0; z < CHUNK_SIZE; z++)
             for (int y = 0; y < CHUNK_HEIGHT; y++)
                 Blocks[x][y][z] = BlocksToCopy[x][y][z];
-
-    for (int x = 0; x < CHUNK_SIZE; x++)
-        for (int z = 0; z < CHUNK_SIZE; z++)
-            LocalHeightmap[z][x] = HeightmapToCopy[z][x];
 }
 
 float GetGradient(float X, float Z)
@@ -108,10 +104,12 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
     {
         if (Y > (Height - 1))
             return BlockType::Grass;
-        else if (Y > (Height - 3))
-            return BlockType::Dirt;
         else
             return BlockType::Stone;
+        // else if (Y > (Height - 3))
+        //     return BlockType::Dirt;
+        // else
+        //     return BlockType::Stone;
     };
 
     /*
@@ -139,7 +137,6 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
                 Blocks[x][y][z] = DetermineBlockType(y, height);
 
             Heightmap[ZOffset][XOffset] = height;
-            LocalHeightmap[z][x] = height;
         }
 
     const int OFFSET = 5;
@@ -157,11 +154,13 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
                     Heightmap[ZOffset][XOffset] = WATER_LEVEL;
 
-                    for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
-                        for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
-                            for (int k = y - 2; k <= (y + OFFSET); k++)
-                                if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
-                                    Blocks[i][k][j] = BlockType::Sand;
+                    Blocks[x][0][z] = BlockType::Sand;
+
+                    // for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
+                    //     for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
+                    //         for (int k = y - 2; k <= (y + OFFSET); k++)
+                    //             if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
+                    //                 Blocks[i][k][j] = BlockType::Sand;
                 }
 }
 
@@ -204,6 +203,52 @@ void Chunk::CreateMesh()
                 {
                     Vector3f PositionToCheck = Position.Add(Direction);
 
+                    if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Air || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Water)
+                    {
+                        if (Blocks[x][y][z] != BlockType::Air)
+                        {
+                            // Fix for Up/Down
+                            if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
+                                PositionToCheck = Position;
+
+                            auto Index = Cube::ConvertDirectionToNumber(Direction);
+                            Vector3f Normal = Cube::FaceNormals[Index];
+                            auto CubeFaceVertices = Cube::FaceVertices[Index];
+
+                            // Determine block type
+                            float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
+
+                            if (Blocks[x][y][z] != BlockType::Water)
+                            {
+                                // Sort out indices
+                                for (auto index : Cube::FaceIndices)
+                                    Indices.push_back(index + 4 * Indexer);
+
+                                // Sort out vertices
+                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                    Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+
+                                Indexer += 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+    /*
+        Water is separated from the other materials
+        Water has special properties and has a specific shader
+    */
+    for (int x = 0; x < CHUNK_SIZE; x++)
+        for (int y = 0; y <= WATER_LEVEL; y++)
+            for (int z = 0; z < CHUNK_SIZE; z++)
+            {
+                Vector3f Position = Vector3f(x, y, z);
+
+                for (Vector3f Direction : Cube::DirectionList)
+                {
+                    Vector3f PositionToCheck = Position.Add(Direction);
+
                     if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == false)
                     {
                         if (Blocks[x][y][z] != BlockType::Air)
@@ -223,41 +268,18 @@ void Chunk::CreateMesh()
                                 Water is separated from the other materials
                                 Water has special properties and has a specific shader
                             */
+                            if (Blocks[x][y][z] == BlockType::Water)
+                            {
+                                // Sort out indices
+                                for (auto index : Cube::FaceIndices)
+                                    WaterIndices.push_back(index + 4 * WaterIndexer);
 
-                            // if (Blocks[x][y][z] == BlockType::Water)
-                            // {
-                            //     // Sort out indices
-                            //     for (auto index : Cube::FaceIndices)
-                            //         WaterIndices.push_back(index + 4 * WaterIndexer);
+                                // Sort out vertices
+                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                    WaterVertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
 
-                            //     // Sort out vertices
-                            //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                            //         WaterVertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
-
-                            //     WaterIndexer += 1;
-                            // }
-                            // else
-                            // {
-                            //     // Sort out indices
-                            //     for (auto index : Cube::FaceIndices)
-                            //         Indices.push_back(index + 4 * Indexer);
-
-                            //     // Sort out vertices
-                            //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                            //         Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
-
-                            //     Indexer += 1;
-                            // }
-
-                            // Sort out indices
-                            for (auto index : Cube::FaceIndices)
-                                Indices.push_back(index + 4 * Indexer);
-
-                            // Sort out vertices
-                            for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
-
-                            Indexer += 1;
+                                WaterIndexer += 1;
+                            }
                         }
                     }
                 }

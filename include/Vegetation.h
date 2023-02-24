@@ -7,8 +7,10 @@
 class Vegetation : public Mesh
 {
 private:
+    Matrix4f Position = Matrix4f(1);    
+
 public:
-    Vegetation(float TextureIndex);
-    void Draw(Shader *MeshShader, Matrix4f Offset, bool IsDepth) const;
+    Vegetation(float TextureIndex, Matrix4f Position);
+    void Draw(Shader *MeshShader, bool IsDepth) const;
     void CreateMesh();
 };

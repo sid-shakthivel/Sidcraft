@@ -93,10 +93,12 @@ int main()
     Quad FinalQuad = Quad();
 
     // MasterRenderer.SetupDepth();
-    // MasterRenderer.SetupReflection();
-    // MasterRenderer.SetupRefraction();
-    MasterRenderer.SetupHDR();
-    MasterRenderer.SetupBloom();
+
+    // MasterRenderer.SetupHDR();
+    // MasterRenderer.SetupBloom();
+
+    MasterRenderer.SetupReflection();
+    MasterRenderer.SetupRefraction();
 
     bool ShowDepth = false;
 
@@ -111,30 +113,35 @@ int main()
         TestProjection = get<0>(Matrices);
         TestView = get<1>(Matrices);
 
-        // glEnable(GL_CLIP_DISTANCE0);
+        // Water rendering process
 
-        // float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
+        glEnable(GL_CLIP_DISTANCE0);
 
-        // Camera::GetInstance()->CameraPos.y -= Distance;
-        // Camera::GetInstance()->InvertPitch();
-        // MasterRenderer.RenderReflection(&MainShader);
-        // // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
 
-        // Camera::GetInstance()->CameraPos.y += Distance;
-        // Camera::GetInstance()->InvertPitch();
-        // MasterRenderer.RenderRefraction(&MainShader);
-
-        // glDisable(GL_CLIP_DISTANCE0);
-
-        // MasterRenderer.RenderNormal(&MainShader, lastFrame);
-        // MasterRenderer.RenderWater(&WaterShader, lastFrame);
+        Camera::GetInstance()->CameraPos.y -= Distance;
+        Camera::GetInstance()->CameraPos.z -= Distance / 2;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderReflection(&MainShader);
         // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
-        MasterRenderer.RenderHDR(&MainShader, lastFrame);
-        MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
-        MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+        Camera::GetInstance()->CameraPos.y += Distance;
+        Camera::GetInstance()->CameraPos.z += Distance / 2;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderRefraction(&MainShader);
 
-        // MasterRenderer.DrawTempQuad(&QuadShader, &FinalQuad);
+        glDisable(GL_CLIP_DISTANCE0);
+
+        MasterRenderer.RenderNormal(&MainShader, lastFrame);
+        MasterRenderer.RenderWater(&WaterShader, lastFrame);
+        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+
+        // Bloom rendering process
+
+        // MasterRenderer.RenderHDR(&MainShader, lastFrame);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
+        // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

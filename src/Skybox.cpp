@@ -122,12 +122,14 @@ void Skybox::UpdateBlend(float DeltaTime, Shader *MeshShader)
 
     if (TotalTime > 40)
         TotalTime = 0;
-    else if (TotalTime > 25)
-        BlendFactor = 1.0f - Lerp(0.0f, 1.0f, (TotalTime - 20) * (1.0f / 20.0f));
-    else if (TotalTime > 20)
-        BlendFactor = 1.0f;
-    else if (TotalTime > 5)
-        BlendFactor = Lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
-    else
-        BlendFactor = 0.0f;
+    // else if (TotalTime > 25)
+    //     BlendFactor = 1.0f - Lerp(0.0f, 1.0f, (TotalTime - 20) * (1.0f / 20.0f));
+    // else if (TotalTime > 20)
+    //     BlendFactor = 1.0f;
+    // else if (TotalTime > 5)
+    //     BlendFactor = Lerp(0.0f, 1.0f, TotalTime * (1.0f / 20.0f));
+    // else
+    //     BlendFactor = 0.0f;
+
+    BlendFactor = 0.0f;
 }

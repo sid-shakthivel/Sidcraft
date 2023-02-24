@@ -9,7 +9,8 @@ uniform float Weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.0
 out vec4 FragColour;
 
 void main() {
-    vec2 TexOffset = 1.0 / (textureSize(Image, 0) / 16);
+    // vec2 TexOffset = 1.0 / (textureSize(Image, 0) / 16);
+    vec2 TexOffset = 1.0 / textureSize(Image, 0);
     vec3 Result = texture(Image, TexCoords).rgb * Weight[0];
 
     bool H = Horizontal;

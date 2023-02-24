@@ -43,31 +43,31 @@ void World::GenerateWorld()
     std::uniform_int_distribution<> WorldRange(0, WORLD_SIZE - 1);
 
     // Generate light boxes for bloom
-    unsigned int LightBoxCount = 0;
+    // unsigned int LightBoxCount = 0;
 
-    for (;;)
-    {
-        auto PosX = WorldRange(gen);
-        auto PosZ = WorldRange(gen);
+    // for (;;)
+    // {
+    //     auto PosX = WorldRange(gen);
+    //     auto PosZ = WorldRange(gen);
 
-        auto Height = Heightmap[PosZ][PosX];
+    //     auto Height = Heightmap[PosZ][PosX];
 
-        if (Height > WATER_LEVEL)
-        {
-            Cube NewLightCube = Cube(35.0f);
-            NewLightCube.CreateMesh();
-            LightCubes.push_back(NewLightCube);
+    //     if (Height > WATER_LEVEL)
+    //     {
+    //         Cube NewLightCube = Cube(35.0f);
+    //         NewLightCube.CreateMesh();
+    //         LightCubes.push_back(NewLightCube);
 
-            Matrix4f ModelMatrix = Matrix4f(1);
-            ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
-            LightCubePositions.push_back(ModelMatrix);
+    //         Matrix4f ModelMatrix = Matrix4f(1);
+    //         ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
+    //         LightCubePositions.push_back(ModelMatrix);
 
-            LightBoxCount += 1;
-        }
+    //         LightBoxCount += 1;
+    //     }
 
-        if (LightBoxCount >= CHUNK_NUM * 3)
-            break;
-    }
+    //     if (LightBoxCount >= CHUNK_NUM * 2)
+    //         break;
+    // }
 
     // Generate trees
     // unsigned int TreeCount = 0;
@@ -104,13 +104,12 @@ void World::GenerateWorld()
 
     //     if (Height > WATER_LEVEL)
     //     {
-    //         Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower());
-    //         NewFlower.CreateMesh();
-    //         FlowerList.push_back(NewFlower);
-
     //         Matrix4f ModelMatrix = Matrix4f(1);
     //         ModelMatrix.Translate(Vector3f(PosX, Height + 1, PosZ));
-    //         FlowerPositions.push_back(ModelMatrix);
+
+    //         Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower(), ModelMatrix);
+    //         NewFlower.CreateMesh();
+    //         FlowerList.push_back(NewFlower);
 
     //         FlowerCount += 1;
     //     }
