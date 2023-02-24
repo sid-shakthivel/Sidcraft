@@ -50,7 +50,8 @@ private:
     unsigned int RboDepth;
     unsigned int WaterReflectionRBO;
 
-    unsigned int DuDvMap;
+    unsigned int DuDvMap = 0;
+    unsigned int WaterNormalMap = 0;
     float MoveFactor = 0;
 
     bool Horizontal = true;

@@ -32,7 +32,8 @@ Renderer::Renderer()
 
     TestViewMatrix = Camera::GetInstance()->RetrieveLookAt();
 
-    DuDvMap = LoadTextureFromFile("res/waterDUDV.png");
+    DuDvMap = LoadRBGFromFile("res/waterDUDV.png");
+    WaterNormalMap = LoadRBGFromFile("res/WaterNormalMap.png");
 }
 
 void Renderer::RenderHDR(Shader *GenericShader, float DeltaTime)
@@ -51,7 +52,7 @@ void Renderer::DrawTempQuad(Shader *GenericShader, Quad *FinalQuad)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
+    glBindTexture(GL_TEXTURE_2D, WaterNormalMap);
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
@@ -218,7 +219,7 @@ void Renderer::RenderRefraction(Shader *GenericShader)
 void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
 {
     MoveFactor = RunningTime;
-    MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
+    // MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
 
     WaterShader->Use();
 
@@ -229,6 +230,10 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
     Vector3f CameraPos = Camera::GetInstance()->GetCameraPos();
 
     WaterShader->SetVector3f("CameraPos", &CameraPos);
+
+    WaterShader->SetVector3f("LightDirection", &CustomLightDir);
+
+    // replace with viewpos
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
@@ -242,10 +247,14 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, DuDvMap);
 
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, WaterNormalMap);
+
     WaterShader->SetInt("ReflectionTexture", 0);
     WaterShader->SetInt("RefractionTexture", 1);
     WaterShader->SetInt("MainTexture", 2);
     WaterShader->SetInt("DuDvMap", 3);
+    WaterShader->SetInt("NormalMap", 4);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));

@@ -154,13 +154,11 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
                     Heightmap[ZOffset][XOffset] = WATER_LEVEL;
 
-                    Blocks[x][0][z] = BlockType::Sand;
-
-                    // for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
-                    //     for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
-                    //         for (int k = y - 2; k <= (y + OFFSET); k++)
-                    //             if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
-                    //                 Blocks[i][k][j] = BlockType::Sand;
+                    for (int i = std::max(0, x - OFFSET); i < std::min((int)CHUNK_SIZE, x + OFFSET); i++)
+                        for (int j = std::max(0, z - OFFSET); j < std::min((int)CHUNK_SIZE, z + OFFSET); j++)
+                            for (int k = y - 2; k <= (y + OFFSET); k++)
+                                if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
+                                    Blocks[i][k][j] = BlockType::Sand;
                 }
 }
 

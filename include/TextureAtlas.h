@@ -1,6 +1,7 @@
 #pragma once
 
 unsigned int LoadTextureFromFile(const std::string &filepath);
+unsigned int LoadRBGFromFile(const std::string &filepath);
 
 class TextureAtlas
 {

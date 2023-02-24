@@ -34,6 +34,34 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     return TextureId;
 }
 
+unsigned int LoadRBGFromFile(const std::string &filepath)
+{
+    unsigned int TextureId;
+    glGenTextures(1, &TextureId);
+    glBindTexture(GL_TEXTURE_2D, TextureId);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);           // (s, t, r) refers to the coordinate axis
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);           // Mirrors content
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR); // Set filtering method
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+
+    stbi_set_flip_vertically_on_load(true);
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load((filepath).c_str(), &width, &height, &nrChannels, 0);
+
+    if (!data)
+        std::cout << "ERROR LOADING TEXTURE\n";
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+
+    return TextureId;
+}
+
 TextureAtlas *TextureAtlas::GetInstance()
 {
     if (TextureAtlasSingleton_ == nullptr)
