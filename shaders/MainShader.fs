@@ -85,7 +85,7 @@ void main()
     // Put everything together
     vec3 Lighting = (Ambient  + Diffuse + Specular) * mix(SkyColour, Colour, FSInput.Visibility); 
     // Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
-    Lighting = (Ambient  + Diffuse + Specular) * Colour;
+    // Lighting = (Ambient  + Diffuse + Specular) * Colour;
 
     FragColour = vec4(Lighting, 1.0);
     if (FragColour.rgb == vec3(0,0,0)) discard;
@@ -94,8 +94,8 @@ void main()
     FragColour.rgb = pow(FragColour.rgb, vec3(1.0/Gamma));
 
     // Bloom stuff  
-    float brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0) {
+    float Brightness = dot(FragColour.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(Brightness > 1.0) {
         BrightColour = vec4(FragColour.rgb, 1.0);
     }
     else {

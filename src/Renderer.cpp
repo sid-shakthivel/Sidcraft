@@ -218,8 +218,8 @@ void Renderer::RenderRefraction(Shader *GenericShader)
 
 void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
 {
-    MoveFactor = RunningTime;
-    // MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
+    MoveFactor = RunningTime * WAVE_SPEED;
+    MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
 
     WaterShader->Use();
 

@@ -16,7 +16,7 @@ out vec2 MainTexCoords;
 out vec2 DistortionTexCoords;
 out vec3 ToCameraVector;
 
-const float Tiling = 50.0;
+const float Tiling = 10.0;
 
 void main() {
     float Column = mod(InputTexIndex, 16);
@@ -24,11 +24,10 @@ void main() {
     float XOffset = Column / 16;
     float YOffset = Row / 16;
 
-    vec4 WorldPostion = Model * vec4(InputPos, 1.0);
+    vec4 WorldPostion = Model * vec4(InputPos, 1.0);    
     ClipSpaceCoords = Projection * View * WorldPostion;
     MainTexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
-    // DistortionTexCoords = vec2(InputPos.x / 2.0 + 0.5, InputPos.y / 2.0 + 0.5) * Tiling;
-    DistortionTexCoords = InputTexCoords * Tiling;
+    DistortionTexCoords = vec2((InputPos.x / 2.0) + 0.5, (InputPos.z / 2.0) + 0.5) * 0.1;
     ToCameraVector = CameraPos - WorldPostion.xyz;
 
     gl_Position = ClipSpaceCoords;

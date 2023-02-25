@@ -52,8 +52,8 @@ void main() {
     vec4 WaterColour = texture(MainTexture, MainTexCoords);
 
     // Fresnel effect
-    // vec3 ViewVector = normalize(ToCameraVector);
-    // float RefractiveFactor = dot(ViewVector, vec3(0, 1, 0));
+    vec3 ViewVector = normalize(ToCameraVector);
+    float RefractiveFactor = dot(ViewVector, vec3(0, 1, 0));
 
     // Handle normals
     vec4 NormalMapColour = texture(NormalMap, TestTexCoords);
@@ -64,5 +64,7 @@ void main() {
     vec3 SpecularHighlights = LightColour * Specular * Reflectivity;
 
     // Put it all together
-    FragColour = mix(mix(ReflectColour, RefractColour, 0.5), WaterColour, 0.20) + vec4(SpecularHighlights, 0.0);
+    FragColour = mix(mix(ReflectColour, RefractColour, 0.5), WaterColour, 0.2) + vec4(SpecularHighlights, 0.0);
+
+    // FragColour = texture(DuDvMap, DistortionTexCoords);
 }

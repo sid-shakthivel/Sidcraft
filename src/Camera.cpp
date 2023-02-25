@@ -93,10 +93,10 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
     UpwardsSpeed += GRAVITY * DeltaTime;
     CameraPos.y += UpwardsSpeed * DeltaTime;
 
-    if (CameraPos.y < (Height + 5))
+    if (CameraPos.y < (Height + 4))
     {
         UpwardsSpeed = 0;
-        CameraPos.y = Height + 5;
+        CameraPos.y = Height + 2;
     }
 };
 

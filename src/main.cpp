@@ -120,13 +120,13 @@ int main()
         float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
 
         Camera::GetInstance()->CameraPos.y -= Distance;
-        Camera::GetInstance()->CameraPos.z -= Distance / 2;
+        Camera::GetInstance()->CameraPos.z -= Distance;
         Camera::GetInstance()->InvertPitch();
         MasterRenderer.RenderReflection(&MainShader);
         // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
         Camera::GetInstance()->CameraPos.y += Distance;
-        Camera::GetInstance()->CameraPos.z += Distance / 2;
+        Camera::GetInstance()->CameraPos.z += Distance;
         Camera::GetInstance()->InvertPitch();
         MasterRenderer.RenderRefraction(&MainShader);
 

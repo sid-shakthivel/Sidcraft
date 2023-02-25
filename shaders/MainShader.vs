@@ -42,10 +42,10 @@ void main()
     gl_ClipDistance[0] = dot(vec4(VSOutput.FragPos, 1.0), HorizontalPlane);
 
     // Handle fog
-    // vec4 PosRelativeCam = View * Model * vec4(InputPos, 1.0);
-    // float Distance = length(PosRelativeCam.xyz);
-    // VSOutput.Visibility = exp(-pow(Distance * Density, Gradient));
-    // VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
+    vec4 PosRelativeCam = View * Model * vec4(InputPos, 1.0);
+    float Distance = length(PosRelativeCam.xyz);
+    VSOutput.Visibility = exp(-pow(Distance * Density, Gradient));
+    VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
      VSOutput.Visibility = 1;
 
     /*
