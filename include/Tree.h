@@ -1,7 +1,7 @@
+#pragma once
+
 #include "Cube.h"
 #include "Matrix.h"
-
-#pragma once
 
 class Tree : public Mesh
 {

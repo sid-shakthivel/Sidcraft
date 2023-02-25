@@ -1,8 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <glm/gtx/string_cast.hpp>
-
 #include "../include/Camera.h"
 #include "../include/Shader.h"
 #include "../include/World.h"
@@ -23,14 +21,12 @@ Renderer::Renderer()
     LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
 
     LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 1.0f, 500.0f);
-    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(120.0f, 120.0f, 120.0f), Vector3f(0.0f, 1.0f, 0.0f));
-    LightSpaceMatrix = LightProjectionMatrix.Multiply(LightViewMatrix);
+    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(120.0f, -20.0f, 120.0f), Vector3f(0.0f, 1.0f, 0.0f));
+    LightSpaceMatrix = LightViewMatrix.Multiply(LightProjectionMatrix);
 
     ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
     ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
-
-    TestViewMatrix = Camera::GetInstance()->RetrieveLookAt();
 
     DuDvMap = LoadRBGFromFile("res/waterDUDV.png");
     WaterNormalMap = LoadRBGFromFile("res/WaterNormalMap.png");
@@ -226,14 +222,8 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
     WaterShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
     WaterShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
     WaterShader->SetFloat("MoveFactor", MoveFactor);
-
-    Vector3f CameraPos = Camera::GetInstance()->GetCameraPos();
-
-    WaterShader->SetVector3f("CameraPos", &CameraPos);
-
+    WaterShader->SetVector3f("CameraPos", &CameraViewPosition);
     WaterShader->SetVector3f("LightDirection", &CustomLightDir);
-
-    // replace with viewpos
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
@@ -272,6 +262,7 @@ void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
     DepthShader->Use();
 
     DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+
     DrawWorld(DepthShader, DeltaTime, true);
 }
 
@@ -311,11 +302,6 @@ void Renderer::SetupDepth()
         std::cout << "ERROR: INCOMPLETE DEPTH FRAMEBUFFER" << std::endl;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-std::tuple<Matrix4f, Matrix4f> Renderer::GetMatrices()
-{
-    return std::make_tuple(ProjectionMatrix, ViewMatrix);
 }
 
 void Renderer::SetupHDR()

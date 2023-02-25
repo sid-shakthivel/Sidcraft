@@ -83,9 +83,7 @@ void main()
     float Shadow = CalculateShadow(FSInput.FragPosLightSpace, Bias);          
 
     // Put everything together
-    vec3 Lighting = (Ambient  + Diffuse + Specular) * mix(SkyColour, Colour, FSInput.Visibility); 
-    // Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * Colour;    
-    // Lighting = (Ambient  + Diffuse + Specular) * Colour;
+    vec3 Lighting = (Ambient + (1.0 - Shadow) * (Diffuse + Specular)) * mix(SkyColour, Colour, FSInput.Visibility);    
 
     FragColour = vec4(Lighting, 1.0);
     if (FragColour.rgb == vec3(0,0,0)) discard;

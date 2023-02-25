@@ -9,8 +9,8 @@ in vec3 TexCoords;
 
 out vec4 FragColour;
 
-const float LowerLimit = -25.0;
-const float UpperLimit = 100.0;
+const float LowerLimit = 20.0;
+const float UpperLimit = 50.0;
 
 void main()
 {             
@@ -23,6 +23,4 @@ void main()
     Factor = clamp(Factor, 0.0, 1.0);
 
     FragColour = mix(vec4(FogColour, 1.0), FinalColour, Factor);
-
-    FragColour = FinalColour;
 } 

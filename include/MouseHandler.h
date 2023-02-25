@@ -8,14 +8,17 @@
 class MouseHandler
 {
 private:
+    glm::mat4 ProjectionMatrix;
+    glm::vec3 UpVec = glm::vec3(0.0f, 1.0f, 0.0f);
+
     Vector3f ConvertToNDC(double ViewportXPos, double ViewportYPos);
     Vector4f ConvertToClipSpace(Vector3f NDCVec);
-    Vector4f ConvertToCameraCoords(Vector4f ClipVec, glm::mat4 ProjectionMatrix);
-    Vector3f ConvertToWorld(Vector4f CameraVec, glm::mat4 ViewMatrix);
+    Vector4f ConvertToCameraCoords(Vector4f ClipVec);
+    Vector3f ConvertToWorld(Vector4f CameraVec, Vector3f CameraPos, Vector3f CameraFront);
 
 public:
-    MouseHandler(){};
-    Vector3f GetRay(double ViewportXPos, double ViewportYPos, glm::mat4 ProjectionMatrix, glm::mat4 ViewMatrix);
+    MouseHandler();
+    Vector3f GetRay(double ViewportXPos, double ViewportYPos, Vector3f CameraPos, Vector3f CameraFront);
 };
 
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);

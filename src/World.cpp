@@ -69,28 +69,27 @@ void World::GenerateWorld()
     //         break;
     // }
 
-    // Generate trees
-    // unsigned int TreeCount = 0;
+    // Generate trees unsigned int TreeCount = 0;
+    unsigned int TreeCount = 0;
+    for (;;)
+    {
+        auto PosX = WorldRange(gen);
+        auto PosZ = WorldRange(gen);
 
-    // for (;;)
-    // {
-    //     auto PosX = WorldRange(gen);
-    //     auto PosZ = WorldRange(gen);
+        auto Height = Heightmap[PosZ][PosX];
 
-    //     auto Height = Heightmap[PosZ][PosX];
+        if (Height > WATER_LEVEL)
+        {
+            Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
+            NewTree.CreateMesh();
+            TreeList.push_back(NewTree);
 
-    //     if (Height > WATER_LEVEL)
-    //     {
-    //         Tree NewTree = Tree(Vector3f(PosX, Height, PosZ));
-    //         NewTree.CreateMesh();
-    //         TreeList.push_back(NewTree);
+            TreeCount += 1;
+        }
 
-    //         TreeCount += 1;
-    //     }
-
-    //     if (TreeCount >= CHUNK_NUM * 3)
-    //         break;
-    // }
+        if (TreeCount >= CHUNK_NUM * 3)
+            break;
+    }
 
     // Generate flowers
     // unsigned int FlowerCount = 0;

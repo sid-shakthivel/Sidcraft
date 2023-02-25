@@ -2,7 +2,7 @@
 
 in vec4 ClipSpaceCoords;
 in vec2 MainTexCoords;
-in vec2 DistortionTexCoords;
+in vec2 AdjustedTexCoords;
 in vec3 ToCameraVector;
 
 uniform sampler2D ReflectionTexture;
@@ -31,13 +31,9 @@ void main() {
     vec2 RefractCoords = vec2(NDCoords.x, NDCoords.y);
 
     // Apply suitable distortion according to DuDV map
-    // vec2 Distortion1 = (texture(DuDvMap, vec2(DistortionTexCoords.x + MoveFactor, DistortionTexCoords.y)).xy * 2.0 - 1.0) * WaveStrength;
-    // vec2 Distortion2 = (texture(DuDvMap, vec2(-DistortionTexCoords.x, DistortionTexCoords.y - MoveFactor)).xy * 2.0 - 1.0) * WaveStrength;
-    // vec2 TotalDistortion = Distortion1 + Distortion2;
-
-    vec2 TestTexCoords = texture(DuDvMap, vec2(DistortionTexCoords.x + MoveFactor, DistortionTexCoords.y)).rg * 0.1;
-	TestTexCoords = TestTexCoords + vec2(DistortionTexCoords.x, DistortionTexCoords.y + MoveFactor);
-	vec2 TotalDistortion = (texture(DuDvMap, TestTexCoords).rg * 2.0 - 1.0) * WaveStrength;
+    vec2 DistortionTexCoords = texture(DuDvMap, vec2(AdjustedTexCoords.x + MoveFactor, AdjustedTexCoords.y)).rg * 0.1;
+	DistortionTexCoords = DistortionTexCoords + vec2(AdjustedTexCoords.x, AdjustedTexCoords.y + MoveFactor);
+	vec2 TotalDistortion = (texture(DuDvMap, DistortionTexCoords).rg * 2.0 - 1.0) * WaveStrength;
 
     ReflectCoords += TotalDistortion;
     ReflectCoords.x = clamp(ReflectCoords.x, 0.001, 0.999);
@@ -56,7 +52,7 @@ void main() {
     float RefractiveFactor = dot(ViewVector, vec3(0, 1, 0));
 
     // Handle normals
-    vec4 NormalMapColour = texture(NormalMap, TestTexCoords);
+    vec4 NormalMapColour = texture(NormalMap, DistortionTexCoords);
     vec3 Normal = normalize(vec3(NormalMapColour.r * 2.0 - 1.0, NormalMapColour.b, NormalMapColour.g * 2.0 - 1.0));
 
     vec3 ReflectedLight = reflect(normalize(LightDir), Normal);
@@ -65,6 +61,4 @@ void main() {
 
     // Put it all together
     FragColour = mix(mix(ReflectColour, RefractColour, 0.5), WaterColour, 0.2) + vec4(SpecularHighlights, 0.0);
-
-    // FragColour = texture(DuDvMap, DistortionTexCoords);
 }

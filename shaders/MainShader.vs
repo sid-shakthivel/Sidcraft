@@ -20,7 +20,7 @@ out VS_OUT {
     float InputTexIndex;
 } VSOutput;
 
-const float Density = 0.007;
+const float Density = 0.07;
 const float Gradient = 0.5;
 
 void main()
@@ -46,7 +46,7 @@ void main()
     float Distance = length(PosRelativeCam.xyz);
     VSOutput.Visibility = exp(-pow(Distance * Density, Gradient));
     VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
-     VSOutput.Visibility = 1;
+    VSOutput.Visibility = 1;
 
     /*
         Time is only not 1, if waviness is required eg for trees

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Matrix.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <tuple>
@@ -23,7 +21,6 @@ private:
 
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ProjectionMatrix = Matrix4f(1);
-    Matrix4f TestViewMatrix = Matrix4f(1);
 
     Matrix4f LightProjectionMatrix = Matrix4f(1);
     Matrix4f LightViewMatrix = Matrix4f(1);
@@ -85,8 +82,6 @@ public:
     void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
 
     void Update();
-
-    std::tuple<Matrix4f, Matrix4f> GetMatrices();
 };
 
 static unsigned int SCREEN_WIDTH = 800;

@@ -1,7 +1,9 @@
 #include <iostream>
-#include <glm/glm.hpp>
 #include <string>
+
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "../include/Matrix.h"
 #include "../include/World.h"
@@ -9,6 +11,11 @@
 #include "../include/Camera.h"
 
 #include "../include/MouseHandler.h"
+
+MouseHandler::MouseHandler()
+{
+    ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+}
 
 // Convert Viewport coordinates into NDC of range (-1-1)
 Vector3f MouseHandler::ConvertToNDC(double ViewportXPos, double ViewportYPos)
@@ -27,25 +34,27 @@ Vector4f MouseHandler::ConvertToClipSpace(Vector3f NDCVec)
 }
 
 // Multiply by inverse of projection matrix to unproject it
-Vector4f MouseHandler::ConvertToCameraCoords(Vector4f ClipVec, glm::mat4 ProjectionMatrix)
+Vector4f MouseHandler::ConvertToCameraCoords(Vector4f ClipVec)
 {
     glm::vec4 CameraRay = inverse(ProjectionMatrix) * glm::vec4(ClipVec.x, ClipVec.y, ClipVec.z, ClipVec.w);
     return Vector4f(CameraRay.x, CameraRay.y, -1.0f, 0.0f);
 }
 
-Vector3f MouseHandler::ConvertToWorld(Vector4f CameraVec, glm::mat4 ViewMatrix)
+Vector3f MouseHandler::ConvertToWorld(Vector4f CameraVec, Vector3f CameraPos, Vector3f CameraFront)
 {
+    glm::vec3 GLMCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
+    glm::mat4 ViewMatrix = glm::lookAt(GLMCameraPos, GLMCameraPos + glm::vec3(CameraFront.x, CameraFront.y, CameraFront.z), UpVec);
     glm::vec4 WorldRay = inverse(ViewMatrix) * glm::vec4(CameraVec.x, CameraVec.y, CameraVec.z, CameraVec.w);
     return Vector3f(WorldRay.x, WorldRay.y, WorldRay.z).ReturnNormalise();
 }
 
 // Attempts to return a ray near which user clicks
-Vector3f MouseHandler::GetRay(double ViewportXPos, double ViewportYPos, glm::mat4 ProjectionMatrix, glm::mat4 ViewMatrix)
+Vector3f MouseHandler::GetRay(double ViewportXPos, double ViewportYPos, Vector3f CameraPos, Vector3f CameraFront)
 {
     Vector3f NDCCoords = ConvertToNDC(ViewportXPos, ViewportYPos);
     Vector4f ClipSpace = ConvertToClipSpace(NDCCoords);
-    Vector4f CameraCoords = ConvertToCameraCoords(ClipSpace, ProjectionMatrix);
-    Vector3f WorldCoords = ConvertToWorld(CameraCoords, ViewMatrix);
+    Vector4f CameraCoords = ConvertToCameraCoords(ClipSpace);
+    Vector3f WorldCoords = ConvertToWorld(CameraCoords, CameraPos, CameraFront);
 
     return WorldCoords;
 }

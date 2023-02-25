@@ -1,8 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "../include/Matrix.h"
 #include "../include/Chunk.h"
@@ -56,7 +53,7 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
 
     float CameraSpeed = DeltaTime * 64.0f;
 
-    if (CameraPos.x < 0 || CameraPos.z < 0)
+    if (CameraPos.x < 0 || CameraPos.z < 0 || CameraPos.x > WORLD_SIZE || CameraPos.z > WORLD_SIZE)
         Height = 7;
 
     // Handle all inputs
@@ -93,7 +90,7 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
     UpwardsSpeed += GRAVITY * DeltaTime;
     CameraPos.y += UpwardsSpeed * DeltaTime;
 
-    if (CameraPos.y < (Height + 4))
+    if (CameraPos.y < (Height + 2))
     {
         UpwardsSpeed = 0;
         CameraPos.y = Height + 2;

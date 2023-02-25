@@ -1,8 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 #include <iostream>
 #include <random>
@@ -25,8 +22,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void HandleFPS(GLFWwindow *window);
 
 static MouseHandler MainMouseHandler = MouseHandler();
-static Matrix4f TestProjection = Matrix4f(1);
-static Matrix4f TestView = Matrix4f(1);
 
 float deltaTime = 0.0f;   // Time between current frame and last frame
 float lastFrame = 0.0f;   // Time of last frame
@@ -92,7 +87,7 @@ int main()
 
     Quad FinalQuad = Quad();
 
-    // MasterRenderer.SetupDepth();
+    MasterRenderer.SetupDepth();
 
     // MasterRenderer.SetupHDR();
     // MasterRenderer.SetupBloom();
@@ -109,12 +104,14 @@ int main()
         MasterRenderer.Update();
         Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
 
-        std::tuple<Matrix4f, Matrix4f> Matrices = MasterRenderer.GetMatrices();
-        TestProjection = get<0>(Matrices);
-        TestView = get<1>(Matrices);
+        // Render depth
+        // glEnable(GL_CULL_FACE);
+        // glCullFace(GL_BACK);
+        MasterRenderer.RenderDepth(&DepthShader, lastFrame);
 
-        // Water rendering process
+        // glDisable(GL_CULL_FACE);
 
+        // Setup reflection and refraction planes
         glEnable(GL_CLIP_DISTANCE0);
 
         float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
@@ -123,7 +120,6 @@ int main()
         Camera::GetInstance()->CameraPos.z -= Distance;
         Camera::GetInstance()->InvertPitch();
         MasterRenderer.RenderReflection(&MainShader);
-        // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
 
         Camera::GetInstance()->CameraPos.y += Distance;
         Camera::GetInstance()->CameraPos.z += Distance;
@@ -132,6 +128,7 @@ int main()
 
         glDisable(GL_CLIP_DISTANCE0);
 
+        // Render everything
         MasterRenderer.RenderNormal(&MainShader, lastFrame);
         MasterRenderer.RenderWater(&WaterShader, lastFrame);
         MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
@@ -182,50 +179,50 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     double XPos, YPos;
     glfwGetCursorPos(window, &XPos, &YPos);
 
-    // Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, TestProjection, TestView);
+    Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, Camera::GetInstance()->CameraPos, Camera::GetInstance()->CameraFront);
 
-    // Vector3f PositionToTest;
+    Vector3f PositionToTest;
 
-    // bool IsFound = false;
+    bool IsFound = false;
 
-    // for (int i = 1; i <= 16; i++)
-    // {
-    //     PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
+    for (int i = 1; i <= 16; i++)
+    {
+        PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
 
-    //     PositionToTest.x = std::min<float>(PositionToTest.x, WORLD_SIZE - 1);
-    //     PositionToTest.z = std::min<float>(PositionToTest.z, WORLD_SIZE - 1);
+        PositionToTest.x = std::min<float>(PositionToTest.x, WORLD_SIZE - 1);
+        PositionToTest.z = std::min<float>(PositionToTest.z, WORLD_SIZE - 1);
 
-    //     PositionToTest.x = std::max<float>(PositionToTest.x, 0);
-    //     PositionToTest.z = std::max<float>(PositionToTest.z, 0);
+        PositionToTest.x = std::max<float>(PositionToTest.x, 0);
+        PositionToTest.z = std::max<float>(PositionToTest.z, 0);
 
-    //     for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
-    //     {
-    //         auto Offset = World::GetInstance()->ChunkPositions.at(Index);
-    //         auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
+        for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
+        {
+            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
+            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
 
-    //         if (TempChunk->IsWithinChunk(PositionToTest, Offset))
-    //         {
-    //             auto NewChunk = Chunk(TempChunk->Blocks, TempChunk->LocalHeightmap);
+            if (TempChunk->IsWithinChunk(PositionToTest, Offset))
+            {
+                auto NewChunk = Chunk(TempChunk->Blocks);
 
-    //             if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    //                 NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
-    //             else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    //                 NewChunk.ClearChunk(PositionToTest, Offset);
+                if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
+                else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+                    NewChunk.ClearChunk(PositionToTest, Offset);
 
-    //             NewChunk.CreateMesh();
+                NewChunk.CreateMesh();
 
-    //             World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
-    //             World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
+                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
+                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
 
-    //             World::GetInstance()->ChunkPositions.push_back(Offset);
-    //             World::GetInstance()->ChunkData.push_back(NewChunk);
+                World::GetInstance()->ChunkPositions.push_back(Offset);
+                World::GetInstance()->ChunkData.push_back(NewChunk);
 
-    //             IsFound = true;
-    //             break;
-    //         }
-    //     }
+                IsFound = true;
+                break;
+            }
+        }
 
-    //     if (IsFound)
-    //         break;
-    // }
+        if (IsFound)
+            break;
+    }
 }

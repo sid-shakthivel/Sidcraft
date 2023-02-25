@@ -220,10 +220,6 @@ public:
         return NewMatrix;
     }
 
-    SquareMatrix Invert() {
-         SquareMatrix<T, Size> NewMatrix = SquareMatrix<T, Size>(1);
-    }
-
     void Multiply(T Scalar)
     {
         for (int i = 0; i < Size; i++)
@@ -343,8 +339,6 @@ public:
             elements[2][0] = 0;
             elements[2][1] = 0;
             elements[2][2] = 1;
-
-            // ConvertToColumnMajorOrder();
 
             break;
         }
