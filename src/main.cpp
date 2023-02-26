@@ -15,17 +15,24 @@
 #include "../include/Skybox.h"
 #include "../include/Quad.h"
 #include "../include/World.h"
-#include "../include/Renderer.h"
 #include "../include/MouseHandler.h"
+#include "../include/Renderer.h"
 
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void HandleFPS(GLFWwindow *window);
 
-static MouseHandler MainMouseHandler = MouseHandler();
+float DeltaTime = 0.0f; // Time between current frame and last frame
+float LastFrame = 0.0f; // Time of last frame
+unsigned int Counter = 0;
 
-float deltaTime = 0.0f;   // Time between current frame and last frame
-float lastFrame = 0.0f;   // Time of last frame
-unsigned int counter = 0; //
+// unsigned int WINDOW_WIDTH = 1440;
+// unsigned int WINDOW_HEIGHT = 847;
+
+unsigned int SCREEN_WIDTH;
+unsigned int SCREEN_HEIGHT;
+
+unsigned int WINDOW_WIDTH;
+unsigned int WINDOW_HEIGHT;
 
 int main()
 {
@@ -35,23 +42,36 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core gives access to smaller subset of features
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Just for MacOS to work
 
-    GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "GameEngine", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(800, 600, "Sidcraft", NULL, NULL);
 
     if (window == NULL)
     {
-        std::cout << "Window initialisation failed";
+        std::cout << "Window initialisation failed" << std::endl;
         glfwTerminate();
         return -1;
     }
 
-    // Update dimensions
     int FramebufferHeight, FramebufferWidth;
     glfwGetFramebufferSize(window, &FramebufferWidth, &FramebufferHeight);
 
+    int WindowHeight, WindowWidth;
+    glfwGetWindowSize(window, &WindowWidth, &WindowHeight);
+
     SCREEN_WIDTH = FramebufferWidth;
     SCREEN_HEIGHT = FramebufferHeight;
+    WINDOW_WIDTH = WindowWidth;
+    WINDOW_HEIGHT = WindowHeight;
 
-    std::cout << SCREEN_WIDTH << " " << SCREEN_HEIGHT << std::endl;
+    // Fix sizes for MacOS retina displays
+    if (FramebufferWidth > 800 && FramebufferHeight > 600)
+    {
+        SCREEN_WIDTH = 2880;
+        SCREEN_HEIGHT = 1694;
+        WINDOW_WIDTH = 1440;
+        WINDOW_HEIGHT = 847;
+    }
+
+    glfwSetWindowSize(window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     glfwMakeContextCurrent(window); // Contexts stores all of state assocaiated with this instance of OpenGL
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -81,12 +101,14 @@ int main()
     // Setup textures
     TextureAtlas::GetInstance();
 
+    // Setup other
+    MainMouseHandler.Initialise();
     Camera::GetInstance(Vector3f(10.0f, 45.0f, 5.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
-
     Quad FinalQuad = Quad();
 
+    // Setup rendering process
     MasterRenderer.SetupDepth();
 
     // MasterRenderer.SetupHDR();
@@ -95,19 +117,17 @@ int main()
     MasterRenderer.SetupReflection();
     MasterRenderer.SetupRefraction();
 
-    bool ShowDepth = false;
-
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
         HandleFPS(window);
         MasterRenderer.Update();
-        Camera::GetInstance()->Move(window, deltaTime, World::GetInstance()->Heightmap);
+        Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
 
         // Render depth
         // glEnable(GL_CULL_FACE);
         // glCullFace(GL_BACK);
-        MasterRenderer.RenderDepth(&DepthShader, lastFrame);
+        MasterRenderer.RenderDepth(&DepthShader);
 
         // glDisable(GL_CULL_FACE);
 
@@ -129,16 +149,17 @@ int main()
         glDisable(GL_CLIP_DISTANCE0);
 
         // Render everything
-        MasterRenderer.RenderNormal(&MainShader, lastFrame);
-        MasterRenderer.RenderWater(&WaterShader, lastFrame);
-        MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
+        MasterRenderer.RenderNormal(&MainShader, LastFrame);
+        MasterRenderer.RenderWater(&WaterShader, DeltaTime);
+        MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
 
         // Bloom rendering process
-
         // MasterRenderer.RenderHDR(&MainShader, lastFrame);
         // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+
+        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
@@ -148,81 +169,17 @@ int main()
     return 0;
 }
 
-// if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
-//             ShowDepth = false;
-//         else if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-//             ShowDepth = true;
-
-//         if (!ShowDepth)
-//             MasterRenderer.RenderNormal(&MainShader, abs(lastFrame));
-
-//         if (ShowDepth)
-//             MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
-
 void HandleFPS(GLFWwindow *window)
 {
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    counter += 1;
+    float CurrentFrame = glfwGetTime();
+    DeltaTime = CurrentFrame - LastFrame;
+    Counter += 1;
 
-    if (deltaTime >= 1.0 / 30.0)
+    if (DeltaTime >= 1.0 / 30.0)
     {
-        std::string FPS = "GameEngine FPS: " + std::to_string((1.0 / deltaTime) * counter) + " MS: " + std::to_string((deltaTime / counter) * 1000);
+        std::string FPS = "Sidcraft FPS: " + std::to_string((1.0 / DeltaTime) * Counter) + " MS: " + std::to_string((DeltaTime / Counter) * 1000);
         glfwSetWindowTitle(window, FPS.c_str());
-        counter = 0;
-        lastFrame = currentFrame;
-    }
-}
-
-void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
-{
-    double XPos, YPos;
-    glfwGetCursorPos(window, &XPos, &YPos);
-
-    Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, Camera::GetInstance()->CameraPos, Camera::GetInstance()->CameraFront);
-
-    Vector3f PositionToTest;
-
-    bool IsFound = false;
-
-    for (int i = 1; i <= 16; i++)
-    {
-        PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
-
-        PositionToTest.x = std::min<float>(PositionToTest.x, WORLD_SIZE - 1);
-        PositionToTest.z = std::min<float>(PositionToTest.z, WORLD_SIZE - 1);
-
-        PositionToTest.x = std::max<float>(PositionToTest.x, 0);
-        PositionToTest.z = std::max<float>(PositionToTest.z, 0);
-
-        for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
-        {
-            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
-            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
-
-            if (TempChunk->IsWithinChunk(PositionToTest, Offset))
-            {
-                auto NewChunk = Chunk(TempChunk->Blocks);
-
-                if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
-                else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-                    NewChunk.ClearChunk(PositionToTest, Offset);
-
-                NewChunk.CreateMesh();
-
-                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
-                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
-
-                World::GetInstance()->ChunkPositions.push_back(Offset);
-                World::GetInstance()->ChunkData.push_back(NewChunk);
-
-                IsFound = true;
-                break;
-            }
-        }
-
-        if (IsFound)
-            break;
+        Counter = 0;
+        LastFrame = CurrentFrame;
     }
 }

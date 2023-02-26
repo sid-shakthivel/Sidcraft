@@ -27,7 +27,7 @@ Tree::Tree(Vector3f Offset)
     LeafCube.CreateMesh();
 }
 
-void Tree::Draw(Shader *MeshShader, bool isDepth, float deltaTime) const
+void Tree::Draw(Shader *MeshShader, bool isDepth, float RunningTime) const
 {
     glBindVertexArray(TrunkCube.GetVAO());
 
@@ -45,11 +45,10 @@ void Tree::Draw(Shader *MeshShader, bool isDepth, float deltaTime) const
 
     for (unsigned int i = 0; i < LeavesPositionList.size(); i++)
     {
-        Vector3f ExtractedPosition = LeavesPositionList.at(i).ExtractTranslation();
         MeshShader->SetMatrix4f("Model", (const float *)(&LeavesPositionList[i]));
 
         if (!isDepth)
-            MeshShader->SetFloat("Time", deltaTime);
+            MeshShader->SetFloat("Time", RunningTime);
 
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)((0) * sizeof(GLuint)));
     }

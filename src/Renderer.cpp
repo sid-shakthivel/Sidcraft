@@ -18,10 +18,11 @@ Renderer::Renderer()
     RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL + 5);
 
     CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
+    WaterLightDir = Vector3f(2.0f, 3.0f, 4.0f);
     LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
 
-    LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 1.0f, 500.0f);
-    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(120.0f, -20.0f, 120.0f), Vector3f(0.0f, 1.0f, 0.0f));
+    LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 0.1f, 500.0f);
+    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(240.0f, -30.0f, 240.0f), Vector3f(0.0f, 1.0f, 0.0f));
     LightSpaceMatrix = LightViewMatrix.Multiply(LightProjectionMatrix);
 
     ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -32,13 +33,13 @@ Renderer::Renderer()
     WaterNormalMap = LoadRBGFromFile("res/WaterNormalMap.png");
 }
 
-void Renderer::RenderHDR(Shader *GenericShader, float DeltaTime)
+void Renderer::RenderHDR(Shader *GenericShader, float RunningTime)
 {
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, HdrFBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderScene(GenericShader, DeltaTime, false);
+    RenderScene(GenericShader, RunningTime, false);
 }
 
 void Renderer::DrawTempQuad(Shader *GenericShader, Quad *FinalQuad)
@@ -127,16 +128,16 @@ void Renderer::Update()
     ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
 }
 
-void Renderer::RenderNormal(Shader *GenericShader, float DeltaTime)
+void Renderer::RenderNormal(Shader *GenericShader, float RunningTime)
 {
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderScene(GenericShader, DeltaTime, false);
+    RenderScene(GenericShader, RunningTime, false);
 }
 
-void Renderer::RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth)
+void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDepth)
 {
     GenericShader->Use();
 
@@ -158,22 +159,22 @@ void Renderer::RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth)
     GenericShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
     GenericShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
 
-    DrawWorld(GenericShader, DeltaTime, IsDepth);
+    DrawWorld(GenericShader, RunningTime, IsDepth);
 }
 
-void Renderer::DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth)
+void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
 {
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, IsDepth, World::GetInstance()->ChunkPositions.at(i));
 
     for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.Draw(GenericShader, IsDepth, DeltaTime);
+        Tree.Draw(GenericShader, IsDepth, RunningTime);
 
     for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
         World::GetInstance()->FlowerList.at(i).Draw(GenericShader, IsDepth);
 
-    for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
-        World::GetInstance()->LightCubes.at(i).Draw(GenericShader, World::GetInstance()->LightCubePositions.at(i));
+    // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
+    //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader, World::GetInstance()->LightCubePositions.at(i));
 }
 
 void Renderer::RenderReflection(Shader *GenericShader)
@@ -212,9 +213,9 @@ void Renderer::RenderRefraction(Shader *GenericShader)
     DrawWorld(GenericShader, 1, false);
 }
 
-void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
+void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
 {
-    MoveFactor = RunningTime * WAVE_SPEED;
+    MoveFactor += DeltaTime * WAVE_SPEED;
     MoveFactor = MoveFactor >= 1 ? 0 : MoveFactor;
 
     WaterShader->Use();
@@ -223,7 +224,7 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
     WaterShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
     WaterShader->SetFloat("MoveFactor", MoveFactor);
     WaterShader->SetVector3f("CameraPos", &CameraViewPosition);
-    WaterShader->SetVector3f("LightDirection", &CustomLightDir);
+    WaterShader->SetVector3f("LightDirection", &WaterLightDir);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
@@ -250,7 +251,7 @@ void Renderer::RenderWater(Shader *WaterShader, float RunningTime)
         World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));
 }
 
-void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
+void Renderer::RenderDepth(Shader *DepthShader)
 {
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
@@ -263,7 +264,7 @@ void Renderer::RenderDepth(Shader *DepthShader, float DeltaTime)
 
     DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
-    DrawWorld(DepthShader, DeltaTime, true);
+    DrawWorld(DepthShader, 1.0, true);
 }
 
 void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
@@ -331,6 +332,7 @@ void Renderer::SetupHDR()
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RboDepth);
 
     // Determine which colour attachements are used
+    unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, Attachments);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -418,6 +420,47 @@ void Renderer::SetupBloom()
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cout << "ERROR: INCOMPLETE PINGPONG FRAMEBUFFER" << std::endl;
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::SetupGBuffer()
+{
+    glGenFramebuffers(1, &GFB);
+    glBindFramebuffer(GL_FRAMEBUFFER, GFB);
+
+    glGenTextures(1, &GPosition);
+    glBindTexture(GL_TEXTURE_2D, GPosition);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GPosition, 0);
+
+    glGenTextures(1, &GNormals);
+    glBindTexture(GL_TEXTURE_2D, GNormals);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, GNormals, 0);
+
+    glGenTextures(1, &GColourSpec);
+    glBindTexture(GL_TEXTURE_2D, GColourSpec);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, GColourSpec, 0);
+
+    // Create and attach depth buffer
+    glGenRenderbuffers(1, &GRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, GRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, GRBO);
+
+    unsigned int Attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+    glDrawBuffers(3, Attachments);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR: INCOMPLETE HDR FRAMEBUFFER" << std::endl;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

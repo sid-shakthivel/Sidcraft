@@ -15,6 +15,7 @@ private:
     Vector3f SkyColour;
 
     Vector3f CustomLightDir;
+    Vector3f WaterLightDir;
     Vector3f LightPosition;
 
     Vector3f CameraViewPosition;
@@ -35,9 +36,12 @@ private:
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
+    unsigned int GFB;
+    unsigned int GPosition, GNormals, GColourSpec;
+    unsigned int GRBO;
+
     unsigned int ColourBuffers[2];
     unsigned int PingPongBuffers[2];
-    unsigned int Attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
 
     unsigned int DepthMapTexture;
     unsigned int WaterReflectionColour;
@@ -53,10 +57,10 @@ private:
 
     bool Horizontal = true;
 
-    void DrawWorld(Shader *GenericShader, float DeltaTime, bool IsDepth);
+    void DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth);
 
 protected:
-    void RenderScene(Shader *GenericShader, float DeltaTime, bool IsDepth);
+    void RenderScene(Shader *GenericShader, float RunningTime, bool IsDepth);
 
 public:
     Renderer();
@@ -66,17 +70,18 @@ public:
     void SetupDepth();
     void SetupRefraction();
     void SetupReflection();
+    void SetupGBuffer();
 
-    void RenderHDR(Shader *GenericShader, float DeltaTime);
     void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
-    void RenderNormal(Shader *GenericShader, float DeltaTime);
-    void RenderDepth(Shader *DepthShader, float DeltaTime);
-    void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
-    void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void RenderRefraction(Shader *GenericShader);
     void RenderReflection(Shader *GenericShader);
-    void RenderWater(Shader *WaterShader, float RunningTime);
+    void RenderHDR(Shader *GenericShader, float RunningTime);
+    void RenderNormal(Shader *GenericShader, float RunningTime);
+    void RenderDepth(Shader *DepthShader);
+    void RenderSkybox(Shader *GenericShader, float DeltaTime); // Specifically sets the framebuffer
+    void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
+    void RenderWater(Shader *WaterShader, float DeltaTime);
 
     void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
@@ -84,10 +89,15 @@ public:
     void Update();
 };
 
-static unsigned int SCREEN_WIDTH = 800;
-static unsigned int SCREEN_HEIGHT = 600;
-// static unsigned int SCREEN_WIDTH = 800 * 4;
-// static unsigned int SCREEN_HEIGHT = 600 * 4;
+extern unsigned int SCREEN_WIDTH;
+extern unsigned int SCREEN_HEIGHT;
+
+// static unsigned int SCREEN_WIDTH = 800;
+// static unsigned int SCREEN_HEIGHT = 600;
+
+// static unsigned int SCREEN_WIDTH = 2880;
+// static unsigned int SCREEN_HEIGHT = 1694;
+
 const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;
 
@@ -96,3 +106,6 @@ const unsigned int REFLECTION_HEIGHT = 180;
 
 const unsigned int REFRACTION_WIDTH = 1280;
 const unsigned int REFRACTION_HEIGHT = 720;
+
+extern unsigned int WINDOW_WIDTH;
+extern unsigned int WINDOW_HEIGHT;

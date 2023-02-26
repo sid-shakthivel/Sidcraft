@@ -5,6 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <glm/gtx/string_cast.hpp>
+
 #include "../include/Matrix.h"
 #include "../include/World.h"
 #include "../include/Renderer.h"
@@ -12,7 +14,7 @@
 
 #include "../include/MouseHandler.h"
 
-MouseHandler::MouseHandler()
+void MouseHandler::Initialise()
 {
     ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
 }
@@ -20,8 +22,8 @@ MouseHandler::MouseHandler()
 // Convert Viewport coordinates into NDC of range (-1-1)
 Vector3f MouseHandler::ConvertToNDC(double ViewportXPos, double ViewportYPos)
 {
-    float X = (2.0f * ViewportXPos) / SCREEN_WIDTH - 1.0f;
-    float Y = 1.0f - (2.0f * ViewportYPos) / SCREEN_HEIGHT;
+    float X = (2.0f * ViewportXPos) / WINDOW_WIDTH - 1.0f;
+    float Y = 1.0f - (2.0f * ViewportYPos) / WINDOW_HEIGHT;
     float Z = 1.0f;
 
     return Vector3f(X, Y, Z);
@@ -63,3 +65,58 @@ void MouseCallback(GLFWwindow *window, double xpos, double ypos)
 {
     Camera::GetInstance()->Rotate(xpos, ypos);
 }
+
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+{
+    double XPos, YPos;
+    glfwGetCursorPos(window, &XPos, &YPos);
+
+    Vector3f Ray = MainMouseHandler.GetRay(XPos, YPos, Camera::GetInstance()->CameraPos, Camera::GetInstance()->CameraFront);
+
+    Vector3f PositionToTest;
+
+    bool IsFound = false;
+
+    for (int i = 1; i <= 16; i++)
+    {
+        PositionToTest = Ray.Multiply(i).Add(Camera::GetInstance()->GetCameraPos().Add(Camera::GetInstance()->CameraFront));
+
+        PositionToTest.x = std::min<float>(PositionToTest.x, WORLD_SIZE - 1);
+        PositionToTest.z = std::min<float>(PositionToTest.z, WORLD_SIZE - 1);
+
+        PositionToTest.x = std::max<float>(PositionToTest.x, 0);
+        PositionToTest.z = std::max<float>(PositionToTest.z, 0);
+
+        for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
+        {
+            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
+            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
+
+            if (TempChunk->IsWithinChunk(PositionToTest, Offset))
+            {
+                auto NewChunk = Chunk(TempChunk->Blocks);
+
+                if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
+                else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+                    NewChunk.ClearChunk(PositionToTest, Offset);
+
+                NewChunk.CreateMesh();
+
+                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
+                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
+
+                World::GetInstance()->ChunkPositions.push_back(Offset);
+                World::GetInstance()->ChunkData.push_back(NewChunk);
+
+                IsFound = true;
+                break;
+            }
+        }
+
+        if (IsFound)
+            break;
+    }
+}
+
+MouseHandler MainMouseHandler = MouseHandler();

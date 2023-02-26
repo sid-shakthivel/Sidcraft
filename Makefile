@@ -1,13 +1,13 @@
 CC = g++
 CFLAGS = -std=c++17 -fdiagnostics-color=always -Wall
-INCLUDE = /Users/siddharth/Code/C++/GameEngine/dependencies/include
+INCLUDE = /Users/siddharth/Code/C++/Sidcraft/dependencies/include
 
-PROJECT_PATH = /Users/siddharth/Code/C++/GameEngine
+PROJECT_PATH = /Users/siddharth/Code/C++/Sidcraft
 DEPENDENCIES_PATH = $(PROJECT_PATH)/dependencies
 
 LIBS = $(DEPENDENCIES_PATH)/lib $(DEPENDENCIES_PATH)/lib/libglfw.3.3.dylib
 
-TARGET = GameEngine
+TARGET = Sidcraft
 
 OBJ := ObjectFiles
 

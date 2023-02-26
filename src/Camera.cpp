@@ -51,7 +51,7 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
 {
     auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
 
-    float CameraSpeed = DeltaTime * 64.0f;
+    float CameraSpeed = DeltaTime * 32.0f;
 
     if (CameraPos.x < 0 || CameraPos.z < 0 || CameraPos.x > WORLD_SIZE || CameraPos.z > WORLD_SIZE)
         Height = 7;
@@ -136,10 +136,10 @@ void Camera::Rotate(double XPos, double YPos)
         Pitch = -89.0f;
 
     float x = cos(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
-    float y = sin(ConvertToRadians(Pitch));
+    float y = 0;
     float z = sin(ConvertToRadians(Yaw)) * cos(ConvertToRadians(Pitch));
 
-    CameraFront = Vector3f(x, 0, z).ReturnNormalise();
+    CameraFront = Vector3f(x, y, z).ReturnNormalise();
 }
 
 float Camera::ConvertToRadians(float Degrees)

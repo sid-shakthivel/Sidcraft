@@ -17,9 +17,12 @@ private:
     Vector3f ConvertToWorld(Vector4f CameraVec, Vector3f CameraPos, Vector3f CameraFront);
 
 public:
-    MouseHandler();
+    MouseHandler(){};
+    void Initialise();
     Vector3f GetRay(double ViewportXPos, double ViewportYPos, Vector3f CameraPos, Vector3f CameraFront);
 };
 
+extern MouseHandler MainMouseHandler;
+
 void MouseCallback(GLFWwindow *window, double xpos, double ypos);
-// void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
