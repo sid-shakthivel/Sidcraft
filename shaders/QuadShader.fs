@@ -1,13 +1,15 @@
-#version 330 core
+#version 410 core
 
 in vec2 TexCoords;
 
-uniform sampler2D Image;
+// uniform sampler2D Image;
+uniform sampler2DArray Image;
+uniform int Layer;
 
 out vec4 FragColour;
 
-float near = 1.0; 
-float far  = 100.0; 
+float near = 0.01; 
+float far  = 1000.0; 
   
 float LinearizeDepth(float depth) 
 {
@@ -17,9 +19,13 @@ float LinearizeDepth(float depth)
 
 void main() {
     // Depth Stuff
-    float depthValue = texture(Image, TexCoords).r;
+    // float depthValue = texture(Image, TexCoords).r;
     // FragColour = vec4(vec3(LinearizeDepth(depthValue) / far), 1.0);
-    FragColour = vec4(vec3(depthValue), 1.0);
+    // FragColour = vec4(vec3(depthValue), 1.0);
+
+    // CSM stuff
+    float DepthValue = texture(Image, vec3(TexCoords, Layer)).r;
+    FragColour = vec4(vec3(DepthValue), 1.0);
 
     // Normal stuff
     // FragColour = texture(Image, TexCoords);

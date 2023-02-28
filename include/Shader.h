@@ -16,6 +16,7 @@ protected:
 
 public:
     Shader(const std::string &FileName);
+    Shader(const std::string &FileName, bool HasGeometry);
     void AddShader(const char *filepath, GLenum shaderType);
     void LinkShader();
 

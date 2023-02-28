@@ -24,6 +24,28 @@ Shader::Shader(const std::string &FileName)
     LinkShader();
 }
 
+Shader::Shader(const std::string &FileName, bool HasGeometry)
+{
+    if (!HasGeometry)
+    {
+        std::cout << "ERROR: UNKNOWN BEHAVIOUR WHEN CREATING SHADER" << std::endl;
+        std::exit(0);
+    }
+
+    auto Filepath1 = std::string("shaders/").append(FileName).append(std::string(".vs")).c_str();
+    auto Filepath2 = std::string("shaders/").append(FileName).append(std::string(".fs")).c_str();
+    auto Filepath3 = std::string("shaders/").append(FileName).append(std::string(".gs")).c_str();
+
+    ProgramId = glCreateProgram();
+
+    std::cout << "LOADING: " << FileName << std::endl;
+
+    AddShader(Filepath1, GL_VERTEX_SHADER);
+    AddShader(Filepath2, GL_FRAGMENT_SHADER);
+    AddShader(Filepath3, GL_GEOMETRY_SHADER);
+    LinkShader();
+}
+
 void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
 {
     GLint success;
@@ -41,10 +63,17 @@ void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
                       << "\n"
                       << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
-        else
+        else if (Type == GL_FRAGMENT_SHADER)
         {
             std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
                       << "Fragment"
+                      << "\n"
+                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+        }
+        else if (Type == GL_GEOMETRY_SHADER)
+        {
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
+                      << "Geometry"
                       << "\n"
                       << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
@@ -90,9 +119,7 @@ void Shader::AddShader(const char *filepath, GLenum shaderType)
     glGetProgramiv(shaderNumber, GL_LINK_STATUS, &success);
 
     if (!success)
-    {
         glGetProgramInfoLog(shaderNumber, 512, NULL, infoLog);
-    }
 
     shaderIdentifiers.push_back(shaderNumber);
 }

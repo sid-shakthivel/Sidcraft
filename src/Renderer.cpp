@@ -5,6 +5,7 @@
 #include "../include/Shader.h"
 #include "../include/World.h"
 #include "../include/Quad.h"
+#include "../include/Light.h"
 #include "../include/TextureAtlas.h"
 
 #include "../include/Renderer.h"
@@ -22,7 +23,7 @@ Renderer::Renderer()
     LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
 
     LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 0.1f, 500.0f);
-    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(240.0f, -30.0f, 240.0f), Vector3f(0.0f, 1.0f, 0.0f));
+    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(240.0f, -10.0f, 240.0f), Vector3f(0.0f, 1.0f, 0.0f));
     LightSpaceMatrix = LightViewMatrix.Multiply(LightProjectionMatrix);
 
     ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
@@ -254,15 +255,16 @@ void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
 void Renderer::RenderDepth(Shader *DepthShader)
 {
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_TEXTURE_2D_ARRAY, DepthMapTexture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE0, DepthMapTexture);
+    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     DepthShader->Use();
-
-    DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
+    // DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
     DrawWorld(DepthShader, 1.0, true);
 }
@@ -274,28 +276,37 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
+    GenericShader->SetInt("Layer", 2);
     FinalQuad->Draw();
 }
 
 void Renderer::SetupDepth()
 {
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+    //              SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
+
     glGenFramebuffers(1, &DepthMapFBO);
     glGenTextures(1, &DepthMapTexture);
-    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, SHADOW_WIDTH, SHADOW_HEIGHT, int(ShadowCascadeLevels.size()) + 1, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+    constexpr float bordercolor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
 
     glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, DepthMapTexture, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
@@ -424,43 +435,37 @@ void Renderer::SetupBloom()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::SetupGBuffer()
+void Renderer::SetupMatrixUBO()
 {
-    glGenFramebuffers(1, &GFB);
-    glBindFramebuffer(GL_FRAMEBUFFER, GFB);
+    glGenBuffers(1, &MatricesUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, MatricesUBO);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(Matrix4f) * 16, nullptr, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, MatricesUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-    glGenTextures(1, &GPosition);
-    glBindTexture(GL_TEXTURE_2D, GPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, GPosition, 0);
+void Renderer::UBOPass()
+{
+    const auto LightMatrices = GetLightSpaceMatrices();
+    glBindBuffer(GL_UNIFORM_BUFFER, MatricesUBO);
+    for (unsigned int i = 0; i < LightMatrices.size(); ++i)
+        glBufferSubData(GL_UNIFORM_BUFFER, i * sizeof(Matrix4f), sizeof(Matrix4f), &LightMatrices[i]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-    glGenTextures(1, &GNormals);
-    glBindTexture(GL_TEXTURE_2D, GNormals);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, GNormals, 0);
+std::vector<Matrix4f> Renderer::GetLightSpaceMatrices()
+{
+    std::vector<Matrix4f> LightSpaceMatrices;
 
-    glGenTextures(1, &GColourSpec);
-    glBindTexture(GL_TEXTURE_2D, GColourSpec);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, GColourSpec, 0);
+    for (unsigned int i = 0; i < ShadowCascadeLevels.size() + 1; ++i)
+    {
+        if (i == 0)
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, 0.01, ShadowCascadeLevels[i]));
+        else if (i < ShadowCascadeLevels.size())
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
+        else
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, ShadowCascadeLevels[i - 1], 1000.0f));
+    }
 
-    // Create and attach depth buffer
-    glGenRenderbuffers(1, &GRBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, GRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, GRBO);
-
-    unsigned int Attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-    glDrawBuffers(3, Attachments);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR: INCOMPLETE HDR FRAMEBUFFER" << std::endl;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return LightSpaceMatrices;
 }

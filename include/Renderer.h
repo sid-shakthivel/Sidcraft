@@ -36,6 +36,10 @@ private:
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
+    std::vector<float> ShadowCascadeLevels{1000.0f / 50.0f, 1000.0f / 25.0f, 1000.0f / 10.0f, 1000.0 / 2.0f};
+
+    unsigned int MatricesUBO;
+
     unsigned int GFB;
     unsigned int GPosition, GNormals, GColourSpec;
     unsigned int GRBO;
@@ -71,6 +75,7 @@ public:
     void SetupRefraction();
     void SetupReflection();
     void SetupGBuffer();
+    void SetupMatrixUBO();
 
     void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
@@ -85,6 +90,9 @@ public:
 
     void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
     void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
+
+    void UBOPass();
+    std::vector<Matrix4f> GetLightSpaceMatrices();
 
     void Update();
 };

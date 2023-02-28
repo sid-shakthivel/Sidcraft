@@ -102,6 +102,11 @@ public:
         return Vector(CrossX, CrossY, CrossZ);
     }
 
+    Vector Divide(T Scalar)
+    {
+        return Vector(x / Scalar, y / Scalar, z / Scalar);
+    }
+
     void Normalise()
     {
         float magnitude = GetMagnitude();
@@ -218,6 +223,22 @@ public:
                 NewMatrix.elements[i][j] = elementsCopy[i][j];
 
         return NewMatrix;
+    }
+
+    Vector4f Multiply(Vector4f Vec)
+    {
+        if (Size < 4)
+        {
+            std::cout << "ERROR: ATTEMPTING TO MUTLIPLY VEC4 BY MATRIX" << std::endl;
+            std::exit(0);
+        }
+
+        auto X = Vec.x * elements[0][0] + Vec.y * elements[1][0] + Vec.z * elements[2][0] + Vec.w * elements[3][0];
+        auto Y = Vec.x * elements[0][1] + Vec.y * elements[1][1] + Vec.z * elements[2][1] + Vec.w * elements[3][1];
+        auto Z = Vec.x * elements[0][2] + Vec.y * elements[1][2] + Vec.z * elements[2][2] + Vec.w * elements[3][2];
+        auto W = Vec.x * elements[0][3] + Vec.y * elements[1][3] + Vec.z * elements[2][3] + Vec.w * elements[3][3];
+
+        return Vector4f(X, Y, Z, W);
     }
 
     void Multiply(T Scalar)

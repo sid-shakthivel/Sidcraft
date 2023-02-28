@@ -37,8 +37,8 @@ unsigned int WINDOW_HEIGHT;
 int main()
 {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Provides ability to set hints for createNewWindow
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Provides ability to set hints for createNewWindow
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Core gives access to smaller subset of features
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);           // Just for MacOS to work
 
@@ -89,14 +89,14 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
-    Shader MainShader = Shader(std::string("MainShader"));
-    Shader DepthShader = Shader(std::string("DepthShader"));
-    Shader HDRShader = Shader(std::string("HDRShader"));
-    Shader BlurShader = Shader(std::string("BlurShader"));
-    Shader BlendShader = Shader(std::string("BlendShader"));
+    // Shader MainShader = Shader(std::string("MainShader"));
+    Shader DepthShader = Shader(std::string("DepthShader"), true);
+    // Shader HDRShader = Shader(std::string("HDRShader"));
+    // Shader BlurShader = Shader(std::string("BlurShader"));
+    // Shader BlendShader = Shader(std::string("BlendShader"));
     Shader QuadShader = Shader(std::string("QuadShader"));
-    Shader SkyboxShader = Shader(std::string("SkyShader"));
-    Shader WaterShader = Shader(std::string("WaterShader"));
+    // Shader SkyboxShader = Shader(std::string("SkyShader"));
+    // Shader WaterShader = Shader(std::string("WaterShader"));
 
     // Setup textures
     TextureAtlas::GetInstance();
@@ -117,6 +117,10 @@ int main()
     MasterRenderer.SetupReflection();
     MasterRenderer.SetupRefraction();
 
+    MasterRenderer.SetupMatrixUBO();
+
+    int layer = 0;
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
@@ -127,31 +131,33 @@ int main()
         // Render depth
         // glEnable(GL_CULL_FACE);
         // glCullFace(GL_BACK);
+        MasterRenderer.UBOPass();
+
         MasterRenderer.RenderDepth(&DepthShader);
 
         // glDisable(GL_CULL_FACE);
 
         // Setup reflection and refraction planes
-        glEnable(GL_CLIP_DISTANCE0);
+        // glEnable(GL_CLIP_DISTANCE0);
 
-        float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
+        // float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
 
-        Camera::GetInstance()->CameraPos.y -= Distance;
-        Camera::GetInstance()->CameraPos.z -= Distance;
-        Camera::GetInstance()->InvertPitch();
-        MasterRenderer.RenderReflection(&MainShader);
+        // Camera::GetInstance()->CameraPos.y -= Distance;
+        // Camera::GetInstance()->CameraPos.z -= Distance;
+        // Camera::GetInstance()->InvertPitch();
+        // MasterRenderer.RenderReflection(&MainShader);
 
-        Camera::GetInstance()->CameraPos.y += Distance;
-        Camera::GetInstance()->CameraPos.z += Distance;
-        Camera::GetInstance()->InvertPitch();
-        MasterRenderer.RenderRefraction(&MainShader);
+        // Camera::GetInstance()->CameraPos.y += Distance;
+        // Camera::GetInstance()->CameraPos.z += Distance;
+        // Camera::GetInstance()->InvertPitch();
+        // MasterRenderer.RenderRefraction(&MainShader);
 
-        glDisable(GL_CLIP_DISTANCE0);
+        // glDisable(GL_CLIP_DISTANCE0);
 
-        // Render everything
-        MasterRenderer.RenderNormal(&MainShader, LastFrame);
-        MasterRenderer.RenderWater(&WaterShader, DeltaTime);
-        MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
+        // // Render everything
+        // MasterRenderer.RenderNormal(&MainShader, LastFrame);
+        // MasterRenderer.RenderWater(&WaterShader, DeltaTime);
+        // MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
 
         // Bloom rendering process
         // MasterRenderer.RenderHDR(&MainShader, lastFrame);
@@ -159,7 +165,7 @@ int main()
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
-        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+        MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

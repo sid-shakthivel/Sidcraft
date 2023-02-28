@@ -20,8 +20,8 @@ out VS_OUT {
     float InputTexIndex;
 } VSOutput;
 
-const float Density = 0.07;
-const float Gradient = 0.5;
+const float Density = 0.02; // Thickness of fog
+const float Gradient = 500; // Determines how quickly visibility decreases with distance
 
 void main()
 {
@@ -44,7 +44,7 @@ void main()
     // Handle fog
     vec4 PosRelativeCam = View * Model * vec4(InputPos, 1.0);
     float Distance = length(PosRelativeCam.xyz);
-    VSOutput.Visibility = exp(-pow(Distance * Density, Gradient));
+    VSOutput.Visibility = exp(-pow((Distance * Density), Gradient));
     VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
     VSOutput.Visibility = 1;
 
