@@ -36,7 +36,7 @@ private:
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
-    std::vector<float> ShadowCascadeLevels{1000.0f / 50.0f, 1000.0f / 25.0f, 1000.0f / 10.0f, 1000.0 / 2.0f};
+    std::vector<float> ShadowCascadeLevels{1000.0f / 15.0f, 1000.0f / 10.0f, 1000.0f / 5.0f, 1000.0 / 3.0f};
 
     unsigned int MatricesUBO;
 

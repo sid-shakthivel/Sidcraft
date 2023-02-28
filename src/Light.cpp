@@ -47,6 +47,12 @@ Matrix4f CalculateLightViewMatrix(std::vector<Vector4f> Corners, Vector3f LightD
         Calculate centre by averaging out the 4 corners
         Fustrum has a near and far plane so by averaging those values, centre can be found
     */
+    // glm::vec3 TempCentre = glm::vec3(0, 0, 0);
+    // for (const auto Vertex : Corners)
+    //     TempCentre += glm::vec3(Vertex.x, Vertex.y, Vertex.z);
+    // TempCentre /= Corners.size();
+    // Vector3f Centre = Vector3f(TempCentre.x, TempCentre.y, TempCentre.z);
+
     Vector3f Centre = Vector3f(0.0f, 0.0f, 0.0f);
     for (const auto Vertex : Corners)
         Centre = Centre.Add(Vector3f(Vertex.x, Vertex.y, Vertex.z));

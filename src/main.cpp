@@ -89,13 +89,13 @@ int main()
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Setup shaders
-    // Shader MainShader = Shader(std::string("MainShader"));
+    Shader MainShader = Shader(std::string("MainShader"));
     Shader DepthShader = Shader(std::string("DepthShader"), true);
     // Shader HDRShader = Shader(std::string("HDRShader"));
     // Shader BlurShader = Shader(std::string("BlurShader"));
     // Shader BlendShader = Shader(std::string("BlendShader"));
     Shader QuadShader = Shader(std::string("QuadShader"));
-    // Shader SkyboxShader = Shader(std::string("SkyShader"));
+    Shader SkyboxShader = Shader(std::string("SkyShader"));
     // Shader WaterShader = Shader(std::string("WaterShader"));
 
     // Setup textures
@@ -155,9 +155,9 @@ int main()
         // glDisable(GL_CLIP_DISTANCE0);
 
         // // Render everything
-        // MasterRenderer.RenderNormal(&MainShader, LastFrame);
+        MasterRenderer.RenderNormal(&MainShader, LastFrame);
         // MasterRenderer.RenderWater(&WaterShader, DeltaTime);
-        // MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
+        MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
 
         // Bloom rendering process
         // MasterRenderer.RenderHDR(&MainShader, lastFrame);
@@ -165,7 +165,7 @@ int main()
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
-        MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
+        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and

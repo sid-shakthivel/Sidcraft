@@ -146,7 +146,8 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
     glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->SetInt("MainTexture", 0);
     GenericShader->SetInt("ShadowMap", 1);
@@ -156,9 +157,14 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
 
     GenericShader->SetVector3f("SkyColour", &SkyColour);
 
-    GenericShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
     GenericShader->SetMatrix4f("View", (const float *)(&ViewMatrix));
     GenericShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
+
+    GenericShader->SetInt("CascadeCount", ShadowCascadeLevels.size());
+    GenericShader->SetFloat("FarPlane", 1000.0f);
+
+    for (int i = 0; i < ShadowCascadeLevels.size(); i++)
+        GenericShader->SetFloat("CascadePlaneDistances[" + std::to_string(i) + "]", ShadowCascadeLevels[i]);
 
     DrawWorld(GenericShader, RunningTime, IsDepth);
 }
@@ -281,7 +287,7 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
-    GenericShader->SetInt("Layer", 2);
+    GenericShader->SetInt("Layer", 1);
     FinalQuad->Draw();
 }
 

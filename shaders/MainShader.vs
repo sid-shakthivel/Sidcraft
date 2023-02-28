@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 layout (location = 0) in vec3 InputPos;
 layout (location = 1) in vec3 InputNormal;
 layout (location = 2) in vec2 InputTexCoords;
@@ -15,7 +15,6 @@ out VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec4 FragPosLightSpace;
     float Visibility;
     float InputTexIndex;
 } VSOutput;
@@ -35,7 +34,6 @@ void main()
     VSOutput.FragPos = vec3(Model * vec4(InputPos, 1.0));
     VSOutput.Normal = transpose(inverse(mat3(Model))) * InputNormal;
     VSOutput.TexCoords = (InputTexCoords / 16) + vec2(XOffset, YOffset);
-    VSOutput.FragPosLightSpace = LightSpaceMatrix * vec4(VSOutput.FragPos, 1.0);
     VSOutput.InputTexIndex = InputTexIndex;
 
     // Handle clip distance for reflections
