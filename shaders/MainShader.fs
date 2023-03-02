@@ -39,12 +39,14 @@ float CalculateShadow(vec3 FragPos, vec3 FinalLightDir)
     int Layer = -1;
     for (int i = 0; i < CascadeCount; i++) {
         if (DepthValue < CascadePlaneDistances[i]) {
-            Layer = 1;
+            Layer = i;
             break;
         }
     }
     if (Layer == -1) 
         Layer = CascadeCount;
+
+    // Layer = 2;
 
     vec4 FragPosLightSpace = lightSpaceMatrices[Layer] * vec4(FragPos, 1.0);
     
@@ -64,6 +66,7 @@ float CalculateShadow(vec3 FragPos, vec3 FinalLightDir)
     // Calculate bias based on depth map resolution
     vec3 Normal = normalize(FSInput.Normal);
     float Bias = max(0.05 * (1.0 - dot(Normal, FinalLightDir)), 0.005);
+
     if (Layer == CascadeCount)
         Bias *= 1 / (FarPlane * 0.5);
     else    

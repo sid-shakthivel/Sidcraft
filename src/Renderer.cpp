@@ -275,7 +275,7 @@ void Renderer::RenderDepth(Shader *DepthShader)
     DrawWorld(DepthShader, 1.0, true);
 }
 
-void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
+void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer)
 {
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -287,7 +287,7 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad)
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
-    GenericShader->SetInt("Layer", 1);
+    GenericShader->SetInt("Layer", CurrentLayer);
     FinalQuad->Draw();
 }
 
@@ -452,7 +452,7 @@ void Renderer::SetupMatrixUBO()
 
 void Renderer::UBOPass()
 {
-    const auto LightMatrices = GetLightSpaceMatrices();
+    auto LightMatrices = GetLightSpaceMatrices();
     glBindBuffer(GL_UNIFORM_BUFFER, MatricesUBO);
     for (unsigned int i = 0; i < LightMatrices.size(); ++i)
         glBufferSubData(GL_UNIFORM_BUFFER, i * sizeof(Matrix4f), sizeof(Matrix4f), &LightMatrices[i]);
@@ -466,11 +466,11 @@ std::vector<Matrix4f> Renderer::GetLightSpaceMatrices()
     for (unsigned int i = 0; i < ShadowCascadeLevels.size() + 1; ++i)
     {
         if (i == 0)
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, 0.01, ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), 0.01, ShadowCascadeLevels[i]));
         else if (i < ShadowCascadeLevels.size())
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
         else
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir, ShadowCascadeLevels[i - 1], 1000.0f));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], 1000.0f));
     }
 
     return LightSpaceMatrices;

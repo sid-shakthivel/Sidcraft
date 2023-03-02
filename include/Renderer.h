@@ -36,7 +36,7 @@ private:
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
-    std::vector<float> ShadowCascadeLevels{1000.0f / 15.0f, 1000.0f / 10.0f, 1000.0f / 5.0f, 1000.0 / 3.0f};
+    std::vector<float> ShadowCascadeLevels{1000.0f / 15.0f, 1000.0f / 10.0f, 1000.0f / 5.0f, 1000.0 / 2.0f};
 
     unsigned int MatricesUBO;
 
@@ -88,7 +88,7 @@ public:
     void DrawSkybox(Shader *GenericShader, float DeltaTime);   // Draws skybox to whatever framebuffer is set
     void RenderWater(Shader *WaterShader, float DeltaTime);
 
-    void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad);
+    void DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer);
     void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
 
     void UBOPass();
@@ -106,8 +106,8 @@ extern unsigned int SCREEN_HEIGHT;
 // static unsigned int SCREEN_WIDTH = 2880;
 // static unsigned int SCREEN_HEIGHT = 1694;
 
-const unsigned int SHADOW_WIDTH = 1024;
-const unsigned int SHADOW_HEIGHT = 1024;
+const unsigned int SHADOW_WIDTH = 4096;
+const unsigned int SHADOW_HEIGHT = 4096;
 
 const unsigned int REFLECTION_WIDTH = 320;
 const unsigned int REFLECTION_HEIGHT = 180;

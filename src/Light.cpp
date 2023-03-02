@@ -94,5 +94,9 @@ Matrix4f CalculateLightSpaceMatrix(Vector3f CameraPos, Vector3f CameraFront, Vec
     MinZ = MinZ < 0 ? MinZ * ZMultipier : MinZ / ZMultipier;
     MaxZ = MaxZ < 0 ? MaxZ / ZMultipier : MaxZ * ZMultipier;
 
+    
+
     return LightViewMatrix.Multiply(CreateOrthographicProjectionMatrix(MinY, MaxY, MinX, MaxX, MinZ, MaxZ));
+
+
 }

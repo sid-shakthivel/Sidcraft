@@ -96,14 +96,14 @@ int main()
     // Shader BlendShader = Shader(std::string("BlendShader"));
     Shader QuadShader = Shader(std::string("QuadShader"));
     Shader SkyboxShader = Shader(std::string("SkyShader"));
-    // Shader WaterShader = Shader(std::string("WaterShader"));
+    Shader WaterShader = Shader(std::string("WaterShader"));
 
     // Setup textures
     TextureAtlas::GetInstance();
 
     // Setup other
     MainMouseHandler.Initialise();
-    Camera::GetInstance(Vector3f(10.0f, 45.0f, 5.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Camera::GetInstance(Vector3f(120.0f, 45.0f, 120.0f), Vector3f(0.0f, 0.0f, -1.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
     Quad FinalQuad = Quad();
@@ -121,9 +121,33 @@ int main()
 
     int layer = 0;
 
+    static int plusPress = GLFW_RELEASE;
+
+    bool ShowDepth = false;
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
+        static int plusPress = GLFW_RELEASE;
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE && plusPress == GLFW_PRESS)
+        {
+            layer += 1;
+            if (layer == 4)
+                layer = 0;
+
+            std::cout << "Layer is " << layer << std::endl;
+        }
+        plusPress = glfwGetKey(window, GLFW_KEY_Q);
+
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        {
+            ShowDepth = true;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        {
+            ShowDepth = false;
+        }
+
         HandleFPS(window);
         MasterRenderer.Update();
         Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
@@ -155,6 +179,12 @@ int main()
         // glDisable(GL_CLIP_DISTANCE0);
 
         // // Render everything
+
+        // if (ShowDepth)
+        //     MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad, layer);
+        // else
+        //     MasterRenderer.RenderNormal(&MainShader, LastFrame);
+
         MasterRenderer.RenderNormal(&MainShader, LastFrame);
         // MasterRenderer.RenderWater(&WaterShader, DeltaTime);
         MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
@@ -164,8 +194,6 @@ int main()
         // MasterRenderer.DrawSkybox(&SkyboxShader, deltaTime);
         // MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
         // MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
-
-        // MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad);
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
