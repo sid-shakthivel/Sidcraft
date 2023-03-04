@@ -99,8 +99,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
                 else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
                     NewChunk.ClearChunk(PositionToTest, Offset);
 
-                NewChunk.CreateMesh();
-
                 World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
                 World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
 

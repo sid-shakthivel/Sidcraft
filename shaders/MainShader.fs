@@ -9,7 +9,6 @@ in VS_OUT {
 } FSInput;
 
 uniform sampler2D MainTexture;
-// uniform sampler2D ShadowMap;
 uniform sampler2DArray ShadowMap;
 
 uniform vec3 LightDirection; 
@@ -45,8 +44,6 @@ float CalculateShadow(vec3 FragPos, vec3 FinalLightDir)
     }
     if (Layer == -1) 
         Layer = CascadeCount;
-
-    // Layer = 2;
 
     vec4 FragPosLightSpace = lightSpaceMatrices[Layer] * vec4(FragPos, 1.0);
     

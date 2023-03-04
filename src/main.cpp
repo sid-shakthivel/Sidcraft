@@ -7,10 +7,10 @@
 #include <tuple>
 
 #include "../include/Matrix.h"
+#include "../include/Tree.h"
 #include "../include/Camera.h"
 #include "../include/Shader.h"
 #include "../include/TextureAtlas.h"
-#include "../include/Tree.h"
 #include "../include/Chunk.h"
 #include "../include/Skybox.h"
 #include "../include/Quad.h"
@@ -91,9 +91,9 @@ int main()
     // Setup shaders
     Shader MainShader = Shader(std::string("MainShader"));
     Shader DepthShader = Shader(std::string("DepthShader"), true);
-    // Shader HDRShader = Shader(std::string("HDRShader"));
-    // Shader BlurShader = Shader(std::string("BlurShader"));
-    // Shader BlendShader = Shader(std::string("BlendShader"));
+    Shader HDRShader = Shader(std::string("HDRShader"));
+    Shader BlurShader = Shader(std::string("BlurShader"));
+    Shader BlendShader = Shader(std::string("BlendShader"));
     Shader QuadShader = Shader(std::string("QuadShader"));
     Shader SkyboxShader = Shader(std::string("SkyShader"));
     Shader WaterShader = Shader(std::string("WaterShader"));
@@ -111,8 +111,8 @@ int main()
     // Setup rendering process
     MasterRenderer.SetupDepth();
 
-    // MasterRenderer.SetupHDR();
-    // MasterRenderer.SetupBloom();
+    MasterRenderer.SetupHDR();
+    MasterRenderer.SetupBloom();
 
     MasterRenderer.SetupReflection();
     MasterRenderer.SetupRefraction();
@@ -128,26 +128,6 @@ int main()
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
-        static int plusPress = GLFW_RELEASE;
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_RELEASE && plusPress == GLFW_PRESS)
-        {
-            layer += 1;
-            if (layer == 4)
-                layer = 0;
-
-            std::cout << "Layer is " << layer << std::endl;
-        }
-        plusPress = glfwGetKey(window, GLFW_KEY_Q);
-
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        {
-            ShowDepth = true;
-        }
-        else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        {
-            ShowDepth = false;
-        }
-
         HandleFPS(window);
         MasterRenderer.Update();
         Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
@@ -156,38 +136,35 @@ int main()
         // glEnable(GL_CULL_FACE);
         // glCullFace(GL_BACK);
         MasterRenderer.UBOPass();
-
         MasterRenderer.RenderDepth(&DepthShader);
 
-        // glDisable(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
 
         // Setup reflection and refraction planes
-        // glEnable(GL_CLIP_DISTANCE0);
+        glEnable(GL_CLIP_DISTANCE0);
 
-        // float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
+        float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
 
-        // Camera::GetInstance()->CameraPos.y -= Distance;
-        // Camera::GetInstance()->CameraPos.z -= Distance;
-        // Camera::GetInstance()->InvertPitch();
-        // MasterRenderer.RenderReflection(&MainShader);
+        Camera::GetInstance()->CameraPos.y -= Distance;
+        Camera::GetInstance()->CameraPos.z -= Distance;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderReflection(&MainShader);
 
-        // Camera::GetInstance()->CameraPos.y += Distance;
-        // Camera::GetInstance()->CameraPos.z += Distance;
-        // Camera::GetInstance()->InvertPitch();
-        // MasterRenderer.RenderRefraction(&MainShader);
+        Camera::GetInstance()->CameraPos.y += Distance;
+        Camera::GetInstance()->CameraPos.z += Distance;
+        Camera::GetInstance()->InvertPitch();
+        MasterRenderer.RenderRefraction(&MainShader);
 
-        // glDisable(GL_CLIP_DISTANCE0);
+        glDisable(GL_CLIP_DISTANCE0);
 
         // // Render everything
 
-        // if (ShowDepth)
-        //     MasterRenderer.DrawDepthQuad(&QuadShader, &FinalQuad, layer);
-        // else
-        //     MasterRenderer.RenderNormal(&MainShader, LastFrame);
-
-        MasterRenderer.RenderNormal(&MainShader, LastFrame);
-        // MasterRenderer.RenderWater(&WaterShader, DeltaTime);
+        // MasterRenderer.RenderNormal(&MainShader, LastFrame);
+        MasterRenderer.RenderHDR(&MainShader, LastFrame);
         MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
+        MasterRenderer.RenderWater(&WaterShader, DeltaTime);
+        MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
+        MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
         // Bloom rendering process
         // MasterRenderer.RenderHDR(&MainShader, lastFrame);

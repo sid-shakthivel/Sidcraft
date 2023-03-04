@@ -18,13 +18,7 @@ Renderer::Renderer()
     ReflectionPlane = Vector4f(0, 1, 0, -WATER_LEVEL);
     RefractionPlane = Vector4f(0, -1, 0, WATER_LEVEL + 5);
 
-    CustomLightDir = Vector3f(2.0f, 3.0f, -4.0f);
-    WaterLightDir = Vector3f(2.0f, 3.0f, 4.0f);
-    LightPosition = Vector3f(0.0f, 40.0f, 0.0f);
-
-    LightProjectionMatrix = CreateOrthographicProjectionMatrix(-120.0f, 120.0f, -120.0f, 120.0f, 0.1f, 500.0f);
-    LightViewMatrix = CreateLookAtMatrix(LightPosition, Vector3f(240.0f, -10.0f, 240.0f), Vector3f(0.0f, 1.0f, 0.0f));
-    LightSpaceMatrix = LightViewMatrix.Multiply(LightProjectionMatrix);
+    LightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
     ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
     ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
@@ -146,14 +140,13 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
     glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
 
     glActiveTexture(GL_TEXTURE1);
-    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->SetInt("MainTexture", 0);
     GenericShader->SetInt("ShadowMap", 1);
 
     GenericShader->SetVector3f("ViewPos", &CameraViewPosition);
-    GenericShader->SetVector3f("LightDirection", &CustomLightDir);
+    GenericShader->SetVector3f("LightDirection", &LightDir);
 
     GenericShader->SetVector3f("SkyColour", &SkyColour);
 
@@ -171,17 +164,26 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
 
 void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
 {
-    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, IsDepth, World::GetInstance()->ChunkPositions.at(i));
-
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.Draw(GenericShader, IsDepth, RunningTime);
+    if (!IsDepth)
+        GenericShader->SetFloat("RunningTime", RunningTime);
 
     for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-        World::GetInstance()->FlowerList.at(i).Draw(GenericShader, IsDepth);
+        World::GetInstance()->FlowerList.at(i).Draw(GenericShader);
 
-    // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
-    //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader, World::GetInstance()->LightCubePositions.at(i));
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.DrawLeaves(GenericShader);
+
+    if (!IsDepth)
+        GenericShader->SetFloat("RunningTime", 0.0);
+
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.DrawTrunk(GenericShader);
+
+    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, World::GetInstance()->ChunkPositions.at(i));
+
+    for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
+        World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
 }
 
 void Renderer::RenderReflection(Shader *GenericShader)
@@ -231,7 +233,7 @@ void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
     WaterShader->SetMatrix4f("Projection", (const float *)(&ProjectionMatrix));
     WaterShader->SetFloat("MoveFactor", MoveFactor);
     WaterShader->SetVector3f("CameraPos", &CameraViewPosition);
-    WaterShader->SetVector3f("LightDirection", &WaterLightDir);
+    WaterShader->SetVector3f("LightDirection", &LightDir);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
@@ -266,13 +268,15 @@ void Renderer::RenderDepth(Shader *DepthShader)
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     DepthShader->Use();
-    // DepthShader->SetMatrix4f("LightSpaceMatrix", (const float *)(&LightSpaceMatrix));
 
-    DrawWorld(DepthShader, 1.0, true);
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.DrawTrunk(DepthShader);
+
+    for (auto const &Tree : World::GetInstance()->TreeList)
+        Tree.DrawLeaves(DepthShader);
 }
 
 void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer)
@@ -282,7 +286,6 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int Current
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D, DepthMapTexture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->Use();
@@ -293,10 +296,6 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int Current
 
 void Renderer::SetupDepth()
 {
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    //              SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthMapTexture, 0);
-
     glGenFramebuffers(1, &DepthMapFBO);
     glGenTextures(1, &DepthMapTexture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
@@ -466,11 +465,11 @@ std::vector<Matrix4f> Renderer::GetLightSpaceMatrices()
     for (unsigned int i = 0; i < ShadowCascadeLevels.size() + 1; ++i)
     {
         if (i == 0)
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), 0.01, ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, LightDir.ReturnNormalise(), 0.1f, ShadowCascadeLevels[i]));
         else if (i < ShadowCascadeLevels.size())
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, LightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
         else
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, CustomLightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], 1000.0f));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Camera::GetInstance()->CameraFront, LightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], 500.0f));
     }
 
     return LightSpaceMatrices;

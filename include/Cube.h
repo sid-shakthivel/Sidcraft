@@ -20,12 +20,18 @@ struct MeshData
 
 class Cube : public Mesh
 {
+private:
+    Matrix4f Position = Matrix4f(1);
+
 public:
-    Cube(float TextureIndex = 0);
+    Cube(float TextureIndex = 0, Vector3f TranslationVector = Vector3f(0.0f, 0.0f, 0.0f));
+
     MeshData GetCubeData();
     void CreateMesh();
     void Draw(Shader *MeshShader, Matrix4f Offset) const;
+    void Draw(Shader *MeshShader) const;
 
+    // Important cube data
     static std::array<unsigned int, 6> FaceIndices;
     static std::array<Vector3f, 6> DirectionList;
     static std::map<unsigned int, Vector3f> FaceNormals;

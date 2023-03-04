@@ -74,6 +74,8 @@ Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZ
         for (int z = 0; z < CHUNK_SIZE; z++)
             for (int y = 0; y < CHUNK_HEIGHT; y++)
                 Blocks[x][y][z] = BlocksToCopy[x][y][z];
+
+    CreateMesh();
 }
 
 float GetGradient(float X, float Z)
@@ -104,12 +106,10 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
     {
         if (Y > (Height - 1))
             return BlockType::Grass;
+        else if (Y > (Height - 3))
+            return BlockType::Dirt;
         else
             return BlockType::Stone;
-        // else if (Y > (Height - 3))
-        //     return BlockType::Dirt;
-        // else
-        //     return BlockType::Stone;
     };
 
     /*
@@ -160,6 +160,8 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
                                 if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
                                     Blocks[i][k][j] = BlockType::Sand;
                 }
+
+    CreateMesh();
 }
 
 void Chunk::CreateMesh()
@@ -332,12 +334,9 @@ void Chunk::CreateMesh()
     glEnableVertexAttribArray(3); // Texture Index
 }
 
-void Chunk::Draw(Shader *MeshShader, bool isDepth, Matrix4f Offset) const
+void Chunk::Draw(Shader *MeshShader, Matrix4f Offset) const
 {
     MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
-
-    if (!isDepth)
-        MeshShader->SetFloat("Time", 1.0f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));

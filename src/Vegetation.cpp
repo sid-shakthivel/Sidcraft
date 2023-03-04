@@ -2,8 +2,10 @@
 
 #include "../include/Vegetation.h"
 
-Vegetation::Vegetation(float TextureIndex, Matrix4f Position)
+Vegetation::Vegetation(float TextureIndex, Vector3f TranslationVector)
 {
+    Position.Translate(TranslationVector);
+
     // Create a criss cross system
     std::vector<Vector3f> FirstFaceVertices{
         Vector3f(0.5f, -0.5f, 0.5f),
@@ -31,15 +33,12 @@ Vegetation::Vegetation(float TextureIndex, Matrix4f Position)
     for (unsigned int i = 0; i < SecondFaceVertices.size(); i++)
         Vertices.push_back(Vertex(SecondFaceVertices[i], SecondFaceNormals[i], TextureCoordinatesList[i], TextureIndex));
 
-    this->Position = Position;
+    CreateMesh();
 }
 
-void Vegetation::Draw(Shader *MeshShader, bool IsDepth) const
+void Vegetation::Draw(Shader *MeshShader) const
 {
     MeshShader->SetMatrix4f("Model", (const float *)(&Position));
-
-    if (!IsDepth)
-        MeshShader->SetFloat("Time", 1.0f);
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));

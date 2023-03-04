@@ -12,8 +12,10 @@
 
 #include "../include/Cube.h"
 
-Cube::Cube(float TextureIndex)
+Cube::Cube(float TextureIndex, Vector3f TranslationVector)
 {
+    Position.Translate(TranslationVector);
+
     // Generates a cube
     unsigned int indexer = 0;
     for (Vector3f Direction : DirectionList)
@@ -31,6 +33,8 @@ Cube::Cube(float TextureIndex)
 
         indexer += 1;
     }
+
+    CreateMesh();
 }
 
 void Cube::CreateMesh()
@@ -69,7 +73,13 @@ void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const
 {
     MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
 
-    // std::cout << Indices.size() << std::endl;
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+}
+
+void Cube::Draw(Shader *MeshShader) const
+{
+    MeshShader->SetMatrix4f("Model", (const float *)(&Position));
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));

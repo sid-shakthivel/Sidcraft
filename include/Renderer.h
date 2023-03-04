@@ -14,18 +14,12 @@ class Renderer
 private:
     Vector3f SkyColour;
 
-    Vector3f CustomLightDir;
-    Vector3f WaterLightDir;
-    Vector3f LightPosition;
+    Vector3f LightDir;
 
     Vector3f CameraViewPosition;
 
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ProjectionMatrix = Matrix4f(1);
-
-    Matrix4f LightProjectionMatrix = Matrix4f(1);
-    Matrix4f LightViewMatrix = Matrix4f(1);
-    Matrix4f LightSpaceMatrix = Matrix4f(1);
 
     Vector4f ReflectionPlane;
     Vector4f RefractionPlane;
@@ -36,7 +30,7 @@ private:
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
-    std::vector<float> ShadowCascadeLevels{1000.0f / 15.0f, 1000.0f / 10.0f, 1000.0f / 5.0f, 1000.0 / 2.0f};
+    std::vector<float> ShadowCascadeLevels{500.0f / 10.0f, 500.0f / 8.0f, 500.0f / 5.0f, 500.0 / 2.0f};
 
     unsigned int MatricesUBO;
 

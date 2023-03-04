@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../include/Tree.h"
 #include "../include/Matrix.h"
 #include "../include/Chunk.h"
 #include "../include/Camera.h"

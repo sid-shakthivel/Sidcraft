@@ -8,7 +8,7 @@ uniform mat4 Projection;
 uniform mat4 View;
 uniform mat4 Model;
 uniform mat4 LightSpaceMatrix;
-uniform float Time;
+uniform float RunningTime;
 uniform vec4 HorizontalPlane;
 
 out VS_OUT {
@@ -46,16 +46,13 @@ void main()
     VSOutput.Visibility = clamp(VSOutput.Visibility, 0.0, 1.0);
     VSOutput.Visibility = 1;
 
-    /*
-        Time is only not 1, if waviness is required eg for trees
-        Time is 1, for everthing but trees
-    */
-    if (Time != 1) {
+    // If time is greater then 1, use the time value to modify positions of trees
+    if (RunningTime > 0.0) {
         // Transform the position by offset using sin
+        float WaveX = InputPos.x + 0.1 * sin(3 * (RunningTime + 5.0 * InputPos.z));
+        float WaveY = InputPos.y + 0.1 * sin(3 * (RunningTime + 5.0 * InputPos.x));
+        float WaveZ = InputPos.z + 0.1 * sin(3 * (RunningTime + 5.0 * InputPos.x));
 
-        float WaveX = InputPos.x + 0.1 * sin(3 * (Time + 5.0 * InputPos.z));
-        float WaveY = InputPos.y + 0.1 * sin(3 * (Time + 5.0 * InputPos.x));
-        float WaveZ = InputPos.z + 0.1 * sin(3 * (Time + 5.0 * InputPos.x));
         gl_Position = Projection * View * Model * vec4(WaveX, WaveY, WaveZ ,1.0);
     } else {
         gl_Position = Projection * View * Model * vec4(InputPos, 1.0);

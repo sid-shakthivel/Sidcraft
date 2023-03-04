@@ -1,20 +1,29 @@
 #pragma once
 
 #include "Matrix.h"
-#include "Tree.h"
 #include "Chunk.h"
 #include "Skybox.h"
 #include "Block.h"
 #include "Cube.h"
 #include "Vegetation.h"
+#include "Tree.h"
 
 #include <map>
 #include <vector>
+
+enum EntityType
+{
+    Tree,
+    Lightbox,
+    Flower,
+};
 
 class World
 {
 private:
     void GenerateWorld();
+
+    void GenerateEntities(EntityType Entity, unsigned int Limit);
 
 protected:
     World();
@@ -27,12 +36,12 @@ public:
 
     static World *GetInstance();
 
-    std::vector<Tree> TreeList;
     std::vector<Matrix4f> ChunkPositions;
     std::vector<Chunk> ChunkData;
+
+    std::vector<TestTree> TreeList;
     std::vector<Vegetation> FlowerList;
     std::vector<Cube> LightCubes;
-    std::vector<Matrix4f> LightCubePositions;
 
     std::map<BlockType, int> Inventory;
 
