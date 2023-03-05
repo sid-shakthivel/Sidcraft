@@ -8,3 +8,4 @@ Features:
 - Water
 - Chunk terrain generation
 - Block placing (Raycasting)
+- Assimp model loading
