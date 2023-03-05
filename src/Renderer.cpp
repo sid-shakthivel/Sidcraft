@@ -10,6 +10,24 @@
 
 #include "../include/Renderer.h"
 
+std::vector<const char *> LightImagePaths = {
+    "res/SkyBoxImages/right.png",
+    "res/SkyBoxImages/left.png",
+    "res/SkyBoxImages/top.png",
+    "res/SkyBoxImages/bottom.png",
+    "res/SkyBoxImages/back.png",
+    "res/SkyBoxImages/front.png",
+};
+
+std::vector<const char *> DarkImagePaths = {
+    "res/DarkSkyBoxImages/right.png",
+    "res/DarkSkyBoxImages/left.png",
+    "res/DarkSkyBoxImages/top.png",
+    "res/DarkSkyBoxImages/bottom.png",
+    "res/DarkSkyBoxImages/back.png",
+    "res/DarkSkyBoxImages/front.png",
+};
+
 Renderer::Renderer()
 {
     // Setup matrices and vectors
@@ -24,8 +42,59 @@ Renderer::Renderer()
     ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
 
-    DuDvMap = LoadRBGFromFile("res/waterDUDV.png");
-    WaterNormalMap = LoadRBGFromFile("res/WaterNormalMap.png");
+    DuDvMap = LoadTextureFromRGB("res/waterDUDV.png");
+    WaterNormalMap = LoadTextureFromRGB("res/WaterNormalMap.png");
+    TitleTexture = LoadTextureFromRGBA("res/Sidcraft.png");
+    LightboxSkyboxTexture = LoadTexuresForCubemap(LightImagePaths);
+    DarkSkyboxTexture = LoadTexuresForCubemap(DarkImagePaths);
+}
+
+void Renderer::SetupTextures()
+{
+    /*
+        Loads all textures at once
+    */
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, TitleTexture);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, ColourBuffers[1]);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, PingPongBuffers[0]);
+
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, PingPongBuffers[1]);
+
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, LightboxSkyboxTexture);
+
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, DarkSkyboxTexture);
+
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
+
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
+
+    glActiveTexture(GL_TEXTURE11);
+    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
+
+    glActiveTexture(GL_TEXTURE12);
+    glBindTexture(GL_TEXTURE_2D, DuDvMap);
+
+    glActiveTexture(GL_TEXTURE13);
+    glBindTexture(GL_TEXTURE_2D, WaterNormalMap);
 }
 
 void Renderer::RenderHDR(Shader *GenericShader, float RunningTime)
@@ -43,12 +112,9 @@ void Renderer::DrawTempQuad(Shader *GenericShader, Quad *FinalQuad)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, WaterNormalMap);
-
     GenericShader->Use();
     GenericShader->SetInt("Image", 0);
-    FinalQuad->Draw();
+    FinalQuad->Draw(GenericShader);
 }
 
 void Renderer::RenderBlur(Shader *BlurShader, Quad *FinalQuad)
@@ -65,13 +131,12 @@ void Renderer::RenderBlur(Shader *BlurShader, Quad *FinalQuad)
 
         BlurShader->SetInt("Horizontal", Horizontal);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(
-            GL_TEXTURE_2D, FirstIteration ? ColourBuffers[1] : PingPongBuffers[!Horizontal]);
+        int TextureIndex = FirstIteration ? 4 : Horizontal ? 5
+                                                           : 6;
 
-        BlurShader->SetInt("Image", 0);
+        BlurShader->SetInt("Image", TextureIndex);
 
-        FinalQuad->Draw();
+        FinalQuad->Draw(BlurShader);
 
         Horizontal = !Horizontal;
 
@@ -88,16 +153,13 @@ void Renderer::RenderBloom(Shader *BlendShader, Quad *FinalQuad)
 
     BlendShader->Use();
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ColourBuffers[0]);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, PingPongBuffers[!Horizontal]);
+    int TextureIndex = Horizontal ? 5 : 6;
 
-    BlendShader->SetInt("Scene", 0);
-    BlendShader->SetInt("BloomBlur", 1);
+    BlendShader->SetInt("Scene", 3);
+    BlendShader->SetInt("BloomBlur", TextureIndex);
     BlendShader->SetFloat("Exposure", 0.10f);
 
-    FinalQuad->Draw();
+    FinalQuad->Draw(BlendShader);
 }
 
 void Renderer::RenderSkybox(Shader *GenericShader, float DeltaTime)
@@ -136,14 +198,8 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
 {
     GenericShader->Use();
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
-
-    GenericShader->SetInt("MainTexture", 0);
-    GenericShader->SetInt("ShadowMap", 1);
+    GenericShader->SetInt("MainTexture", 1);
+    GenericShader->SetInt("ShadowMap", 2);
 
     GenericShader->SetVector3f("ViewPos", &CameraViewPosition);
     GenericShader->SetVector3f("LightDirection", &LightDir);
@@ -235,26 +291,11 @@ void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
     WaterShader->SetVector3f("CameraPos", &CameraViewPosition);
     WaterShader->SetVector3f("LightDirection", &LightDir);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, WaterReflectionColour);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, WaterRefractionColour);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, TextureAtlas::GetInstance()->GetTextureAtlasId());
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, DuDvMap);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, WaterNormalMap);
-
-    WaterShader->SetInt("ReflectionTexture", 0);
-    WaterShader->SetInt("RefractionTexture", 1);
-    WaterShader->SetInt("MainTexture", 2);
-    WaterShader->SetInt("DuDvMap", 3);
-    WaterShader->SetInt("NormalMap", 4);
+    WaterShader->SetInt("ReflectionTexture", 9);
+    WaterShader->SetInt("RefractionTexture", 10);
+    WaterShader->SetInt("TextureAtlas", 1);
+    WaterShader->SetInt("DuDvMap", 12);
+    WaterShader->SetInt("NormalMap", 13);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));
@@ -266,9 +307,6 @@ void Renderer::RenderDepth(Shader *DepthShader)
     glFramebufferTexture(GL_FRAMEBUFFER, GL_TEXTURE_2D_ARRAY, DepthMapTexture, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, DepthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     DepthShader->Use();
 
@@ -285,13 +323,13 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int Current
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
+    // glActiveTexture(GL_TEXTURE0);
+    // glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->Use();
-    GenericShader->SetInt("Image", 0);
+    GenericShader->SetInt("Image", 2);
     GenericShader->SetInt("Layer", CurrentLayer);
-    FinalQuad->Draw();
+    FinalQuad->Draw(GenericShader);
 }
 
 void Renderer::SetupDepth()

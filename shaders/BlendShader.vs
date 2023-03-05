@@ -1,11 +1,13 @@
 #version 410 core
 
-layout (location = 0) in vec3 pos;
-layout (location = 1) in vec2 TextureCoordinates;
+layout (location = 0) in vec3 InputPos;
+layout (location = 1) in vec2 InputTexCoords;
+
+uniform mat4 Model;
 
 out vec2 TexCoords;
 
 void main() {
-    TexCoords = TextureCoordinates;
-    gl_Position = vec4(pos, 1.0);
+    TexCoords = InputTexCoords;
+    gl_Position = Model * vec4(InputPos, 1.0);
 }

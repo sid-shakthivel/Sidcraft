@@ -2,8 +2,8 @@
 
 in vec2 TexCoords;
 
-// uniform sampler2D Image;
-uniform sampler2DArray Image;
+uniform sampler2D Image;
+// uniform sampler2DArray Image;
 uniform int Layer;
 
 out vec4 FragColour;
@@ -24,9 +24,9 @@ void main() {
     // FragColour = vec4(vec3(depthValue), 1.0);
 
     // CSM stuff
-    float DepthValue = texture(Image, vec3(TexCoords, Layer)).r;
-    FragColour = vec4(vec3(DepthValue), 1.0);
+    // float DepthValue = texture(Image, vec3(TexCoords, Layer)).r;
+    // FragColour = vec4(vec3(DepthValue), 1.0);
 
     // Normal stuff
-    // FragColour = texture(Image, TexCoords);
+    FragColour = texture(Image, TexCoords);
 }

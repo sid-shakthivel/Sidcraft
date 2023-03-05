@@ -309,29 +309,32 @@ void Chunk::CreateMesh()
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
     glEnableVertexAttribArray(3); // Texture Index
 
-    // // Setup water
-    glGenVertexArrays(1, &WaterVAO);
-    glBindVertexArray(WaterVAO);
+    if (WaterVertices.size() > 0)
+    {
+        // Setup water
+        glGenVertexArrays(1, &WaterVAO);
+        glBindVertexArray(WaterVAO);
 
-    glGenBuffers(1, &WaterVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
-    glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
+        glGenBuffers(1, &WaterVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
+        glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1, &WaterEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WaterEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, WaterIndices.size() * sizeof(unsigned int), &WaterIndices[0], GL_STATIC_DRAW);
+        glGenBuffers(1, &WaterEBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WaterEBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, WaterIndices.size() * sizeof(unsigned int), &WaterIndices[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(0); // Position
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+        glEnableVertexAttribArray(0); // Position
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
-    glEnableVertexAttribArray(1); // Normals
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
+        glEnableVertexAttribArray(1); // Normals
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
-    glEnableVertexAttribArray(2); // Texture Coordinates
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
+        glEnableVertexAttribArray(2); // Texture Coordinates
 
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
-    glEnableVertexAttribArray(3); // Texture Index
+        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+        glEnableVertexAttribArray(3); // Texture Index
+    }
 }
 
 void Chunk::Draw(Shader *MeshShader, Matrix4f Offset) const

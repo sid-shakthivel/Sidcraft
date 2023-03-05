@@ -12,50 +12,50 @@ const float WAVE_SPEED = 0.03f;
 class Renderer
 {
 private:
-    Vector3f SkyColour;
-
-    Vector3f LightDir;
-
-    Vector3f CameraViewPosition;
-
+    // Matrices
     Matrix4f ViewMatrix = Matrix4f(1);
     Matrix4f ProjectionMatrix = Matrix4f(1);
 
+    // Clipping Planes
     Vector4f ReflectionPlane;
     Vector4f RefractionPlane;
 
+    // Textures
+    unsigned int TitleTexture;
+    unsigned int DepthMapTexture;
+    unsigned int LightboxSkyboxTexture = 0;
+    unsigned int DarkSkyboxTexture = 0;
+    unsigned int ColourBuffers[2];
+    unsigned int PingPongBuffers[2];
+    unsigned int WaterReflectionColour;
+    unsigned int WaterRefractionDepth;
+    unsigned int WaterRefractionColour;
+    unsigned int DuDvMap = 0;
+    unsigned int WaterNormalMap = 0;
+
+    // Render Buffers
+    unsigned int RboDepth;
+    unsigned int WaterReflectionRBO;
+
+    // FBO's
     unsigned int HdrFBO;
     unsigned int PingPongFBO[2];
     unsigned int DepthMapFBO;
     unsigned int WaterReflectionFBO;
     unsigned int WaterRefractionFBO;
 
-    std::vector<float> ShadowCascadeLevels{500.0f / 10.0f, 500.0f / 8.0f, 500.0f / 5.0f, 500.0 / 2.0f};
-
+    // Other
+    Vector3f SkyColour;
+    Vector3f LightDir;
+    Vector3f CameraViewPosition;
     unsigned int MatricesUBO;
-
-    unsigned int GFB;
-    unsigned int GPosition, GNormals, GColourSpec;
-    unsigned int GRBO;
-
-    unsigned int ColourBuffers[2];
-    unsigned int PingPongBuffers[2];
-
-    unsigned int DepthMapTexture;
-    unsigned int WaterReflectionColour;
-    unsigned int WaterRefractionDepth;
-    unsigned int WaterRefractionColour;
-
-    unsigned int RboDepth;
-    unsigned int WaterReflectionRBO;
-
-    unsigned int DuDvMap = 0;
-    unsigned int WaterNormalMap = 0;
     float MoveFactor = 0;
-
     bool Horizontal = true;
 
+    std::vector<float> ShadowCascadeLevels{500.0f / 10.0f, 500.0f / 8.0f, 500.0f / 5.0f, 500.0 / 2.0f};
+
     void DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth);
+    std::vector<Matrix4f> GetLightSpaceMatrices();
 
 protected:
     void RenderScene(Shader *GenericShader, float RunningTime, bool IsDepth);
@@ -68,8 +68,8 @@ public:
     void SetupDepth();
     void SetupRefraction();
     void SetupReflection();
-    void SetupGBuffer();
     void SetupMatrixUBO();
+    void SetupTextures();
 
     void RenderBlur(Shader *BlurShader, Quad *FinalQuad);
     void RenderBloom(Shader *BlendShader, Quad *FinalQuad);
@@ -86,7 +86,6 @@ public:
     void DrawTempQuad(Shader *GenericShader, Quad *FinalQuad);
 
     void UBOPass();
-    std::vector<Matrix4f> GetLightSpaceMatrices();
 
     void Update();
 };

@@ -25,71 +25,12 @@ Skybox::Skybox() : ModelMatrix(Matrix4f(1.0f))
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0); // Setup position attribute
     glEnableVertexAttribArray(0);
-
-    // Sort out textures
-    glGenTextures(1, &LightTextureId);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
-
-    int width, height, nrChannels;
-    unsigned char *data;
-
-    stbi_set_flip_vertically_on_load(false);
-
-    for (unsigned int i = 0; i < LightImagePaths.size(); i++)
-    {
-        data = stbi_load(LightImagePaths[i], &width, &height, &nrChannels, 0);
-        if (!data)
-            std::cout << "ERROR LOADING TEXTURE" << std::endl;
-        else
-        {
-            glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glGenTextures(1, &DarkTextureId);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
-
-    stbi_set_flip_vertically_on_load(false);
-
-    for (unsigned int i = 0; i < DarkImagePaths.size(); i++)
-    {
-        data = stbi_load(DarkImagePaths[i], &width, &height, &nrChannels, 0);
-        if (!data)
-            std::cout << "ERROR LOADING TEXTURE 2" << std::endl;
-        else
-        {
-            glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 void Skybox::Draw(Shader *MeshShader, float DeltaTime)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, LightTextureId);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, DarkTextureId);
-
-    MeshShader->SetInt("Cubemap", 0);
-    MeshShader->SetInt("Cubemap2", 1);
+    MeshShader->SetInt("Cubemap", 7);
+    MeshShader->SetInt("Cubemap2", 8);
 
     UpdateBlend(DeltaTime, MeshShader);
 

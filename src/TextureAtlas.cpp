@@ -2,10 +2,46 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "../include/stb_image.h"
+#include <vector>
 
 #include "../include/TextureAtlas.h"
 
-unsigned int LoadTextureFromFile(const std::string &filepath)
+unsigned int LoadTexuresForCubemap(std::vector<const char *> ImagePaths)
+{
+    unsigned int TextureId;
+
+    glGenTextures(1, &TextureId);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, TextureId);
+
+    int Width, Height, NrChannels;
+    unsigned char *Data;
+
+    stbi_set_flip_vertically_on_load(false);
+
+    for (unsigned int i = 0; i < ImagePaths.size(); i++)
+    {
+        Data = stbi_load(ImagePaths[i], &Width, &Height, &NrChannels, 0);
+        if (!Data)
+            std::cout << "ERROR: LOADING TEXTURE" << std::endl;
+        else
+        {
+            glTexImage2D(
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Data);
+            stbi_image_free(Data);
+        }
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return TextureId;
+}
+
+unsigned int LoadTextureFromRGBA(const std::string &filepath)
 {
     unsigned int TextureId;
     glGenTextures(1, &TextureId);
@@ -34,7 +70,7 @@ unsigned int LoadTextureFromFile(const std::string &filepath)
     return TextureId;
 }
 
-unsigned int LoadRBGFromFile(const std::string &filepath)
+unsigned int LoadTextureFromRGB(const std::string &filepath)
 {
     unsigned int TextureId;
     glGenTextures(1, &TextureId);
@@ -72,7 +108,7 @@ TextureAtlas *TextureAtlas::GetInstance()
 
 TextureAtlas::TextureAtlas()
 {
-    TextureAtlasId = LoadTextureFromFile("res/TextureAtlas.png");
+    TextureAtlasId = LoadTextureFromRGBA("res/TextureAtlas.png");
 }
 
 unsigned int TextureAtlas::GetTextureAtlasId()

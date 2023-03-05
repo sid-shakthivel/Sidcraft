@@ -8,24 +8,6 @@
 class Skybox
 {
 private:
-    std::vector<const char *> LightImagePaths = {
-        "res/SkyBoxImages/right.png",
-        "res/SkyBoxImages/left.png",
-        "res/SkyBoxImages/top.png",
-        "res/SkyBoxImages/bottom.png",
-        "res/SkyBoxImages/back.png",
-        "res/SkyBoxImages/front.png",
-    };
-
-    std::vector<const char *> DarkImagePaths = {
-        "res/DarkSkyBoxImages/right.png",
-        "res/DarkSkyBoxImages/left.png",
-        "res/DarkSkyBoxImages/top.png",
-        "res/DarkSkyBoxImages/bottom.png",
-        "res/DarkSkyBoxImages/back.png",
-        "res/DarkSkyBoxImages/front.png",
-    };
-
     unsigned int VAO, VBO, EBO;
     unsigned int LightTextureId;
     unsigned int DarkTextureId;

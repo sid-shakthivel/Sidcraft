@@ -1,7 +1,8 @@
 #pragma once
 
-unsigned int LoadTextureFromFile(const std::string &filepath);
-unsigned int LoadRBGFromFile(const std::string &filepath);
+unsigned int LoadTextureFromRGBA(const std::string &filepath);
+unsigned int LoadTextureFromRGB(const std::string &filepath);
+unsigned int LoadTexuresForCubemap(std::vector<const char *> ImagePaths);
 
 class TextureAtlas
 {

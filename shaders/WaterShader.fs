@@ -7,7 +7,7 @@ in vec3 ToCameraVector;
 
 uniform sampler2D ReflectionTexture;
 uniform sampler2D RefractionTexture;
-uniform sampler2D MainTexture;
+uniform sampler2D TextureAtlas;
 uniform sampler2D DuDvMap;
 uniform sampler2D NormalMap;
 uniform float MoveFactor; 
@@ -45,7 +45,7 @@ void main() {
     // Extract colours from textures
     vec4 ReflectColour = texture(ReflectionTexture, ReflectCoords);
     vec4 RefractColour = texture(RefractionTexture, RefractCoords);
-    vec4 WaterColour = texture(MainTexture, MainTexCoords);
+    vec4 WaterColour = texture(TextureAtlas, MainTexCoords);
 
     // Fresnel effect
     vec3 ViewVector = normalize(ToCameraVector);
@@ -60,5 +60,5 @@ void main() {
     vec3 SpecularHighlights = LightColour * Specular * Reflectivity;
 
     // Put it all together
-    FragColour = mix(mix(ReflectColour, RefractColour, 0.5), WaterColour, 0.2) + vec4(SpecularHighlights, 0.0);
+    FragColour = mix(mix(ReflectColour, RefractColour, RefractiveFactor), WaterColour, 0.2) + vec4(SpecularHighlights, 0.0);
 }

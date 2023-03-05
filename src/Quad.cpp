@@ -3,8 +3,9 @@
 
 #include "../include/Quad.h"
 
-Quad::Quad()
+Quad::Quad(Vector3f ScaleFactor)
 {
+    ModelMatrix.Scale(ScaleFactor);
     CreateMesh();
 }
 
@@ -28,12 +29,9 @@ void Quad::CreateMesh()
     glEnableVertexAttribArray(1);
 }
 
-void Quad::Draw()
+void Quad::Draw(Shader *QuadShader)
 {
     glBindVertexArray(VAO);
-
+    QuadShader->SetMatrix4f("Model", (const float *)(&ModelMatrix));
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
-
-    // glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    // glBindVertexArray(0);
 }
