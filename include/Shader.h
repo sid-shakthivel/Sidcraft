@@ -17,7 +17,7 @@ protected:
 public:
     Shader(const std::string &FileName);
     Shader(const std::string &FileName, bool HasGeometry);
-    void AddShader(const char *filepath, GLenum shaderType);
+    void AddShader(const std::string &filepath, GLenum shaderType);
     void LinkShader();
 
     void SetMatrix4f(const std::string &name, const float *Value) const;

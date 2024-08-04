@@ -170,7 +170,7 @@ int main()
             glDisable(GL_CLIP_DISTANCE0);
 
             // Render everything
-            // MasterRenderer.RenderNormal(&MainShader, LastFrame);
+            MasterRenderer.RenderNormal(&MainShader, LastFrame);
             MasterRenderer.RenderHDR(&MainShader, LastFrame);
             MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
             MasterRenderer.RenderWater(&WaterShader, DeltaTime);

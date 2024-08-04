@@ -11,21 +11,21 @@
 #include "../include/Renderer.h"
 
 std::vector<const char *> LightImagePaths = {
-    "res/SkyBoxImages/right.png",
-    "res/SkyBoxImages/left.png",
-    "res/SkyBoxImages/top.png",
-    "res/SkyBoxImages/bottom.png",
-    "res/SkyBoxImages/back.png",
-    "res/SkyBoxImages/front.png",
+    "../res/SkyBoxImages/right.png",
+    "../res/SkyBoxImages/left.png",
+    "../res/SkyBoxImages/top.png",
+    "../res/SkyBoxImages/bottom.png",
+    "../res/SkyBoxImages/back.png",
+    "../res/SkyBoxImages/front.png",
 };
 
 std::vector<const char *> DarkImagePaths = {
-    "res/DarkSkyBoxImages/right.png",
-    "res/DarkSkyBoxImages/left.png",
-    "res/DarkSkyBoxImages/top.png",
-    "res/DarkSkyBoxImages/bottom.png",
-    "res/DarkSkyBoxImages/back.png",
-    "res/DarkSkyBoxImages/front.png",
+    "../res/DarkSkyBoxImages/right.png",
+    "../res/DarkSkyBoxImages/left.png",
+    "../res/DarkSkyBoxImages/top.png",
+    "../res/DarkSkyBoxImages/bottom.png",
+    "../res/DarkSkyBoxImages/back.png",
+    "../res/DarkSkyBoxImages/front.png",
 };
 
 Renderer::Renderer()
@@ -42,9 +42,9 @@ Renderer::Renderer()
     ViewMatrix = Camera::GetInstance()->RetrieveLookAt();
     CameraViewPosition = Camera::GetInstance()->GetCameraPos();
 
-    DuDvMap = LoadTextureFromRGB("res/waterDUDV.png");
-    WaterNormalMap = LoadTextureFromRGB("res/WaterNormalMap.png");
-    TitleTexture = LoadTextureFromRGBA("res/Sidcraft.png");
+    DuDvMap = LoadTextureFromRGB("../res/waterDUDV.png");
+    WaterNormalMap = LoadTextureFromRGB("../res/WaterNormalMap.png");
+    TitleTexture = LoadTextureFromRGBA("../res/Sidcraft.png");
     LightboxSkyboxTexture = LoadTexuresForCubemap(LightImagePaths);
     DarkSkyboxTexture = LoadTexuresForCubemap(DarkImagePaths);
 }

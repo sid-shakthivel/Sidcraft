@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+// #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -12,12 +12,10 @@
 
 Shader::Shader(const std::string &FileName)
 {
-    auto Filepath1 = std::string("shaders/").append(FileName).append(std::string(".vs")).c_str();
-    auto Filepath2 = std::string("shaders/").append(FileName).append(std::string(".fs")).c_str();
+    std::string Filepath1 = std::string("../shaders/") + FileName + ".vs";
+    std::string Filepath2 = std::string("../shaders/") + FileName + ".fs";
 
     ProgramId = glCreateProgram();
-
-    std::cout << "LOADING: " << FileName << std::endl;
 
     AddShader(Filepath1, GL_VERTEX_SHADER);
     AddShader(Filepath2, GL_FRAGMENT_SHADER);
@@ -32,9 +30,9 @@ Shader::Shader(const std::string &FileName, bool HasGeometry)
         std::exit(0);
     }
 
-    auto Filepath1 = std::string("shaders/").append(FileName).append(std::string(".vs")).c_str();
-    auto Filepath2 = std::string("shaders/").append(FileName).append(std::string(".fs")).c_str();
-    auto Filepath3 = std::string("shaders/").append(FileName).append(std::string(".gs")).c_str();
+    std::string Filepath1 = std::string("../shaders/") + FileName + ".vs";
+    std::string Filepath2 = std::string("../shaders/") + FileName + ".fs";
+    std::string Filepath3 = std::string("../shaders/") + FileName + ".gs";
 
     ProgramId = glCreateProgram();
 
@@ -42,7 +40,7 @@ Shader::Shader(const std::string &FileName, bool HasGeometry)
 
     AddShader(Filepath1, GL_VERTEX_SHADER);
     AddShader(Filepath2, GL_FRAGMENT_SHADER);
-    AddShader(Filepath3, GL_GEOMETRY_SHADER);
+    // AddShader(Filepath3, GL_GEOMETRY_SHADER);
     LinkShader();
 }
 
@@ -70,13 +68,13 @@ void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
                       << "\n"
                       << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
-        else if (Type == GL_GEOMETRY_SHADER)
-        {
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
-                      << "Geometry"
-                      << "\n"
-                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-        }
+        // else if (Type == GL_GEOMETRY_SHADER)
+        // {
+        //     std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
+        //               << "Geometry"
+        //               << "\n"
+        //               << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+        // }
 
         std::exit(0);
     }
@@ -100,13 +98,23 @@ void Shader::CheckLinkingErrors(GLuint program)
     }
 }
 
-void Shader::AddShader(const char *filepath, GLenum shaderType)
+void Shader::AddShader(const std::string &filepath, GLenum shaderType)
 {
+    // std::cout << "filepath is: " << filepath << std::endl;
+
     std::ostringstream sstream;
     std::ifstream fs(filepath);
+
+    if (!fs.is_open())
+    {
+        std::cerr << "Error: Could not open the file: " << filepath << std::endl;
+    }
+
     sstream << fs.rdbuf();
     const std::string str(sstream.str());
     const char *fileContents = str.c_str();
+
+    // std::cout << "SHADER: " << fileContents << std::endl;
 
     unsigned int shaderNumber = glCreateShader(shaderType);
     glShaderSource(shaderNumber, 1, &fileContents, NULL); // Second parameter specifies number of strings which are source code

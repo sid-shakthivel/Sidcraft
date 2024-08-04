@@ -108,7 +108,7 @@ TextureAtlas *TextureAtlas::GetInstance()
 
 TextureAtlas::TextureAtlas()
 {
-    TextureAtlasId = LoadTextureFromRGBA("res/TextureAtlas.png");
+    TextureAtlasId = LoadTextureFromRGBA("../res/TextureAtlas.png");
 }
 
 unsigned int TextureAtlas::GetTextureAtlasId()

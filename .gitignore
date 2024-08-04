@@ -1,0 +1,10 @@
+**/dependencies
+**/.vscode
+**/.DS_Store
+**/GameEngine
+Sidcraft
+*.o
+**/GameEngine.dSYM
+/build
+src/glad.c
+glad.o

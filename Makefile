@@ -17,7 +17,7 @@ C++_OBJECTS := $(patsubst %.cpp, %.o, $(C++_SOURCES))
 all: $(TARGET)
 
 $(TARGET): $(C++_OBJECTS) $(GLAD)
-	$(CC) -L $(LIBS) -o $@ $(OBJ)/* $(PROJECT_PATH)/glad.o -framework OpenGL -Wno-deprecated && ./$(TARGET)
+	$(CC) -L $(LIBS) -o $@ $(OBJ)/* $(PROJECT_PATH)/glad.o -framework  -Wdeprecated-declarations -Wno-deprecated && ./$(TARGET)
 
 GLAD: $(PROJECT_PATH)/src/glad.c
 	gcc -c $(patsubst %.o, %.c, $<) -o 
