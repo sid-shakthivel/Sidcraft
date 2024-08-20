@@ -51,17 +51,17 @@ void Cube::CreateMesh()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(0); // Position
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    // glEnableVertexAttribArray(0); // Position
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
-    glEnableVertexAttribArray(1); // Normals
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
+    // glEnableVertexAttribArray(1); // Normals
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
-    glEnableVertexAttribArray(2); // Texture Coordinates
+    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
+    // glEnableVertexAttribArray(2); // Texture Coordinates
 
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
-    glEnableVertexAttribArray(3); // Texture Index
+    // glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
+    // glEnableVertexAttribArray(3); // Texture Index
 }
 
 MeshData Cube::GetCubeData()
@@ -98,12 +98,18 @@ std::array<unsigned int, 6> Cube::FaceIndices = {0, 1, 2, 2, 3, 0};
 std::array<Vector3f, 6> Cube::DirectionList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
 
 std::map<unsigned int, std::array<Vector3f, 4>> Cube::FaceVertices = {
-    {0, {Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
-    {1, {Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, -0.5f)}},
-    {2, {Vector3f(0.5f, -0.5f, -0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(0.5f, 0.5f, -0.5f)}},
-    {3, {Vector3f(-0.5f, -0.5f, -0.5f), Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
-    {4, {Vector3f(-0.5f, -0.5f, -0.5f), Vector3f(0.5f, -0.5f, -0.5f), Vector3f(0.5f, 0.5f, -0.5f), Vector3f(-0.5f, 0.5f, -0.5f)}},
-    {5, {Vector3f(-0.5f, -0.5f, 0.5f), Vector3f(0.5f, -0.5f, 0.5f), Vector3f(0.5f, 0.5f, 0.5f), Vector3f(-0.5f, 0.5f, 0.5f)}},
+    // Top face
+    {0, {Vector3f(0.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
+    // Bottom face
+    {1, {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f)}},
+    // Right face
+    {2, {Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 0.0f)}},
+    // Left face
+    {3, {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
+    // Front face
+    {4, {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
+    // Back face
+    {5, {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f)}},
 };
 
 unsigned int Cube::ConvertDirectionToNumber(Vector3f Direction)

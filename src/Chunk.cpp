@@ -52,8 +52,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    for (int i = 0; i < 1; i++)
-        Blocks[(int)RelativeVec.x][(int)RelativeVec.y + i][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
+    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
@@ -187,10 +186,10 @@ void Chunk::CreateMesh()
     };
 
     /*
-            Loop through each block, and check if adjacent blocks are within the chunk
-            If an adjacent block is within the chunk, it need not be rendered
-            Else the adjacent block is an air block and thus this face might be visible so can be rendered
-        */
+        Loop through each block, and check if adjacent blocks are within the chunk
+        If an adjacent block is within the chunk, it need not be rendered
+        Else the adjacent block is an air block and thus this face might be visible so can be rendered
+    */
     unsigned int Indexer = 0;
     unsigned int WaterIndexer = 0;
     for (int x = 0; x < CHUNK_SIZE; x++)
@@ -205,70 +204,23 @@ void Chunk::CreateMesh()
 
                     if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Air || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Water)
                     {
-                        if (Blocks[x][y][z] != BlockType::Air)
+                        if (Blocks[x][y][z] == BlockType::Air)
+                            continue;
+
+                        // Fix for Up/Down
+                        if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
+                            PositionToCheck = Position;
+
+                        auto Index = Cube::ConvertDirectionToNumber(Direction);
+                        Vector3f Normal = Cube::FaceNormals[Index];
+                        auto CubeFaceVertices = Cube::FaceVertices[Index];
+
+                        // Determine block type
+                        float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
+
+                        if (Blocks[x][y][z] == BlockType::Water)
                         {
-                            // Fix for Up/Down
-                            if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
-                                PositionToCheck = Position;
-
-                            auto Index = Cube::ConvertDirectionToNumber(Direction);
-                            Vector3f Normal = Cube::FaceNormals[Index];
-                            auto CubeFaceVertices = Cube::FaceVertices[Index];
-
-                            // Determine block type
-                            float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
-
-                            if (Blocks[x][y][z] != BlockType::Water)
-                            {
-                                // Sort out indices
-                                for (auto index : Cube::FaceIndices)
-                                    Indices.push_back(index + 4 * Indexer);
-
-                                // Sort out vertices
-                                for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                    Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
-
-                                Indexer += 1;
-                            }
-                        }
-                    }
-                }
-            }
-
-    /*
-        Water is separated from the other materials
-        Water has special properties and has a specific shader
-    */
-    for (int x = 0; x < CHUNK_SIZE; x++)
-        for (int y = 0; y <= WATER_LEVEL; y++)
-            for (int z = 0; z < CHUNK_SIZE; z++)
-            {
-                Vector3f Position = Vector3f(x, y, z);
-
-                for (Vector3f Direction : Cube::DirectionList)
-                {
-                    Vector3f PositionToCheck = Position.Add(Direction);
-
-                    if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == false)
-                    {
-                        if (Blocks[x][y][z] != BlockType::Air)
-                        {
-                            // Fix for Up/Down
-                            if (Direction.IsEqual(UP) || Direction.IsEqual(DOWN))
-                                PositionToCheck = Position;
-
-                            auto Index = Cube::ConvertDirectionToNumber(Direction);
-                            Vector3f Normal = Cube::FaceNormals[Index];
-                            auto CubeFaceVertices = Cube::FaceVertices[Index];
-
-                            // Determine block type
-                            float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
-
-                            /*
-                                Water is separated from the other materials
-                                Water has special properties and has a specific shader
-                            */
-                            if (Blocks[x][y][z] == BlockType::Water)
+                            if (y == WATER_LEVEL - 1)
                             {
                                 // Sort out indices
                                 for (auto index : Cube::FaceIndices)
@@ -280,6 +232,21 @@ void Chunk::CreateMesh()
 
                                 WaterIndexer += 1;
                             }
+                        }
+                        else
+                        {
+                            // Sort out indices
+                            for (auto index : Cube::FaceIndices)
+                                Indices.push_back(index + 4 * Indexer);
+
+                            if (y > 32)
+                                std::cout << "oh dear\n";
+
+                            // Sort out vertices
+                            for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                                Vertices.push_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, TextureCoordinatesList[i], TextureIndex));
+
+                            Indexer += 1;
                         }
                     }
                 }
@@ -297,44 +264,32 @@ void Chunk::CreateMesh()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+    glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedPos)));
     glEnableVertexAttribArray(0); // Position
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
-    glEnableVertexAttribArray(1); // Normals
+    glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
+    glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
-    glEnableVertexAttribArray(2); // Texture Coordinates
+    if (WaterIndices.size() <= 0)
+        return;
 
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
-    glEnableVertexAttribArray(3); // Texture Index
+    // Setup water
+    glGenVertexArrays(1, &WaterVAO);
+    glBindVertexArray(WaterVAO);
 
-    if (WaterVertices.size() > 0)
-    {
-        // Setup water
-        glGenVertexArrays(1, &WaterVAO);
-        glBindVertexArray(WaterVAO);
+    glGenBuffers(1, &WaterVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
+    glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
 
-        glGenBuffers(1, &WaterVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, WaterVBO);
-        glBufferData(GL_ARRAY_BUFFER, WaterVertices.size() * sizeof(Vertex), &WaterVertices[0], GL_STATIC_DRAW);
+    glGenBuffers(1, &WaterEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WaterEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, WaterIndices.size() * sizeof(unsigned int), &WaterIndices[0], GL_STATIC_DRAW);
 
-        glGenBuffers(1, &WaterEBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, WaterEBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, WaterIndices.size() * sizeof(unsigned int), &WaterIndices[0], GL_STATIC_DRAW);
+    glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedPos)));
+    glEnableVertexAttribArray(0); // Position
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-        glEnableVertexAttribArray(0); // Position
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
-        glEnableVertexAttribArray(1); // Normals
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
-        glEnableVertexAttribArray(2); // Texture Coordinates
-
-        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
-        glEnableVertexAttribArray(3); // Texture Index
-    }
+    glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
+    glEnableVertexAttribArray(1); // Other data
 }
 
 void Chunk::Draw(Shader *MeshShader, Matrix4f Offset) const

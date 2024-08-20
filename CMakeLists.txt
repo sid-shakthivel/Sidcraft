@@ -31,6 +31,8 @@ target_link_libraries(${PROJECT_NAME}
 # Specify additional compiler flags
 target_compile_options(${PROJECT_NAME} PRIVATE -fdiagnostics-color=always -Wall -Wdeprecated-declarations -Wno-deprecated)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
 # Find and link the OpenGL framework
 find_library(OpenGL_FRAMEWORK OpenGL)
 if(OpenGL_FRAMEWORK)

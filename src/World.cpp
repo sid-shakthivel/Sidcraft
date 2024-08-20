@@ -83,7 +83,9 @@ void World::GenerateWorld()
         }
     }
 
-    GenerateEntities(EntityType::Tree, 25);
-    GenerateEntities(EntityType::Flower, 50);
-    GenerateEntities(EntityType::Lightbox, 10);
+    // std::cout << "world size: " << WORLD_SIZE << std::endl;
+
+    // GenerateEntities(EntityType::Tree, 25);
+    // GenerateEntities(EntityType::Flower, 50);
+    // GenerateEntities(EntityType::Lightbox, 10);
 }

@@ -136,7 +136,7 @@ public:
 
     void Print()
     {
-        std::cout << "Vector: " << x << " " << y << " " << z << "\n";
+        std::cout << "Vector: " << x << ", " << y << ", " << z << "\n";
     }
 
     Vector Multiply(T Scalar)

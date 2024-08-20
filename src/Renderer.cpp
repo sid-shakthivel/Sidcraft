@@ -191,7 +191,7 @@ void Renderer::RenderNormal(Shader *GenericShader, float RunningTime)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    RenderScene(GenericShader, RunningTime, false);
+    (GenericShader, RunningTime, false);
 }
 
 void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDepth)
@@ -220,26 +220,26 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
 
 void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
 {
-    if (!IsDepth)
-        GenericShader->SetFloat("RunningTime", RunningTime);
+    // if (!IsDepth)
+    //     GenericShader->SetFloat("RunningTime", RunningTime);
 
-    for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-        World::GetInstance()->FlowerList.at(i).Draw(GenericShader);
+    // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
+    //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader);
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.DrawLeaves(GenericShader);
+    // for (auto const &Tree : World::GetInstance()->TreeList)
+    //     Tree.DrawLeaves(GenericShader);
 
-    if (!IsDepth)
-        GenericShader->SetFloat("RunningTime", 0.0);
+    // if (!IsDepth)
+    //     GenericShader->SetFloat("RunningTime", 0.0);
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.DrawTrunk(GenericShader);
+    // for (auto const &Tree : World::GetInstance()->TreeList)
+    //     Tree.DrawTrunk(GenericShader);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i).Draw(GenericShader, World::GetInstance()->ChunkPositions.at(i));
 
-    for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
-        World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
+    // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
+    //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
 }
 
 void Renderer::RenderReflection(Shader *GenericShader)

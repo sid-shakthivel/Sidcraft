@@ -24,6 +24,7 @@ void HandleFPS(GLFWwindow *window);
 float DeltaTime = 0.0f; // Time between current frame and last frame
 float LastFrame = 0.0f; // Time of last frame
 unsigned int Counter = 0;
+float LastFPSTime = 0.0f;
 
 // unsigned int WINDOW_WIDTH = 1440;
 // unsigned int WINDOW_HEIGHT = 847;
@@ -46,7 +47,7 @@ int main()
 
     if (window == NULL)
     {
-        std::cout << "Window initialisation failed" << std::endl;
+        std::cout << "Error: Window initialisation failed" << std::endl;
         glfwTerminate();
         return -1;
     }
@@ -128,7 +129,7 @@ int main()
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
-        HandleFPS(window);
+        // HandleFPS(window);
 
         if (!HasStartedGame)
         {
@@ -141,6 +142,8 @@ int main()
         }
         else
         {
+            float StartTime = glfwGetTime();
+
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
             MasterRenderer.Update();
@@ -170,12 +173,22 @@ int main()
             glDisable(GL_CLIP_DISTANCE0);
 
             // Render everything
-            MasterRenderer.RenderNormal(&MainShader, LastFrame);
-            MasterRenderer.RenderHDR(&MainShader, LastFrame);
+            MasterRenderer.RenderNormal(&MainShader, LastFPSTime);
+            MasterRenderer.RenderHDR(&MainShader, LastFPSTime);
             MasterRenderer.DrawSkybox(&SkyboxShader, DeltaTime);
             MasterRenderer.RenderWater(&WaterShader, DeltaTime);
             MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
             MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
+
+            float EndTime = glfwGetTime();
+            DeltaTime = EndTime - StartTime;
+
+            if (glfwGetTime() - LastFPSTime >= 1.0)
+            {
+                float Time = int(1.0 / DeltaTime);
+                LastFPSTime = glfwGetTime();
+                std::cout << "FPS: " << Time << "ms" << std::endl;
+            }
         }
 
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers

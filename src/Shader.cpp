@@ -1,4 +1,4 @@
-// #include <glad/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -36,11 +36,9 @@ Shader::Shader(const std::string &FileName, bool HasGeometry)
 
     ProgramId = glCreateProgram();
 
-    std::cout << "LOADING: " << FileName << std::endl;
-
     AddShader(Filepath1, GL_VERTEX_SHADER);
     AddShader(Filepath2, GL_FRAGMENT_SHADER);
-    // AddShader(Filepath3, GL_GEOMETRY_SHADER);
+    AddShader(Filepath3, GL_GEOMETRY_SHADER);
     LinkShader();
 }
 
@@ -68,13 +66,13 @@ void Shader::CheckCompileErrors(GLuint shader, GLenum Type)
                       << "\n"
                       << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
-        // else if (Type == GL_GEOMETRY_SHADER)
-        // {
-        //     std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
-        //               << "Geometry"
-        //               << "\n"
-        //               << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-        // }
+        else if (Type == GL_GEOMETRY_SHADER)
+        {
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: "
+                      << "Geometry"
+                      << "\n"
+                      << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+        }
 
         std::exit(0);
     }
@@ -100,8 +98,6 @@ void Shader::CheckLinkingErrors(GLuint program)
 
 void Shader::AddShader(const std::string &filepath, GLenum shaderType)
 {
-    // std::cout << "filepath is: " << filepath << std::endl;
-
     std::ostringstream sstream;
     std::ifstream fs(filepath);
 
@@ -113,8 +109,6 @@ void Shader::AddShader(const std::string &filepath, GLenum shaderType)
     sstream << fs.rdbuf();
     const std::string str(sstream.str());
     const char *fileContents = str.c_str();
-
-    // std::cout << "SHADER: " << fileContents << std::endl;
 
     unsigned int shaderNumber = glCreateShader(shaderType);
     glShaderSource(shaderNumber, 1, &fileContents, NULL); // Second parameter specifies number of strings which are source code

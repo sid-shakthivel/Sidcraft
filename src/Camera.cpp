@@ -21,7 +21,7 @@ Camera *Camera::GetInstance()
 {
     if (Camera_ == nullptr)
     {
-        std::cout << "Camera singleton must be defined";
+        std::cout << "Error: Camera singleton must be defined";
         std::exit(0);
     }
     return Camera_;
@@ -88,14 +88,14 @@ void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SI
     else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
         SelectedBlock = BlockType::Sand;
 
-    UpwardsSpeed += GRAVITY * DeltaTime;
+    // UpwardsSpeed += GRAVITY * DeltaTime;
     CameraPos.y += UpwardsSpeed * DeltaTime;
 
-    if (CameraPos.y < (Height + 2))
-    {
-        UpwardsSpeed = 0;
-        CameraPos.y = Height + 2;
-    }
+    // if (CameraPos.y < (Height + 2))
+    // {
+    //     UpwardsSpeed = 0;
+    //     CameraPos.y = Height + 2;
+    // }
 };
 
 void Camera::Jump()

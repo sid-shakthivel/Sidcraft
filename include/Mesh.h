@@ -15,19 +15,14 @@ const Vector3f BACK = Vector3f(0.0f, 0.0f, -1.0f);
 
 struct Vertex
 {
-    Vector3f Position;
-    Vector3f Normal;
-    Vector2f TextureCoordinates;
-    float TextureIndex;
+    uint32_t CondensedOther; // Contains Normal, TextureCoords, TextureIndex
+    uint32_t CondensedPos;
 
-    Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, float TextureIndex)
-    {
-        this->Position = Position;
-        this->Normal = Normal;
-        this->TextureCoordinates = TextureCoordinates;
-        this->TextureIndex = TextureIndex;
-    }
-};
+    Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, float TextureIndex);
+    void Testing();
+    Vector2f GetTextureCoordinates();
+    Vector3f GetNormal();
+} __attribute__((packed));
 
 class Mesh
 {
