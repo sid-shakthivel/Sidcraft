@@ -17,8 +17,6 @@
 
 #include "../include/Chunk.h"
 
-std::vector<Vector3f> TestList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
-
 bool Chunk::IsWithinRange(Vector3f Vec)
 {
     if (Vec.x < 0 || Vec.x >= CHUNK_SIZE || Vec.y < 0 || Vec.y >= CHUNK_HEIGHT || Vec.z < 0 || Vec.z >= CHUNK_SIZE)
@@ -165,26 +163,6 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
 void Chunk::CreateMesh()
 {
-    auto GetTextureIndex = [](BlockType TypeBlock, Vector3f Direction) -> float
-    {
-        switch (TypeBlock)
-        {
-        case BlockType::Grass:
-            return Direction.IsEqual(TestList[0]) || Direction.IsEqual(TestList[1]) ? TextureAtlas::GetInstance()->FetchGrassTop() : TextureAtlas::GetInstance()->FetchGrassSide();
-        case BlockType::Dirt:
-            return TextureAtlas::GetInstance()->FetchDirt();
-        case BlockType::Stone:
-            return TextureAtlas::GetInstance()->FetchStone();
-        case BlockType::Water:
-            return TextureAtlas::GetInstance()->FetchWater();
-        case BlockType::Sand:
-            return TextureAtlas::GetInstance()->FetchSand();
-        default:
-            std::cout << "ERROR: Unknown Block Type" << std::endl;
-            std::exit(0);
-        }
-    };
-
     /*
         Loop through each block, and check if adjacent blocks are within the chunk
         If an adjacent block is within the chunk, it need not be rendered
@@ -216,7 +194,8 @@ void Chunk::CreateMesh()
                         auto CubeFaceVertices = Cube::FaceVertices[Index];
 
                         // Determine block type
-                        float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
+                        // float TextureIndex = GetTextureIndex(Blocks[x][y][z], Direction);
+                        float TextureIndex = TextureAtlas::GetInstance()->FetchTexture(Blocks[x][y][z], Direction);
 
                         if (Blocks[x][y][z] == BlockType::Water)
                         {
@@ -238,9 +217,6 @@ void Chunk::CreateMesh()
                             // Sort out indices
                             for (auto index : Cube::FaceIndices)
                                 Indices.push_back(index + 4 * Indexer);
-
-                            if (y > 32)
-                                std::cout << "oh dear\n";
 
                             // Sort out vertices
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)

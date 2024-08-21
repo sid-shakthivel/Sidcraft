@@ -97,18 +97,13 @@ std::map<unsigned int, Vector3f> Cube::FaceNormals = {
 std::array<unsigned int, 6> Cube::FaceIndices = {0, 1, 2, 2, 3, 0};
 std::array<Vector3f, 6> Cube::DirectionList = {UP, DOWN, LEFT, RIGHT, FRONT, BACK};
 
+// Top, Bottom, Right, Left, Front, Back
 std::map<unsigned int, std::array<Vector3f, 4>> Cube::FaceVertices = {
-    // Top face
     {0, {Vector3f(0.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
-    // Bottom face
     {1, {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 0.0f)}},
-    // Right face
     {2, {Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(1.0f, 1.0f, 0.0f)}},
-    // Left face
     {3, {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
-    // Front face
     {4, {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
-    // Back face
     {5, {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f)}},
 };
 

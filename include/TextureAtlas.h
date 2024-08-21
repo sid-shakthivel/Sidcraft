@@ -1,5 +1,9 @@
 #pragma once
 
+#include "./Block.h"
+#include "./Matrix.h"
+#include "./Cube.h"
+
 unsigned int LoadTextureFromRGBA(const std::string &filepath);
 unsigned int LoadTextureFromRGB(const std::string &filepath);
 unsigned int LoadTexuresForCubemap(std::vector<const char *> ImagePaths);
@@ -19,16 +23,7 @@ public:
     static TextureAtlas *GetInstance();
 
     unsigned int GetTextureAtlasId();
-    float FetchGrassTop();
-    float FetchGrassSide();
-    float FetchTreeTrunk();
-    float FetchTreeLeaves();
-    float FetchDirt();
-    float FetchStone();
-    float FetchSand();
-    float FetchWater();
-    float FetchFlower();
-    float FetchTallGrass();
+    float FetchTexture(BlockType Block, Vector3f Direction = Vector3f(0.0f, 0.0f, 0.0f));
 };
 
 inline TextureAtlas *TextureAtlas::TextureAtlasSingleton_ = nullptr;

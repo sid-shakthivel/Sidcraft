@@ -54,12 +54,12 @@ void World::GenerateEntities(EntityType Entity, unsigned int Limit)
                 LightCubes.push_back(NewLightCube);
                 break;
             }
-            case EntityType::Flower:
-            {
-                Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower(), TranslationVector);
-                FlowerList.push_back(NewFlower);
-                break;
-            }
+                // case EntityType::Flower:
+                // {
+                //     Vegetation NewFlower = Vegetation(TextureAtlas::GetInstance()->FetchFlower(), TranslationVector);
+                //     FlowerList.push_back(NewFlower);
+                //     break;
+                // }
             }
 
             EntityCount++;
@@ -83,7 +83,7 @@ void World::GenerateWorld()
         }
     }
 
-    // std::cout << "world size: " << WORLD_SIZE << std::endl;
+    std::cout << "num chunks: " << ChunkData.size() << std::endl;
 
     // GenerateEntities(EntityType::Tree, 25);
     // GenerateEntities(EntityType::Flower, 50);

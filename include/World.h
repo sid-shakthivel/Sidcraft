@@ -15,7 +15,6 @@ enum EntityType
 {
     Tree,
     Lightbox,
-    Flower,
 };
 
 class World

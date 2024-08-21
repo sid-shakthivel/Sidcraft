@@ -21,8 +21,8 @@ TestTree::TestTree(Vector3f Offset)
 {
     this->Offset = Offset;
 
-    TrunkCube = Cube(TextureAtlas::GetInstance()->FetchTreeTrunk());
-    LeafCube = Cube(TextureAtlas::GetInstance()->FetchTreeLeaves());
+    TrunkCube = Cube(TextureAtlas::GetInstance()->FetchTexture(BlockType::TreeTrunk));
+    LeafCube = Cube(TextureAtlas::GetInstance()->FetchTexture(BlockType::TreeLeaves));
 
     // Generate trunks of tree
     std::random_device rd;

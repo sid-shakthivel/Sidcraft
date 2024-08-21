@@ -8,6 +8,11 @@ enum BlockType
     Stone = 3,
     Water = 4,
     Sand = 5,
+
+    TreeTrunk = 6,
+    TreeLeaves = 7,
+    Flower = 8,
+    TallGrass = 9
 };
 
 const unsigned int CHUNK_NUM = 15;

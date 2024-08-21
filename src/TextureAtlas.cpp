@@ -116,52 +116,30 @@ unsigned int TextureAtlas::GetTextureAtlasId()
     return TextureAtlasId;
 }
 
-float TextureAtlas::FetchGrassTop()
+float TextureAtlas::FetchTexture(BlockType Block, Vector3f Direction)
 {
-    return 240.0f;
-}
-
-float TextureAtlas::FetchGrassSide()
-{
-    return 241.0f;
-}
-
-float TextureAtlas::FetchDirt()
-{
-    return 242.0f;
-}
-
-float TextureAtlas::FetchStone()
-{
-    return 243.0f;
-}
-
-float TextureAtlas::FetchTreeTrunk()
-{
-    return 244.0f;
-}
-
-float TextureAtlas::FetchTreeLeaves()
-{
-    return 246.0f;
-}
-
-float TextureAtlas::FetchSand()
-{
-    return 247.0f;
-}
-
-float TextureAtlas::FetchWater()
-{
-    return 248.0f;
-}
-
-float TextureAtlas::FetchFlower()
-{
-    return 250.0f;
-}
-
-float TextureAtlas::FetchTallGrass()
-{
-    return 251.0f;
+    switch (Block)
+    {
+    case BlockType::Grass:
+        return (Direction.IsEqual(Cube::DirectionList[0]) || Direction.IsEqual(Cube::DirectionList[1])) ? 240 : 241;
+    case BlockType::Dirt:
+        return 242;
+    case BlockType::Stone:
+        return 243;
+    case BlockType::TreeTrunk:
+        return 244;
+    case BlockType::TreeLeaves:
+        return 246;
+    case BlockType::Sand:
+        return 247;
+    case BlockType::Water:
+        return 248;
+    case BlockType::Flower:
+        return 250;
+    case BlockType::TallGrass:
+        return 251;
+    default:
+        std::cout << "ERROR: Unknown Block Type" << std::endl;
+        std::exit(0);
+    }
 }
