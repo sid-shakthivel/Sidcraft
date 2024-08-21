@@ -42,12 +42,12 @@ void World::GenerateEntities(EntityType Entity, unsigned int Limit)
         {
             switch (Entity)
             {
-            case EntityType::Tree:
-            {
-                TestTree NewTree = TestTree(TranslationVector);
-                TreeList.push_back(NewTree);
-                break;
-            }
+            // case EntityType::Tree:
+            // {
+            //     Tree NewTree = Tree(TranslationVector);
+            //     TreeList.push_back(NewTree);
+            //     break;
+            // }
             case EntityType::Lightbox:
             {
                 Cube NewLightCube = Cube(35.0f, TranslationVector);
@@ -73,17 +73,10 @@ void World::GenerateWorld()
     {
         for (int j = 0; j < CHUNK_NUM; j++)
         {
-            Matrix4f ModelMatrix = Matrix4f(1);
-            ModelMatrix.Translate(Vector3f(i * CHUNK_SIZE, 0, (j)*CHUNK_SIZE));
-
             Chunk NewChunk = Chunk(Vector3f(i, 0, j), Heightmap);
-
-            ChunkPositions.push_back(ModelMatrix);
             ChunkData.push_back(NewChunk);
         }
     }
-
-    std::cout << "num chunks: " << ChunkData.size() << std::endl;
 
     // GenerateEntities(EntityType::Tree, 25);
     // GenerateEntities(EntityType::Flower, 50);

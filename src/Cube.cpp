@@ -14,42 +14,42 @@
 
 Cube::Cube(float TextureIndex, Vector3f TranslationVector)
 {
-    Position.Translate(TranslationVector);
+    // Position.Translate(TranslationVector);
 
-    // Generates a cube
-    unsigned int indexer = 0;
-    for (Vector3f Direction : DirectionList)
-    {
-        auto Index = Cube::ConvertDirectionToNumber(Direction);
+    // // Generates a cube
+    // unsigned int indexer = 0;
+    // for (Vector3f Direction : DirectionList)
+    // {
+    //     auto Index = Cube::ConvertDirectionToNumber(Direction);
 
-        Vector3f Normal = Cube::FaceNormals[Index];
-        auto CubeFaceVertices = Cube::FaceVertices[Index];
+    //     Vector3f Normal = Cube::FaceNormals[Index];
+    //     auto CubeFaceVertices = Cube::FaceVertices[Index];
 
-        for (auto index : Cube::FaceIndices)
-            Indices.push_back(index + 4 * indexer);
+    //     for (auto index : Cube::FaceIndices)
+    //         Indices.push_back(index + 4 * indexer);
 
-        for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-            Vertices.push_back(Vertex(CubeFaceVertices[i], Normal, TextureCoordinatesList[i], TextureIndex));
+    //     for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+    //         Vertices.push_back(Vertex(CubeFaceVertices[i], Normal, TextureCoordinatesList[i], TextureIndex));
 
-        indexer += 1;
-    }
+    //     indexer += 1;
+    // }
 
-    CreateMesh();
+    // CreateMesh();
 }
 
 void Cube::CreateMesh()
 {
     // Setup general
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    // glGenVertexArrays(1, &VAO);
+    // glBindVertexArray(VAO);
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertex), &Vertices[0], GL_STATIC_DRAW);
+    // glGenBuffers(1, &VBO);
+    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // glBufferData(GL_ARRAY_BUFFER, Vertices.size() * sizeof(Vertex), &Vertices[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
+    // glGenBuffers(1, &EBO);
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices.size() * sizeof(unsigned int), &Indices[0], GL_STATIC_DRAW);
 
     // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
     // glEnableVertexAttribArray(0); // Position
@@ -64,25 +64,20 @@ void Cube::CreateMesh()
     // glEnableVertexAttribArray(3); // Texture Index
 }
 
-MeshData Cube::GetCubeData()
-{
-    return MeshData(Vertices, Indices);
-}
-
 void Cube::Draw(Shader *MeshShader, Matrix4f Offset) const
 {
-    MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
+    // MeshShader->SetMatrix4f("Model", (const float *)(&Offset));
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+    // glBindVertexArray(VAO);
+    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
 
-void Cube::Draw(Shader *MeshShader) const
+void Cube::Draw(Shader *MeshShader)
 {
-    MeshShader->SetMatrix4f("Model", (const float *)(&Position));
+    // MeshShader->SetMatrix4f("Model", (const float *)(&Position));
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
+    // glBindVertexArray(VAO);
+    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void *)(0 * sizeof(GLuint)));
 }
 
 std::map<unsigned int, Vector3f> Cube::FaceNormals = {
@@ -106,6 +101,8 @@ std::map<unsigned int, std::array<Vector3f, 4>> Cube::FaceVertices = {
     {4, {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)}},
     {5, {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f)}},
 };
+
+std::vector<Vector2f> Cube::TextureCoordinatesList = {Vector2f(0.0f, 0.0f), Vector2f(1.0f, 0.0f), Vector2f(1.0f, 1.0f), Vector2f(0.0f, 1.0f)};
 
 unsigned int Cube::ConvertDirectionToNumber(Vector3f Direction)
 {

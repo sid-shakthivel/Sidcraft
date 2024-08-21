@@ -34,107 +34,87 @@ Vertex::Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, 
     InsertValue(this->CondensedOther, TextureIndex, 8, 8);
 }
 
-void Vertex::Testing()
-{
-    auto toBinaryString = [](uint32_t value, int bitLength = 32) -> std::string
-    {
-        std::bitset<32> bs(value);                    // Create a bitset with 32 bits
-        return bs.to_string().substr(32 - bitLength); // Extract and return the relevant number of bits
-    };
-
-    std::cout << "Value is " << toBinaryString(this->CondensedPos, 32) << std::endl;
-
-    auto GetValue = [](uint32_t &Target, int StartPos, int BitLength)
-    {
-        uint Mask = (1u << BitLength) - 1u;
-        return float((Target >> StartPos) & Mask);
-    };
-
-    float test = GetValue(this->CondensedPos, 0, 6);
-    float best = GetValue(this->CondensedPos, 6, 6);
-    float hest = GetValue(this->CondensedPos, 12, 6);
-
-    std::cout << "Position: " << test << ", " << best << ", " << hest << std::endl;
-    // std::cout << "Normal: " << GetValue(this->CondensedOther, 0, 2) - 2 << ", " << GetValue(this->CondensedOther, 2, 2) - 2 << ", " << GetValue(this->CondensedOther, 4, 2) - 2 << std::endl;
-    // std::cout << "TextureCoords: " << GetValue(this->CondensedOther, 6, 1) << ", " << GetValue(this->CondensedOther, 7, 1) << std::endl;
-    // std::cout << "TextureIndex: " << GetValue(this->CondensedOther, 8, 8) << std::endl;
-}
-
-Vector2f Vertex::GetTextureCoordinates()
-{
-    auto GetValue = [](uint32_t &Target, int StartPos, int BitLength)
-    {
-        uint Mask = (1u << BitLength) - 1u;
-        return float((Target >> StartPos) & Mask);
-    };
-
-    return Vector2f(GetValue(this->CondensedOther, 6, 1), GetValue(this->CondensedOther, 7, 1));
-}
-
-Vector3f Vertex::GetNormal()
-{
-    auto GetValue = [](uint32_t &Target, int StartPos, int BitLength)
-    {
-        uint Mask = (1u << BitLength) - 1u;
-        return float((Target >> StartPos) & Mask);
-    };
-
-    return Vector3f(GetValue(this->CondensedOther, 0, 2) - 2, GetValue(this->CondensedOther, 2, 2) - 2, GetValue(this->CondensedOther, 4, 2) - 2);
-}
-
-Mesh::Mesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices)
-{
-    this->Vertices = Vertices;
-    this->Indices = Indices;
-
-    this->CreateMesh();
-}
-
 Mesh::Mesh()
 {
-    this->CreateMesh();
+    Vertices = new std::vector<Vertex>();
+    Indices = new std::vector<unsigned int>();
 }
 
-void Mesh::CreateMesh()
+void Mesh::Initialise()
 {
-    this->InitaliseData(&VAO, &VBO, &EBO, &Vertices, &Indices);
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, Vertices->size() * sizeof(Vertex), Vertices->data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices->size() * sizeof(unsigned int), Indices->data(), GL_STATIC_DRAW);
+
+    // Position
+    glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedPos)));
+    glEnableVertexAttribArray(0);
+
+    // Other data including Normals, TextureCoords, TextureIndex
+    glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
+    glEnableVertexAttribArray(1);
 }
 
-void Mesh::Draw(Shader *MeshShader, bool isDepth)
+// void Mesh::Initialise(unsigned int SuppliedVAO)
+// {
+//     glBindVertexArray(SuppliedVAO);
+
+//     glGenBuffers(1, &VBO);
+//     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//     glBufferData(GL_ARRAY_BUFFER, Vertices->size() * sizeof(Vertex), Vertices->data(), GL_STATIC_DRAW);
+
+//     glGenBuffers(1, &EBO);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices->size() * sizeof(unsigned int), Indices->data(), GL_STATIC_DRAW);
+
+//     // Position
+//     glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedPos)));
+//     glEnableVertexAttribArray(0);
+
+//     // Other data including Normals, TextureCoords, TextureIndex
+//     glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
+//     glEnableVertexAttribArray(1);
+// }
+
+void Mesh::SetModel(Matrix4f Model)
+{
+    ModelMatrix = Model;
+}
+
+void Mesh::Draw(Shader *MeshShader)
 {
     // Draw mesh
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, this->Indices.size(), GL_UNSIGNED_INT, 0);
+    MeshShader->SetMatrix4f("Model", (const float *)(&ModelMatrix));
+    glDrawElements(GL_TRIANGLES, this->Indices->size(), GL_UNSIGNED_INT, 0);
 }
 
-void Mesh::InitaliseData(unsigned int *TempVAO, unsigned int *TempVBO, unsigned int *TempEBO, std::vector<Vertex> *TempVertices, std::vector<unsigned int> *TempIndices)
+std::vector<Vector3f> Mesh::CaculateNormals(std::vector<Vector3f> Vertices)
 {
-    // Create and bind VAO (Stores buffer + vertex information)
-    glGenVertexArrays(1, TempVAO);
-    glBindVertexArray(*TempVAO);
+    std::vector<Vector3f> NormalsList;
 
-    glGenBuffers(1, TempVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, *TempVBO);
-    glBufferData(GL_ARRAY_BUFFER, TempVertices->size() * sizeof(Vertex), TempVertices, GL_STATIC_DRAW);
+    auto Tri1Corn1 = Vertices[0];
+    auto Tri1Corn2 = Vertices[1];
+    auto Tri1Corn3 = Vertices[2];
 
-    glGenBuffers(1, TempEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *TempEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, TempIndices->size() * sizeof(unsigned int), TempIndices, GL_STATIC_DRAW);
+    auto Tri2Corn1 = Vertices[2];
+    auto Tri2Corn2 = Vertices[3];
+    auto Tri2Corn3 = Vertices[0];
 
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    // glEnableVertexAttribArray(0); // Position
+    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
 
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, Normal)));
-    // glEnableVertexAttribArray(1); // Normals
+    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
 
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureCoordinates)));
-    // glEnableVertexAttribArray(2); // Texture Coordinates
-
-    // glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(offsetof(Vertex, TextureIndex)));
-    // glEnableVertexAttribArray(3); // Texture Index
-}
-
-unsigned int Mesh::GetVAO() const
-{
-    return VAO;
+    return NormalsList;
 }

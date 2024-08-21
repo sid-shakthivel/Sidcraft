@@ -19,48 +19,25 @@ struct Vertex
     uint32_t CondensedPos;
 
     Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, float TextureIndex);
-    void Testing();
-    Vector2f GetTextureCoordinates();
-    Vector3f GetNormal();
 } __attribute__((packed));
 
 class Mesh
 {
 protected:
-    std::vector<Vertex> Vertices;
-    std::vector<unsigned int> Indices;
-    std::vector<Vector2f> TextureCoordinatesList = {Vector2f(0, 0), Vector2f(1, 0), Vector2f(1, 1), Vector2f(0, 1)};
-
     unsigned int VAO, VBO, EBO;
+    Matrix4f ModelMatrix = Matrix4f(1);
 
-    std::vector<Vector3f> CaculateNormals(std::vector<Vector3f> Vertices)
-    {
-        std::vector<Vector3f> NormalsList;
-
-        auto Tri1Corn1 = Vertices[0];
-        auto Tri1Corn2 = Vertices[1];
-        auto Tri1Corn3 = Vertices[2];
-
-        auto Tri2Corn1 = Vertices[2];
-        auto Tri2Corn2 = Vertices[3];
-        auto Tri2Corn3 = Vertices[0];
-
-        NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-        NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-        NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-
-        NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-        NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-        NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-
-        return NormalsList;
-    }
+    std::vector<Vector3f> CaculateNormals(std::vector<Vector3f> Vertices);
 
 public:
-    Mesh(std::vector<Vertex> Vertices, std::vector<unsigned int> Indices);
+    std::vector<Vertex> *Vertices;
+    std::vector<unsigned int> *Indices;
+
     Mesh();
-    void Draw(Shader *MeshShader, bool isDepth);
-    void CreateMesh();
-    void InitaliseData(unsigned int *TempVAO, unsigned int *TempVBO, unsigned int *TempEBO, std::vector<Vertex> *TempVertices, std::vector<unsigned int> *TempIndices);
-    unsigned int GetVAO() const;
+
+    virtual void Draw(Shader *MeshShader);
+    void SetModel(Matrix4f Model);
+
+    void Initialise();
+    // void Initialise(unsigned int SuppliedVAO);
 };

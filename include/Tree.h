@@ -3,7 +3,7 @@
 #include "Cube.h"
 #include "Matrix.h"
 
-class TestTree : public Mesh
+class Tree
 {
 private:
     Cube TrunkCube;
@@ -15,7 +15,7 @@ private:
     Vector3f Offset;
 
 public:
-    TestTree(Vector3f Offset);
+    Tree(Vector3f Offset);
     void DrawTrunk(Shader *MeshShader) const;
     void DrawLeaves(Shader *MeshShader) const;
     void CreateMesh();

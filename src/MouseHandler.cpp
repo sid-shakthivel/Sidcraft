@@ -85,30 +85,26 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
         PositionToTest.x = std::max<float>(PositionToTest.x, 0);
         PositionToTest.z = std::max<float>(PositionToTest.z, 0);
 
-        for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
-        {
-            auto Offset = World::GetInstance()->ChunkPositions.at(Index);
-            auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
+        // for (int Index = 0; Index < World::GetInstance()->ChunkData.size(); Index++)
+        // {
+        //     auto TempChunk = &World::GetInstance()->ChunkData.at(Index);
 
-            if (TempChunk->IsWithinChunk(PositionToTest, Offset))
-            {
-                auto NewChunk = Chunk(TempChunk->Blocks);
+        //     if (TempChunk->IsWithinChunk(PositionToTest))
+        //     {
+        //         auto NewChunk = Chunk(TempChunk->Blocks);
 
-                if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-                    NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
-                else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-                    NewChunk.ClearChunk(PositionToTest, Offset);
+        //         if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        //             NewChunk.SetChunk(PositionToTest.Sub(Ray), Offset, World::GetInstance()->Heightmap);
+        //         else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+        //             NewChunk.ClearChunk(PositionToTest, Offset);
 
-                World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
-                World::GetInstance()->ChunkPositions.erase(World::GetInstance()->ChunkPositions.begin() + Index);
+        //         World::GetInstance()->ChunkData.erase(World::GetInstance()->ChunkData.begin() + Index);
+        //         World::GetInstance()->ChunkData.push_back(NewChunk);
 
-                World::GetInstance()->ChunkPositions.push_back(Offset);
-                World::GetInstance()->ChunkData.push_back(NewChunk);
-
-                IsFound = true;
-                break;
-            }
-        }
+        //         IsFound = true;
+        //         break;
+        //     }
+        // }
 
         if (IsFound)
             break;

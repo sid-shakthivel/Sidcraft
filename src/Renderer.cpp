@@ -236,7 +236,7 @@ void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
     //     Tree.DrawTrunk(GenericShader);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).Draw(GenericShader, World::GetInstance()->ChunkPositions.at(i));
+        World::GetInstance()->ChunkData.at(i).Draw(GenericShader);
 
     // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
     //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
@@ -298,7 +298,7 @@ void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
     WaterShader->SetInt("NormalMap", 13);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader, World::GetInstance()->ChunkPositions.at(i));
+        World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader);
 }
 
 void Renderer::RenderDepth(Shader *DepthShader)

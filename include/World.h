@@ -13,7 +13,7 @@
 
 enum EntityType
 {
-    Tree,
+    TreeThing,
     Lightbox,
 };
 
@@ -35,10 +35,9 @@ public:
 
     static World *GetInstance();
 
-    std::vector<Matrix4f> ChunkPositions;
     std::vector<Chunk> ChunkData;
 
-    std::vector<TestTree> TreeList;
+    std::vector<Tree> TreeList;
     std::vector<Vegetation> FlowerList;
     std::vector<Cube> LightCubes;
 
