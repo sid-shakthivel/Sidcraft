@@ -37,6 +37,7 @@ public:
     std::vector<unsigned int> *Indices;
 
     Mesh();
+    virtual ~Mesh() = default;
 
     virtual void Draw(Shader *MeshShader);
     void SetModel(Matrix4f Model);
