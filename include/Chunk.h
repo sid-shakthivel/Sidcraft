@@ -24,7 +24,7 @@ private:
 public:
     BlockType Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
 
-    Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
+    Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE]);
 
     void CreateMesh();

@@ -45,6 +45,22 @@ void Mesh::Initialise()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    Populate();
+}
+
+void Mesh::Initialise(unsigned int SuppliedVAO)
+{
+    VAO = SuppliedVAO;
+    glBindVertexArray(VAO);
+
+    Populate();
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void Mesh::Populate()
+{
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, Vertices->size() * sizeof(Vertex), Vertices->data(), GL_STATIC_DRAW);
@@ -61,27 +77,6 @@ void Mesh::Initialise()
     glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
     glEnableVertexAttribArray(1);
 }
-
-// void Mesh::Initialise(unsigned int SuppliedVAO)
-// {
-//     glBindVertexArray(SuppliedVAO);
-
-//     glGenBuffers(1, &VBO);
-//     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-//     glBufferData(GL_ARRAY_BUFFER, Vertices->size() * sizeof(Vertex), Vertices->data(), GL_STATIC_DRAW);
-
-//     glGenBuffers(1, &EBO);
-//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, Indices->size() * sizeof(unsigned int), Indices->data(), GL_STATIC_DRAW);
-
-//     // Position
-//     glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedPos)));
-//     glEnableVertexAttribArray(0);
-
-//     // Other data including Normals, TextureCoords, TextureIndex
-//     glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(Vertex), (void *)(offsetof(Vertex, CondensedOther)));
-//     glEnableVertexAttribArray(1);
-// }
 
 void Mesh::SetModel(Matrix4f Model)
 {

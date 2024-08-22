@@ -226,17 +226,11 @@ void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
     // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
     //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader);
 
-    // for (auto const &Tree : World::GetInstance()->TreeList)
-    //     Tree.DrawLeaves(GenericShader);
-
     // if (!IsDepth)
     //     GenericShader->SetFloat("RunningTime", 0.0);
 
-    // for (auto const &Tree : World::GetInstance()->TreeList)
-    //     Tree.DrawTrunk(GenericShader);
-
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).Draw(GenericShader);
+        World::GetInstance()->ChunkData.at(i)->Draw(GenericShader);
 
     // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
     //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
@@ -298,7 +292,7 @@ void Renderer::RenderWater(Shader *WaterShader, float DeltaTime)
     WaterShader->SetInt("NormalMap", 13);
 
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i).DrawWater(WaterShader);
+        World::GetInstance()->ChunkData.at(i)->DrawWater(WaterShader);
 }
 
 void Renderer::RenderDepth(Shader *DepthShader)
@@ -310,11 +304,10 @@ void Renderer::RenderDepth(Shader *DepthShader)
 
     DepthShader->Use();
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.DrawTrunk(DepthShader);
+    // Must include chunks though here
 
-    for (auto const &Tree : World::GetInstance()->TreeList)
-        Tree.DrawLeaves(DepthShader);
+    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+        World::GetInstance()->ChunkData.at(i)->Draw(DepthShader);
 }
 
 void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer)
@@ -323,8 +316,8 @@ void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int Current
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, DepthMapTexture);
 
     GenericShader->Use();
     GenericShader->SetInt("Image", 2);

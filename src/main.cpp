@@ -7,7 +7,6 @@
 #include <tuple>
 
 #include "../include/Matrix.h"
-#include "../include/Tree.h"
 #include "../include/Camera.h"
 #include "../include/Shader.h"
 #include "../include/TextureAtlas.h"

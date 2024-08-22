@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 #include <string>
+#include <random>
 #include <glm/gtc/noise.hpp>
 
 #include "../include/Matrix.h"
@@ -35,15 +36,11 @@ float GetGradient(float X, float Z)
 */
 Chunk::Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE])
 {
-    for (int x = 0; x < CHUNK_SIZE; x++)
-        for (int z = 0; z < CHUNK_SIZE; z++)
-            for (int y = 0; y < CHUNK_HEIGHT; y++)
-                Blocks[x][y][z] = BlocksToCopy[x][y][z];
-
+    std::copy(&BlocksToCopy[0][0][0], &BlocksToCopy[0][0][0] + (CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE), &Blocks[0][0][0]);
     // CreateMesh();
 }
 
-Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
+Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 {
     // Lambda to determine type of block depending on height
     auto DetermineBlockType = [](float Y, float Height) -> BlockType
@@ -85,11 +82,14 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
             // Handle general terrain
             for (int y = 0; y <= height; y++)
                 Blocks[x][y][z] = DetermineBlockType(y, height);
+        }
 
-            /*
-                Generate water by setting a limit for regions where water can be if it's currently air
-                Generate sand which is generated around water
-            */
+    /*
+        Generate water by setting a limit for regions where water can be if it's currently air
+        Generate sand which is generated around water
+    */
+    for (int z = 0; z < CHUNK_SIZE; z++)
+        for (int x = 0; x < CHUNK_SIZE; x++)
             for (int y = 0; y < WATER_LEVEL; y++)
                 if (Blocks[x][y][z] == BlockType::Air)
                 {
@@ -100,13 +100,50 @@ Chunk::Chunk(Vector3f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
                     Heightmap[ZOffset][XOffset] = WATER_LEVEL;
 
-                    // for (int i = std::max(0, x - WATER_SAND_OFFSET); i < std::min((int)CHUNK_SIZE, x + WATER_SAND_OFFSET); i++)
-                    //     for (int j = std::max(0, z - WATER_SAND_OFFSET); j < std::min((int)CHUNK_SIZE, z + WATER_SAND_OFFSET); j++)
-                    //         for (int k = y - 2; k <= (y + WATER_SAND_OFFSET); k++)
-                    //             if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
-                    //                 Blocks[i][k][j] = BlockType::Sand;
+                    for (int i = std::max(0, x - WATER_SAND_OFFSET); i < std::min((int)CHUNK_SIZE, x + WATER_SAND_OFFSET); i++)
+                        for (int j = std::max(0, z - WATER_SAND_OFFSET); j < std::min((int)CHUNK_SIZE, z + WATER_SAND_OFFSET); j++)
+                            for (int k = std::max(0, y - 2); k <= (y + WATER_SAND_OFFSET); k++)
+                                if (Blocks[i][k][j] == BlockType::Grass || Blocks[i][k][j] == BlockType::Stone || Blocks[i][k][j] == BlockType::Dirt)
+                                    Blocks[i][k][j] = BlockType::Sand;
                 }
-        }
+
+    // Generate trees
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> TreeRange(0, CHUNK_SIZE);
+    std::uniform_int_distribution<> TrunkRange(5, 7);
+
+    for (int i = 0; i < 1; i++)
+    {
+        int TreeX = TreeRange(gen);
+        int TreeZ = TreeRange(gen);
+
+        int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + TreeZ;
+        int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + TreeX;
+
+        int TreeY = Heightmap[ZOffset][XOffset];
+
+        if (TreeY <= 0 || TreeY == WATER_LEVEL)
+            continue;
+
+        auto TrunkHeight = TrunkRange(gen) + TreeY;
+
+        for (int y = TreeY; y < TrunkHeight; y++)
+            Blocks[TreeX][y][TreeZ] = BlockType::TreeTrunk;
+
+        for (int x = std::max(0, TreeX - 1); x <= TreeX + 1; x++)
+            for (int z = std::max(0, TreeZ - 1); z <= TreeZ + 1; z++)
+                for (int y = TrunkHeight; y <= (TrunkHeight + 2); y++)
+                    Blocks[x][y][z] = BlockType::TreeLeaves;
+    }
+
+    // Generate flowers
+
+    for (int i = 0; i < 1; i++)
+    {
+        
+    }
 
     WaterMesh = new Mesh();
     TerrainMesh = new Mesh();
@@ -206,7 +243,7 @@ void Chunk::CreateMesh()
                         auto CubeFaceVertices = Cube::FaceVertices[Index];
 
                         // Determine block type
-                        float TextureIndex = TextureAtlas::GetInstance()->FetchTexture(Blocks[x][y][z], Direction);)
+                        float TextureIndex = TextureAtlas::GetInstance()->FetchTexture(Blocks[x][y][z], Direction);
 
                         // TODO: Refactor this specific bit
                         if (Blocks[x][y][z] == BlockType::Water)

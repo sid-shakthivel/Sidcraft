@@ -6,28 +6,23 @@
 #include "Block.h"
 #include "Cube.h"
 #include "Vegetation.h"
-#include "Tree.h"
 
 #include <map>
 #include <vector>
-
-enum EntityType
-{
-    TreeThing,
-    Lightbox,
-};
 
 class World
 {
 private:
     void GenerateWorld();
 
-    void GenerateEntities(EntityType Entity, unsigned int Limit);
+    // void GenerateEntities(EntityType Entity, unsigned int Quantity);
 
 protected:
     World();
 
     static World *World_;
+
+    unsigned int VAO;
 
 public:
     World(World &other) = delete;
@@ -35,9 +30,8 @@ public:
 
     static World *GetInstance();
 
-    std::vector<Chunk> ChunkData;
+    std::vector<Chunk *> ChunkData;
 
-    std::vector<Tree> TreeList;
     std::vector<Vegetation> FlowerList;
     std::vector<Cube> LightCubes;
 

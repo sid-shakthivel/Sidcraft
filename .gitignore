@@ -8,3 +8,4 @@ Sidcraft
 /build
 src/glad.c
 glad.o
+todo.txt

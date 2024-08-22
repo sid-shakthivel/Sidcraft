@@ -23,6 +23,9 @@ struct Vertex
 
 class Mesh
 {
+private:
+    void Populate();
+
 protected:
     unsigned int VAO, VBO, EBO;
     Matrix4f ModelMatrix = Matrix4f(1);
@@ -39,5 +42,5 @@ public:
     void SetModel(Matrix4f Model);
 
     void Initialise();
-    // void Initialise(unsigned int SuppliedVAO);
+    void Initialise(unsigned int SuppliedVAO);
 };
