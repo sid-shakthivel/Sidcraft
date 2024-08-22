@@ -7,7 +7,8 @@ project(Sidcraft VERSION 1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Specify the include directories
+# Specify the include directories & Imgui
+include_directories(imgui)
 include_directories(/Users/siddharth/Code/C++/Sidcraft/dependencies/include)
 
 # Set the source and dependencies directories
@@ -20,8 +21,24 @@ file(GLOB_RECURSE CXX_SOURCES "${PROJECT_PATH}/src/*.cpp")
 # Add glad.c as a separate source file
 set(GLAD_SOURCE "${PROJECT_PATH}/src/glad.c")
 
+# Add imgui files
+set(IMGUI_SOURCES 
+    imgui/imgui.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_widgets.cpp
+    imgui/imgui_demo.cpp
+    imgui/imgui_tables.cpp
+    imgui/backends/imgui_impl_glfw.cpp
+    imgui/backends/imgui_impl_opengl3.cpp
+)
+
 # Add the executable
-add_executable(${PROJECT_NAME} ${CXX_SOURCES} ${GLAD_SOURCE})
+add_executable(${PROJECT_NAME} ${IMGUI_SOURCES} ${CXX_SOURCES} ${GLAD_SOURCE})
+
+target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${PROJECT_PATH}/imgui
+    ${PROJECT_PATH}/imgui/backends
+)
 
 # Link the necessary libraries
 target_link_libraries(${PROJECT_NAME}

@@ -5,6 +5,11 @@
 #include <random>
 #include <string>
 #include <tuple>
+#include <mach/mach.h>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
@@ -33,6 +38,20 @@ unsigned int SCREEN_HEIGHT;
 
 unsigned int WINDOW_WIDTH;
 unsigned int WINDOW_HEIGHT;
+
+void PrintMemoryUsage()
+{
+    mach_task_basic_info info;
+    mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+
+    if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount) != KERN_SUCCESS)
+    {
+        std::cerr << "Failed to get task info" << std::endl;
+        return;
+    }
+
+    std::cout << "Memory usage: " << info.resident_size / (1024 * 1024) << " MB" << std::endl;
+}
 
 int main()
 {
@@ -125,10 +144,32 @@ int main()
 
     MasterRenderer.SetupTextures();
 
+    PrintMemoryUsage();
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // IF using Docking Branch
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
+
     // Render loop
     while (!glfwWindowShouldClose(window))
     {
-        // HandleFPS(window);
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Sidcraft");
+        ImGui::Text("FPS: ");
+        ImGui::Text("Memory Usage: ");
+        ImGui::End();
 
         if (!HasStartedGame)
         {
@@ -190,9 +231,18 @@ int main()
             }
         }
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window); // Uses double buffering thus swaps front and back buffers
         glfwPollEvents();        // Checks for events (mouse, keyboard) and updates state and
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    PrintMemoryUsage();
 
     glfwTerminate();
     return 0;
