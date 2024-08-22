@@ -17,7 +17,7 @@ Cube::Cube(float TextureIndex, Vector3f TranslationVector) : Mesh()
     ModelMatrix.Translate(TranslationVector);
 
     // Create mesh
-    unsigned int indexer = 0;
+    unsigned int Indexer = 0;
     for (Vector3f Direction : DirectionList)
     {
         auto Index = Cube::ConvertDirectionToNumber(Direction);
@@ -26,12 +26,12 @@ Cube::Cube(float TextureIndex, Vector3f TranslationVector) : Mesh()
         auto CubeFaceVertices = Cube::FaceVertices[Index];
 
         for (auto index : Cube::FaceIndices)
-            Indices->push_back(index + 4 * indexer);
+            Indices->push_back(index + 4 * Indexer);
 
         for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
             Vertices->push_back(Vertex(CubeFaceVertices[i], Normal, TextureCoordinatesList[i], TextureIndex));
 
-        indexer += 1;
+        Indexer += 1;
     }
 
     Initialise();
@@ -49,6 +49,11 @@ std::array<std::array<Vector3f, 4>, 6> Cube::FaceVertices = {{
     {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 0.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 0.0f)},
     {Vector3f(0.0f, 0.0f, 0.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f)},
     {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 1.0f), Vector3f(1.0f, 1.0f, 1.0f), Vector3f(0.0f, 1.0f, 1.0f)},
+}};
+
+std::array<std::array<Vector3f, 4>, 2> Cube::DiagonalVertices = {{
+    {Vector3f(1.0f, 0.0f, 1.0f), Vector3f(0.0f, 0.0f, 0.0f), Vector3f(0.0f, 1.0f, 0.0f), Vector3f(1.0f, 1.0f, 1.0f)},
+    {Vector3f(0.0f, 0.0f, 1.0f), Vector3f(1.0f, 0.0f, 0.0f), Vector3f(1.0f, 1.0f, 0.0f), Vector3f(0.0f, 1.0f, 1.0f)},
 }};
 
 std::vector<Vector2f>

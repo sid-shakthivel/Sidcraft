@@ -11,7 +11,10 @@ Vertex::Vertex(Vector3f Position, Vector3f Normal, Vector2f TextureCoordinates, 
     auto InsertValue = [](uint32_t &Target, int Value, int StartPos, int BitLength)
     {
         if (Value >= (1u << BitLength))
+        {
             std::cout << "Error: Value " << Value << " is too large for " << " Size " << BitLength << std::endl;
+            std::exit(0);
+        }
 
         Target |= (Value << StartPos);
     };
@@ -91,7 +94,7 @@ void Mesh::Draw(Shader *MeshShader)
     glDrawElements(GL_TRIANGLES, this->Indices->size(), GL_UNSIGNED_INT, 0);
 }
 
-std::vector<Vector3f> Mesh::CaculateNormals(std::vector<Vector3f> Vertices)
+std::vector<Vector3f> Mesh::CaculateNormals(std::array<Vector3f, 4> &Vertices)
 {
     std::vector<Vector3f> NormalsList;
 

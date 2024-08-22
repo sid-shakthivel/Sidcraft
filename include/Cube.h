@@ -17,6 +17,7 @@ public:
     static std::array<Vector3f, 6> DirectionList;
     static std::array<Vector3f, 6> FaceNormals;
     static std::array<std::array<Vector3f, 4>, 6> FaceVertices;
+    static std::array<std::array<Vector3f, 4>, 2> DiagonalVertices;
     static std::vector<Vector2f> TextureCoordinatesList;
 
     static unsigned int ConvertDirectionToNumber(Vector3f Direction);

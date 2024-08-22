@@ -306,8 +306,8 @@ void Renderer::RenderDepth(Shader *DepthShader)
 
     // Must include chunks though here
 
-    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-        World::GetInstance()->ChunkData.at(i)->Draw(DepthShader);
+    // for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+    // World::GetInstance()->ChunkData.at(i)->Draw(DepthShader);
 }
 
 void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer)

@@ -30,8 +30,6 @@ protected:
     unsigned int VAO, VBO, EBO;
     Matrix4f ModelMatrix = Matrix4f(1);
 
-    std::vector<Vector3f> CaculateNormals(std::vector<Vector3f> Vertices);
-
 public:
     std::vector<Vertex> *Vertices;
     std::vector<unsigned int> *Indices;
@@ -40,6 +38,7 @@ public:
     virtual ~Mesh() = default;
 
     virtual void Draw(Shader *MeshShader);
+    std::vector<Vector3f> CaculateNormals(std::array<Vector3f, 4> &Vertices);
     void SetModel(Matrix4f Model);
 
     void Initialise();

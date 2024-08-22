@@ -5,7 +5,6 @@
 #include "Skybox.h"
 #include "Block.h"
 #include "Cube.h"
-#include "Vegetation.h"
 
 #include <map>
 #include <vector>
@@ -14,8 +13,6 @@ class World
 {
 private:
     void GenerateWorld();
-
-    // void GenerateEntities(EntityType Entity, unsigned int Quantity);
 
 protected:
     World();
@@ -32,7 +29,6 @@ public:
 
     std::vector<Chunk *> ChunkData;
 
-    std::vector<Vegetation> FlowerList;
     std::vector<Cube> LightCubes;
 
     std::map<BlockType, int> Inventory;

@@ -68,8 +68,8 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
             int VoxelX = x + (Offset.x * CHUNK_SIZE);
             int VoxelZ = z + (Offset.z * CHUNK_SIZE);
 
-            int ZOffset = (int)(abs(Offset.z) * CHUNK_SIZE) + z;
-            int XOffset = (int)(abs(Offset.x) * CHUNK_SIZE) + x;
+            int ZOffset = (int)(Offset.z * CHUNK_SIZE) + z;
+            int XOffset = (int)(Offset.x * CHUNK_SIZE) + x;
 
             auto height = glm::simplex(glm::vec2(VoxelX / 64.0f, VoxelZ / 64.0f));
 
@@ -77,11 +77,11 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
             height *= std::max(0.0f, 1.0f - GetGradient(XOffset, ZOffset));
             height *= CHUNK_HEIGHT * 1.5;
 
-            Heightmap[ZOffset][XOffset] = height;
-
             // Handle general terrain
             for (int y = 0; y <= height; y++)
                 Blocks[x][y][z] = DetermineBlockType(y, height);
+
+            Heightmap[ZOffset][XOffset] = height;
         }
 
     /*
@@ -111,7 +111,7 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> TreeRange(0, CHUNK_SIZE);
+    std::uniform_int_distribution<> TreeRange(1, CHUNK_SIZE - 1);
     std::uniform_int_distribution<> TrunkRange(5, 7);
 
     for (int i = 0; i < 1; i++)
@@ -124,7 +124,7 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
         int TreeY = Heightmap[ZOffset][XOffset];
 
-        if (TreeY <= 0 || TreeY == WATER_LEVEL)
+        if (TreeY <= WATER_LEVEL)
             continue;
 
         auto TrunkHeight = TrunkRange(gen) + TreeY;
@@ -142,7 +142,23 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
     for (int i = 0; i < 1; i++)
     {
-        
+        int FlowerX = TreeRange(gen);
+        int FlowerZ = TreeRange(gen);
+
+        int ZOffset = (int)(Offset.z * CHUNK_SIZE) + FlowerX;
+        int XOffset = (int)(Offset.x * CHUNK_SIZE) + FlowerZ;
+
+        int FlowerY = Heightmap[ZOffset][XOffset];
+
+        if (FlowerY <= WATER_LEVEL)
+            continue;
+
+        // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << std::endl;
+
+        // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << " It's " << Blocks[FlowerX][FlowerY][FlowerZ] << std::endl;
+
+        // if (Blocks[FlowerX][FlowerY][FlowerZ] == BlockType::Air)
+        Blocks[FlowerX][FlowerY][FlowerZ] = BlockType::Flower;
     }
 
     WaterMesh = new Mesh();
@@ -225,13 +241,33 @@ void Chunk::CreateMesh()
             {
                 Vector3f Position = Vector3f(x, y, z);
 
+                if (Blocks[x][y][z] == BlockType::Flower)
+                {
+                    float TextureIndex = TextureAtlas::GetInstance()->FetchTexture(Blocks[x][y][z]);
+
+                    for (auto &FlowerVertices : Cube::DiagonalVertices)
+                    {
+                        auto FlowerNormals = TerrainMesh->CaculateNormals(FlowerVertices);
+
+                        for (auto index : Cube::FaceIndices)
+                            TerrainMesh->Indices->emplace_back(index + 4 * Indexer);
+
+                        for (unsigned int i = 0; i < FlowerVertices.size(); i++)
+                            TerrainMesh->Vertices->emplace_back(Vertex(Position.Add(FlowerVertices[i]), FlowerNormals[i], Cube::TextureCoordinatesList[i], TextureIndex));
+
+                        Indexer += 1;
+                    }
+                }
+
                 for (Vector3f Direction : Cube::DirectionList)
                 {
                     Vector3f PositionToCheck = Position.Add(Direction);
 
-                    if (IsWithinRange(PositionToCheck) || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Air || Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z] == BlockType::Water)
+                    BlockType BlockAtPos = Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z];
+
+                    if (IsWithinRange(PositionToCheck) || BlockAtPos == BlockType::Air || BlockAtPos == BlockType::Water || BlockAtPos == BlockType::Flower)
                     {
-                        if (Blocks[x][y][z] == BlockType::Air)
+                        if (Blocks[x][y][z] == BlockType::Air || Blocks[x][y][z] == BlockType::Flower)
                             continue;
 
                         // Fix for Up/Down
@@ -245,7 +281,6 @@ void Chunk::CreateMesh()
                         // Determine block type
                         float TextureIndex = TextureAtlas::GetInstance()->FetchTexture(Blocks[x][y][z], Direction);
 
-                        // TODO: Refactor this specific bit
                         if (Blocks[x][y][z] == BlockType::Water)
                         {
                             if (y == WATER_LEVEL - 1)
