@@ -21,6 +21,12 @@ World::World()
     GenerateWorld();
 }
 
+World::~World()
+{
+    for (int i = 0; i < ChunkData.size(); i++)
+        delete ChunkData.at(i);
+}
+
 void World::GenerateWorld()
 {
     // Setup a central VAO

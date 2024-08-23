@@ -23,6 +23,7 @@ protected:
 
 public:
     World(World &other) = delete;
+    ~World();
     void operator=(const World &) = delete;
 
     static World *GetInstance();

@@ -18,19 +18,6 @@
 
 #include "../include/Chunk.h"
 
-float GetGradient(float X, float Z)
-{
-    float Length = 17 * 17;
-
-    float DistanceX = abs(X - Length * 0.5f);
-    float DistanceZ = abs(Z - Length * 0.5f);
-    float Distance = sqrt(DistanceX * DistanceX + DistanceZ * DistanceZ);
-
-    float MaxWidth = Length * 0.5f - 15.0f;
-    float Delta = Distance / MaxWidth;
-    return Delta * Delta;
-}
-
 /*
     Creates a new chunk by copying the blocks from another chunk
 */
@@ -176,6 +163,12 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
     WaterMesh->Initialise();
 }
 
+Chunk::~Chunk()
+{
+    delete WaterMesh;
+    delete TerrainMesh;
+}
+
 /*
     Determines whether a block should be rendered or not
 */
@@ -213,6 +206,19 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     RelativeVec.RoundToNearestInt();
 
     Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
+}
+
+float Chunk::GetGradient(float X, float Z)
+{
+    float Length = 17 * 17;
+
+    float DistanceX = abs(X - Length * 0.5f);
+    float DistanceZ = abs(Z - Length * 0.5f);
+    float Distance = sqrt(DistanceX * DistanceX + DistanceZ * DistanceZ);
+
+    float MaxWidth = Length * 0.5f - 15.0f;
+    float Delta = Distance / MaxWidth;
+    return Delta * Delta;
 }
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)

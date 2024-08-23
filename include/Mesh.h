@@ -35,7 +35,7 @@ public:
     std::vector<unsigned int> *Indices;
 
     Mesh();
-    virtual ~Mesh() = default;
+    virtual ~Mesh();
 
     virtual void Draw(Shader *MeshShader);
     std::vector<Vector3f> CaculateNormals(std::array<Vector3f, 4> &Vertices);

@@ -23,12 +23,11 @@
 #include "../include/Renderer.h"
 
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
-void HandleFPS(GLFWwindow *window);
 
 float DeltaTime = 0.0f; // Time between current frame and last frame
 float LastFrame = 0.0f; // Time of last frame
-unsigned int Counter = 0;
 float LastFPSTime = 0.0f;
+float FPS = 0.0f;
 
 // unsigned int WINDOW_WIDTH = 1440;
 // unsigned int WINDOW_HEIGHT = 847;
@@ -39,7 +38,7 @@ unsigned int SCREEN_HEIGHT;
 unsigned int WINDOW_WIDTH;
 unsigned int WINDOW_HEIGHT;
 
-void PrintMemoryUsage()
+int GetMemoryUsage()
 {
     mach_task_basic_info info;
     mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
@@ -47,10 +46,10 @@ void PrintMemoryUsage()
     if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount) != KERN_SUCCESS)
     {
         std::cerr << "Failed to get task info" << std::endl;
-        return;
+        return 0.0f;
     }
 
-    std::cout << "Memory usage: " << info.resident_size / (1024 * 1024) << " MB" << std::endl;
+    return (int)(info.resident_size / (1024 * 1024));
 }
 
 int main()
@@ -144,15 +143,12 @@ int main()
 
     MasterRenderer.SetupTextures();
 
-    PrintMemoryUsage();
-
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // IF using Docking Branch
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
@@ -167,8 +163,8 @@ int main()
         ImGui::NewFrame();
 
         ImGui::Begin("Sidcraft");
-        ImGui::Text("FPS: ");
-        ImGui::Text("Memory Usage: ");
+        ImGui::Text("%s", ("FPS: " + std::to_string((int)FPS) + "MS").c_str());
+        ImGui::Text("%s", ("Memory Usage: " + std::to_string(GetMemoryUsage()) + " MB").c_str());
         ImGui::End();
 
         if (!HasStartedGame)
@@ -220,14 +216,16 @@ int main()
             MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
             MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
+            // Handle FPS
+
             float EndTime = glfwGetTime();
             DeltaTime = EndTime - StartTime;
 
             if (glfwGetTime() - LastFPSTime >= 1.0)
             {
-                float Time = int(1.0 / DeltaTime);
+                FPS = int(1.0 / DeltaTime);
                 LastFPSTime = glfwGetTime();
-                std::cout << "FPS: " << Time << "ms" << std::endl;
+                // std::cout << "FPS: " << Time << "ms" << std::endl;
             }
         }
 
@@ -242,23 +240,6 @@ int main()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    PrintMemoryUsage();
-
     glfwTerminate();
     return 0;
-}
-
-void HandleFPS(GLFWwindow *window)
-{
-    float CurrentFrame = glfwGetTime();
-    DeltaTime = CurrentFrame - LastFrame;
-    Counter += 1;
-
-    if (DeltaTime >= 1.0 / 30.0)
-    {
-        std::string FPS = "Sidcraft FPS: " + std::to_string((1.0 / DeltaTime) * Counter) + " MS: " + std::to_string((DeltaTime / Counter) * 1000);
-        glfwSetWindowTitle(window, FPS.c_str());
-        Counter = 0;
-        LastFrame = CurrentFrame;
-    }
 }

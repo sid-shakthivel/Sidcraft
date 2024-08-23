@@ -1,6 +1,6 @@
 #pragma once
 
-enum BlockType
+enum BlockType : unsigned char
 {
     Air = 0,
     Grass = 1,

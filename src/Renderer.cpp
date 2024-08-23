@@ -505,3 +505,30 @@ std::vector<Matrix4f> Renderer::GetLightSpaceMatrices()
 
     return LightSpaceMatrices;
 }
+
+Renderer::~Renderer()
+{
+    // Cleanup textures
+    glDeleteTextures(1, &TitleTexture);
+    glDeleteTextures(1, &DepthMapTexture);
+    glDeleteTextures(1, &LightboxSkyboxTexture);
+    glDeleteTextures(1, &DarkSkyboxTexture);
+    glDeleteTextures(2, PingPongBuffers);
+    glDeleteTextures(2, ColourBuffers);
+    glDeleteTextures(1, &WaterReflectionColour);
+    glDeleteTextures(1, &WaterRefractionColour);
+    glDeleteTextures(1, &WaterRefractionDepth);
+    glDeleteTextures(1, &DuDvMap);
+    glDeleteTextures(1, &WaterNormalMap);
+
+    // Cleanup framebuffers
+    glDeleteFramebuffers(1, &HdrFBO);
+    glDeleteFramebuffers(2, PingPongFBO);
+    glDeleteFramebuffers(1, &DepthMapFBO);
+    glDeleteFramebuffers(1, &WaterReflectionFBO);
+    glDeleteFramebuffers(1, &WaterRefractionFBO);
+
+    // Cleanup render buffers
+    glDeleteRenderbuffers(1, &RboDepth);
+    glDeleteRenderbuffers(1, &WaterReflectionRBO);
+}

@@ -17,6 +17,7 @@ class Chunk
 {
 private:
     bool IsWithinRange(Vector3f Vec);
+    float GetGradient(float X, float Y);
 
     Mesh *WaterMesh;
     Mesh *TerrainMesh;
@@ -26,6 +27,7 @@ public:
 
     Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE]);
+    ~Chunk();
 
     void CreateMesh();
     void Draw(Shader *MeshShader);

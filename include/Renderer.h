@@ -62,6 +62,7 @@ protected:
 
 public:
     Renderer();
+    ~Renderer();
 
     void SetupHDR();
     void SetupBloom();

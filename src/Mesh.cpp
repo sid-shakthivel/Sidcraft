@@ -43,6 +43,22 @@ Mesh::Mesh()
     Indices = new std::vector<unsigned int>();
 }
 
+Mesh::~Mesh()
+{
+    if (VAO)
+        glDeleteBuffers(1, &VAO);
+
+    if (VBO)
+        glDeleteBuffers(1, &VBO);
+
+    if (EBO)
+        glDeleteBuffers(1, &EBO);
+
+    // Cleanup
+    delete Vertices;
+    delete Indices;
+}
+
 void Mesh::Initialise()
 {
     glGenVertexArrays(1, &VAO);
