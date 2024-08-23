@@ -13,6 +13,7 @@
 
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
+#include "../include/Player.h"
 #include "../include/Shader.h"
 #include "../include/TextureAtlas.h"
 #include "../include/Chunk.h"
@@ -121,7 +122,7 @@ int main()
 
     // Setup other
     MainMouseHandler.Initialise();
-    Camera::GetInstance(Vector3f(120.0f, 45.0f, 120.0f), Vector3f(0.0f, 0.0f, -1.0f));
+    Player::GetInstance(DEFAULT_CAMERA_POS, Vector3f(0.0f, 0.0f, 0.0f));
     Renderer MasterRenderer = Renderer();
     World::GetInstance();
 
@@ -183,7 +184,10 @@ int main()
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
             MasterRenderer.Update();
-            Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
+
+            Player::GetInstance()->GetInstance()->HandleInput(window, DeltaTime);
+            Player::GetInstance()->GetInstance()->Update(DeltaTime);
+            // Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
 
             // Render depth
             MasterRenderer.UBOPass();
@@ -194,16 +198,20 @@ int main()
             // Setup reflection and refraction planes
             glEnable(GL_CLIP_DISTANCE0);
 
-            float Distance = 2 * (Camera::GetInstance()->GetCameraPos().y - WATER_LEVEL);
+            Vector3f CameraPos = Player::GetInstance()->camera.GetCameraPos();
 
-            Camera::GetInstance()->CameraPos.y -= Distance;
-            Camera::GetInstance()->CameraPos.z -= Distance;
-            Camera::GetInstance()->InvertPitch();
+            float Distance = 2 * (CameraPos.y - WATER_LEVEL);
+
+            CameraPos.y -= Distance;
+            CameraPos.z -= Distance;
+            Player::GetInstance()->camera.SetCameraPos(CameraPos);
+            Player::GetInstance()->camera.InvertPitch();
             MasterRenderer.RenderReflection(&MainShader);
 
-            Camera::GetInstance()->CameraPos.y += Distance;
-            Camera::GetInstance()->CameraPos.z += Distance;
-            Camera::GetInstance()->InvertPitch();
+            CameraPos.y += Distance;
+            CameraPos.z += Distance;
+            Player::GetInstance()->camera.SetCameraPos(CameraPos);
+            Player::GetInstance()->camera.InvertPitch();
             MasterRenderer.RenderRefraction(&MainShader);
 
             glDisable(GL_CLIP_DISTANCE0);
@@ -216,8 +224,7 @@ int main()
             MasterRenderer.RenderBlur(&BlurShader, &FinalQuad);
             MasterRenderer.RenderBloom(&BlendShader, &FinalQuad);
 
-            // Handle FPS
-
+            // Calculate FPS
             float EndTime = glfwGetTime();
             DeltaTime = EndTime - StartTime;
 
@@ -225,7 +232,6 @@ int main()
             {
                 FPS = int(1.0 / DeltaTime);
                 LastFPSTime = glfwGetTime();
-                // std::cout << "FPS: " << Time << "ms" << std::endl;
             }
         }
 

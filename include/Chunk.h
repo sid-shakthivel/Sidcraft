@@ -16,14 +16,14 @@ static const int WATER_LEVEL = 7;
 class Chunk
 {
 private:
-    bool IsWithinRange(Vector3f Vec);
     float GetGradient(float X, float Y);
 
+    BlockType Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
     Mesh *WaterMesh;
     Mesh *TerrainMesh;
 
 public:
-    BlockType Blocks[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE];
+    bool isDirty;
 
     Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     Chunk(const BlockType (&BlocksToCopy)[CHUNK_SIZE][CHUNK_HEIGHT][CHUNK_SIZE]);
@@ -31,7 +31,7 @@ public:
 
     void CreateMesh();
     void Draw(Shader *MeshShader);
-    void DrawWater(Shader *WaterShader) const;
+    void DrawWater(Shader *WaterShader);
     bool IsWithinChunk(Vector3f Vec) const;
     void SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     void ClearChunk(Vector3f Position, Matrix4f Offset);

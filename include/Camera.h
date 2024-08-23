@@ -17,34 +17,17 @@ private:
 
     void Jump();
 
-    BlockType SelectedBlock = BlockType::Stone;
-
-protected:
-    Camera(Vector3f cameraPos, Vector3f cameraTarget);
-    static Camera *Camera_;
-
 public:
     Vector3f CameraPos;
     Vector3f CameraFront = Vector3f(0.0f, 0.0f, 1.0f);
     Vector3f Up = Vector3f(0.0f, 1.0f, 0.0f);
 
-    Camera(Camera &other) = delete;
-    void operator=(const Camera &) = delete;
-
-    static Camera *GetInstance(Vector3f cameraPos, Vector3f cameraTarget);
-    static Camera *GetInstance();
+    Camera(Vector3f cameraPos, Vector3f cameraTarget);
 
     Matrix4f RetrieveLookAt();
     Vector3f GetCameraPos();
-
+    void SetCameraPos(Vector3f Pos);
     void InvertPitch();
-
-    BlockType GetSelectedBlockType();
-
     static float ConvertToRadians(float Degrees);
-
-    void Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE]);
     void Rotate(double XPos, double YPos);
 };
-
-inline Camera *Camera::Camera_ = nullptr;

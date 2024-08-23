@@ -40,6 +40,8 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
             return BlockType::Stone;
     };
 
+    isDirty = true;
+
     // Initialise blocks to all be air blocks by default
     std::fill(&Blocks[0][0][0], &Blocks[0][0][0] + sizeof(Blocks) / sizeof(BlockType), BlockType::Air);
 
@@ -169,16 +171,6 @@ Chunk::~Chunk()
     delete TerrainMesh;
 }
 
-/*
-    Determines whether a block should be rendered or not
-*/
-bool Chunk::IsWithinRange(Vector3f Vec)
-{
-    if (Vec.x < 0 || Vec.x >= CHUNK_SIZE || Vec.y < 0 || Vec.y >= CHUNK_HEIGHT || Vec.z < 0 || Vec.z >= CHUNK_SIZE)
-        return true;
-    return false;
-}
-
 bool Chunk::IsWithinChunk(Vector3f Vec) const
 {
     // Extract both the offset and calculate the relative postion
@@ -205,7 +197,7 @@ void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_
     Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
     RelativeVec.RoundToNearestInt();
 
-    Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
+    // Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
 }
 
 float Chunk::GetGradient(float X, float Z)
@@ -234,6 +226,13 @@ void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
 
 void Chunk::CreateMesh()
 {
+    auto IsWithinRange = [](Vector3f &Vec) -> bool
+    {
+        if (Vec.x < 0 || Vec.x >= CHUNK_SIZE || Vec.y < 0 || Vec.y >= CHUNK_HEIGHT || Vec.z < 0 || Vec.z >= CHUNK_SIZE)
+            return true;
+        return false;
+    };
+
     /*
         Loop through each block, and check if adjacent blocks are within the chunk
         If an adjacent block is within the chunk, it need not be rendered
@@ -321,10 +320,18 @@ void Chunk::CreateMesh()
 
 void Chunk::Draw(Shader *MeshShader)
 {
-    TerrainMesh->Draw(MeshShader);
+    if (isDirty)
+    {
+        TerrainMesh->Draw(MeshShader);
+        // isDirty = false;
+    }
 }
 
-void Chunk::DrawWater(Shader *WaterShader) const
+void Chunk::DrawWater(Shader *WaterShader)
 {
-    WaterMesh->Draw(WaterShader);
+    if (isDirty)
+    {
+        WaterMesh->Draw(WaterShader);
+        // isDirty = false;
+    }
 }

@@ -23,4 +23,5 @@ void main()
     Factor = clamp(Factor, 0.0, 1.0);
 
     FragColour = mix(vec4(FogColour, 1.0), FinalColour, Factor);
+    FragColour = texture1;
 } 

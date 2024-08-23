@@ -9,24 +9,7 @@ const float GRAVITY = -50.0f;
 const float JUMP_POWER = 30.0f;
 static float UpwardsSpeed = 0.0f;
 
-Camera *Camera::GetInstance(Vector3f cameraPos, Vector3f cameraTarget)
-{
-    if (Camera_ == nullptr)
-        Camera_ = new Camera(cameraPos, cameraTarget);
-    return Camera_;
-}
-
-Camera *Camera::GetInstance()
-{
-    if (Camera_ == nullptr)
-    {
-        std::cout << "Error: Camera singleton must be defined";
-        std::exit(0);
-    }
-    return Camera_;
-}
-
-Camera::Camera(Vector3f cameraPos, Vector3f cameraTarget) : CameraTarget(0.0f, 0.0f, 0.0f)
+Camera::Camera(Vector3f cameraPos, Vector3f cameraTarget)
 {
     CameraPos = cameraPos;
     CameraTarget = cameraTarget;
@@ -37,65 +20,15 @@ Vector3f Camera::GetCameraPos()
     return CameraPos;
 }
 
+void Camera::SetCameraPos(Vector3f Pos)
+{
+    CameraPos = Pos;
+}
+
 Matrix4f Camera::RetrieveLookAt()
 {
     return CreateLookAtMatrix(CameraPos, CameraPos.Add(CameraFront), Up);
 }
-
-BlockType Camera::GetSelectedBlockType()
-{
-    return SelectedBlock;
-}
-
-void Camera::Move(GLFWwindow *window, float DeltaTime, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
-{
-    auto Height = Heightmap[(int)CameraPos.z][(int)CameraPos.x];
-
-    float CameraSpeed = DeltaTime * 32.0f;
-
-    if (CameraPos.x < 0 || CameraPos.z < 0 || CameraPos.x > WORLD_SIZE || CameraPos.z > WORLD_SIZE)
-        Height = 7;
-
-    // Handle all inputs
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        CameraPos = CameraPos.Add(CameraFront.Multiply(CameraSpeed));
-    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        CameraPos = CameraPos.Sub(CameraFront.Multiply(CameraSpeed));
-    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
-        CameraPos = CameraPos.Sub(Direction.Multiply(CameraSpeed));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        Vector3f Direction = CameraFront.CrossProduct(CameraFront, Up).ReturnNormalise();
-        CameraPos = CameraPos.Add(Direction.Multiply(CameraSpeed));
-    }
-    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-        Jump();
-    else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        CameraPos = CameraPos.Add(Up.ReturnNormalise().Multiply(CameraSpeed));
-    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        CameraPos = CameraPos.Sub(Up.ReturnNormalise().Multiply(CameraSpeed));
-    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        SelectedBlock = BlockType::Grass;
-    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        SelectedBlock = BlockType::Dirt;
-    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-        SelectedBlock = BlockType::Stone;
-    else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-        SelectedBlock = BlockType::Sand;
-
-    // UpwardsSpeed += GRAVITY * DeltaTime;
-    CameraPos.y += UpwardsSpeed * DeltaTime;
-
-    // if (CameraPos.y < (Height + 2))
-    // {
-    //     UpwardsSpeed = 0;
-    //     CameraPos.y = Height + 2;
-    // }
-};
 
 void Camera::Jump()
 {
