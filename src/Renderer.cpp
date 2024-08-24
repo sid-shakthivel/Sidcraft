@@ -53,9 +53,7 @@ Renderer::Renderer()
 
 void Renderer::SetupTextures()
 {
-    /*
-        Loads all textures at once
-    */
+    // Loads all textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, TitleTexture);
 
@@ -222,20 +220,8 @@ void Renderer::RenderScene(Shader *GenericShader, float RunningTime, bool IsDept
 
 void Renderer::DrawWorld(Shader *GenericShader, float RunningTime, bool IsDepth)
 {
-    // if (!IsDepth)
-    //     GenericShader->SetFloat("RunningTime", RunningTime);
-
-    // for (int i = 0; i < World::GetInstance()->FlowerList.size(); i++)
-    //     World::GetInstance()->FlowerList.at(i).Draw(GenericShader);
-
-    // if (!IsDepth)
-    //     GenericShader->SetFloat("RunningTime", 0.0);
-
     for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
         World::GetInstance()->ChunkData.at(i)->Draw(GenericShader);
-
-    // for (int i = 0; i < World::GetInstance()->LightCubes.size(); i++)
-    //     World::GetInstance()->LightCubes.at(i).Draw(GenericShader);
 }
 
 void Renderer::RenderReflection(Shader *GenericShader)
@@ -308,8 +294,8 @@ void Renderer::RenderDepth(Shader *DepthShader)
 
     // Must include chunks though here
 
-    // for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
-    // World::GetInstance()->ChunkData.at(i)->Draw(DepthShader);
+    for (int i = 0; i < World::GetInstance()->ChunkData.size(); i++)
+        World::GetInstance()->ChunkData.at(i)->Draw(DepthShader);
 }
 
 void Renderer::DrawDepthQuad(Shader *GenericShader, Quad *FinalQuad, int CurrentLayer)
@@ -349,7 +335,7 @@ void Renderer::SetupDepth()
     glReadBuffer(GL_NONE);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "ERROR: INCOMPLETE DEPTH FRAMEBUFFER" << std::endl;
+        std::cout << "ERROR: Incomplete depth framebuffer" << std::endl;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -130,26 +130,26 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
     // Generate flowers
 
-    for (int i = 0; i < 1; i++)
-    {
-        int FlowerX = TreeRange(gen);
-        int FlowerZ = TreeRange(gen);
+    // for (int i = 0; i < 1; i++)
+    // {
+    //     int FlowerX = TreeRange(gen);
+    //     int FlowerZ = TreeRange(gen);
 
-        int ZOffset = (int)(Offset.z * CHUNK_SIZE) + FlowerX;
-        int XOffset = (int)(Offset.x * CHUNK_SIZE) + FlowerZ;
+    //     int ZOffset = (int)(Offset.z * CHUNK_SIZE) + FlowerX;
+    //     int XOffset = (int)(Offset.x * CHUNK_SIZE) + FlowerZ;
 
-        int FlowerY = Heightmap[ZOffset][XOffset];
+    //     int FlowerY = Heightmap[ZOffset][XOffset];
 
-        if (FlowerY <= WATER_LEVEL)
-            continue;
+    //     if (FlowerY <= WATER_LEVEL)
+    //         continue;
 
-        // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << std::endl;
+    //     // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << std::endl;
 
-        // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << " It's " << Blocks[FlowerX][FlowerY][FlowerZ] << std::endl;
+    //     // std::cout << "FlowerY: " << FlowerY << " FlowerZ: " << FlowerZ << " FlowerX: " << FlowerX << " It's " << Blocks[FlowerX][FlowerY][FlowerZ] << std::endl;
 
-        // if (Blocks[FlowerX][FlowerY][FlowerZ] == BlockType::Air)
-        Blocks[FlowerX][FlowerY][FlowerZ] = BlockType::Flower;
-    }
+    //     // if (Blocks[FlowerX][FlowerY][FlowerZ] == BlockType::Air)
+    //     Blocks[FlowerX][FlowerY][FlowerZ] = BlockType::Flower;
+    // }
 
     WaterMesh = new Mesh();
     TerrainMesh = new Mesh();
@@ -168,8 +168,8 @@ Chunk::Chunk(Vector3f Offset, int VAO, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 
 Chunk::~Chunk()
 {
-    delete WaterMesh;
-    delete TerrainMesh;
+    // delete WaterMesh;
+    // delete TerrainMesh;
 }
 
 bool Chunk::IsWithinChunk(Vector3f Vec) const
@@ -310,7 +310,18 @@ void Chunk::CreateMesh()
 
                             // Sort out vertices
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
+                            {
+                                // if (i == 2)
+                                // {
+                                //     PositionToCheck.Print();
+                                //     CubeFaceVertices[i].Print();
+                                //     (PositionToCheck + CubeFaceVertices[i]).Print();
+
+                                //     std::exit(0);
+                                // }
+
                                 TerrainMesh->Vertices->emplace_back(Vertex(PositionToCheck + CubeFaceVertices[i], Normal, Cube::TextureCoordinatesList[i], TextureIndex));
+                            }
 
                             Indexer += 1;
                         }

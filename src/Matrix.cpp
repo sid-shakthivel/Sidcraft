@@ -20,7 +20,7 @@ SquareMatrix<T, N>::SquareMatrix(T base_val)
 template <typename T, unsigned int N>
 void SquareMatrix<T, N>::Scale(const Vector3f &Vec)
 {
-    if (Vec.Size != Size)
+    if (Vec.Size > Size)
         return;
 
     elements[0][0] *= Vec.x;
@@ -31,7 +31,7 @@ void SquareMatrix<T, N>::Scale(const Vector3f &Vec)
 template <typename T, unsigned int N>
 void SquareMatrix<T, N>::Scale(const Vector2f &Vec)
 {
-    if (Vec.Size != Size)
+    if (Vec.Size > Size)
         return;
 
     elements[0][0] *= Vec.x;
@@ -41,7 +41,7 @@ void SquareMatrix<T, N>::Scale(const Vector2f &Vec)
 template <typename T, unsigned int N>
 void SquareMatrix<T, N>::Translate(const Vector3f &Vec)
 {
-    if (Vec.Size != Size)
+    if (Vec.Size > Size)
         return;
 
     elements[0][Size - 1] = Vec.x;

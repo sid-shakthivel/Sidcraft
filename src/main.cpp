@@ -56,9 +56,6 @@ int GetMemoryUsage()
 
 int main()
 {
-    // Vector3f test = Vector3f(1, 1, 1);
-    // test.Negate();
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Provides ability to set hints for createNewWindow
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -191,7 +188,6 @@ int main()
 
             Player::GetInstance()->GetInstance()->HandleInput(window, DeltaTime);
             Player::GetInstance()->GetInstance()->Update(DeltaTime);
-            // Camera::GetInstance()->Move(window, DeltaTime, World::GetInstance()->Heightmap);
 
             // Render depth
             MasterRenderer.UBOPass();

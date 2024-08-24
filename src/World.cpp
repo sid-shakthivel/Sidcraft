@@ -23,8 +23,8 @@ World::World()
 
 World::~World()
 {
-    for (int i = 0; i < ChunkData.size(); i++)
-        delete ChunkData.at(i);
+    // for (int i = 0; i < ChunkData.size(); i++)
+    // delete ChunkData.at(i);
 }
 
 void World::GenerateWorld()
