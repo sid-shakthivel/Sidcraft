@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../include/Vector.h"
 #include "../include/Player.h"
 #include "../include/Camera.h"
 #include "../include/Shader.h"
@@ -39,7 +40,7 @@ Renderer::Renderer()
 
     LightDir = Vector3f(2.0f, 3.0f, -4.0f);
 
-    ProjectionMatrix = CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+    ProjectionMatrix = Camera::CreatePerspectiveProjectionMatrix(Camera::ConvertToRadians(45.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
     ViewMatrix = Player::GetInstance()->camera.RetrieveLookAt();
     CameraViewPosition = Player::GetInstance()->camera.GetCameraPos();
 
@@ -496,11 +497,11 @@ std::vector<Matrix4f> Renderer::GetLightSpaceMatrices()
 
     for (unsigned int i = 0; i < ShadowCascadeLevels.size() + 1; ++i)
         if (i == 0)
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.ReturnNormalise(), 0.1f, ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.Normalise(), 0.1f, ShadowCascadeLevels[i]));
         else if (i < ShadowCascadeLevels.size())
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.Normalise(), ShadowCascadeLevels[i - 1], ShadowCascadeLevels[i]));
         else
-            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.ReturnNormalise(), ShadowCascadeLevels[i - 1], 500.0f));
+            LightSpaceMatrices.push_back(CalculateLightSpaceMatrix(CameraViewPosition, Player::GetInstance()->camera.CameraFront, LightDir.Normalise(), ShadowCascadeLevels[i - 1], 500.0f));
 
     return LightSpaceMatrices;
 }

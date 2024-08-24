@@ -6,6 +6,7 @@
 
 // #include <glm/gtx/string_cast.hpp>
 
+#include "../include/Camera.h"
 #include "../include/Renderer.h"
 #include "../include/Light.h"
 
@@ -49,10 +50,11 @@ Matrix4f CalculateLightViewMatrix(std::vector<Vector4f> Corners, Vector3f LightD
     */
     Vector3f Centre = Vector3f(0.0f, 0.0f, 0.0f);
     for (const auto Vertex : Corners)
-        Centre = Centre.Add(Vector3f(Vertex.x, Vertex.y, Vertex.z));
-    Centre = Centre.Divide(Corners.size());
+        Centre = Centre + Vector3f(Vertex.x, Vertex.y, Vertex.z);
 
-    return CreateLookAtMatrix(Centre.Add(LightDirection), Centre, Vector3f(0.0f, 1.0f, 0.0f));
+    Centre = Centre / Corners.size();
+
+    return Camera::CreateLookAtMatrix(Centre + LightDirection, Centre, Vector3f(0.0f, 1.0f, 0.0f));
 }
 
 Matrix4f CalculateLightSpaceMatrix(Vector3f CameraPos, Vector3f CameraFront, Vector3f LightDirection, float Near, float Far)
@@ -74,7 +76,7 @@ Matrix4f CalculateLightSpaceMatrix(Vector3f CameraPos, Vector3f CameraFront, Vec
 
     for (const auto Vertex : Corners)
     {
-        Vector4f TransforedVertex = LightViewMatrix.Multiply(Vertex);
+        Vector4f TransforedVertex = LightViewMatrix * Vertex;
         MinX = std::min(MinX, TransforedVertex.x);
         MaxX = std::max(MaxX, TransforedVertex.x);
         MinY = std::min(MinY, TransforedVertex.y);
@@ -88,5 +90,5 @@ Matrix4f CalculateLightSpaceMatrix(Vector3f CameraPos, Vector3f CameraFront, Vec
     MinZ = MinZ < 0 ? MinZ * ZMultipier : MinZ / ZMultipier;
     MaxZ = MaxZ < 0 ? MaxZ / ZMultipier : MaxZ * ZMultipier;
 
-    return LightViewMatrix.Multiply(CreateOrthographicProjectionMatrix(MinY, MaxY, MinX, MaxX, MinZ, MaxZ));
+    return LightViewMatrix * Camera::CreateOrthographicProjectionMatrix(MinY, MaxY, MinX, MaxX, MinZ, MaxZ);
 }

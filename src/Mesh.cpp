@@ -122,13 +122,13 @@ std::vector<Vector3f> Mesh::CaculateNormals(std::array<Vector3f, 4> &Vertices)
     auto Tri2Corn2 = Vertices[3];
     auto Tri2Corn3 = Vertices[0];
 
-    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
-    NormalsList.push_back(Tri1Corn1.CrossProduct(Tri1Corn2.Sub(Tri1Corn1), Tri1Corn3.Sub(Tri1Corn1)).ReturnNormalise());
+    // NormalsList.push_back((Tri1Corn2.Sub(Tri1Corn1).CrossProduct(Tri1Corn3.Sub(Tri1Corn1))).Normalise());
+    // NormalsList.push_back((Tri1Corn2.Sub(Tri1Corn1).CrossProduct(Tri1Corn3.Sub(Tri1Corn1))).Normalise());
+    // NormalsList.push_back((Tri1Corn2.Sub(Tri1Corn1).CrossProduct(Tri1Corn3.Sub(Tri1Corn1))).Normalise());
 
-    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
-    NormalsList.push_back(Tri2Corn1.CrossProduct(Tri2Corn2.Sub(Tri2Corn1), Tri2Corn3.Sub(Tri2Corn1)).ReturnNormalise());
+    // NormalsList.push_back((Tri2Corn2.Sub(Tri2Corn1).CrossProduct(Tri2Corn3.Sub(Tri2Corn1))).Normalise());
+    // NormalsList.push_back((Tri2Corn2.Sub(Tri2Corn1).CrossProduct(Tri2Corn3.Sub(Tri2Corn1))).Normalise());
+    // NormalsList.push_back((Tri2Corn2.Sub(Tri2Corn1).CrossProduct(Tri2Corn3.Sub(Tri2Corn1))).Normalise());
 
     return NormalsList;
 }

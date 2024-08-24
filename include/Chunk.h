@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Mesh.h"
-#include "Shader.h"
-#include "Block.h"
+#include "./Vector.h"
+#include "./Mesh.h"
+#include "./Shader.h"
+#include "./Block.h"
 
 static const unsigned int CHUNK_SIZE = 16;
 static const unsigned int CHUNK_HEIGHT = 48;

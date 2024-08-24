@@ -11,6 +11,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "../include/Vector.h"
 #include "../include/Matrix.h"
 #include "../include/Camera.h"
 #include "../include/Player.h"
@@ -55,6 +56,9 @@ int GetMemoryUsage()
 
 int main()
 {
+    // Vector3f test = Vector3f(1, 1, 1);
+    // test.Negate();
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // Provides ability to set hints for createNewWindow
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);

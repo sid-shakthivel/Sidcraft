@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "Vector.h"
 #include "Matrix.h"
 #include "Block.h"
 
@@ -30,4 +31,8 @@ public:
     void InvertPitch();
     static float ConvertToRadians(float Degrees);
     void Rotate(double XPos, double YPos);
+
+    static Matrix4f CreateOrthographicProjectionMatrix(float Bottom, float Top, float Left, float Right, float Near, float Far);
+    static Matrix4f CreatePerspectiveProjectionMatrix(float Fov, float Aspect, float Near, float Far);
+    static Matrix4f CreateLookAtMatrix(Vector3f PositionVector, Vector3f TargetVector, Vector3f UpVector);
 };

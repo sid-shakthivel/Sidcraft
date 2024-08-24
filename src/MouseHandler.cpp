@@ -45,7 +45,7 @@ Vector3f MouseHandler::ConvertToWorld(Vector4f CameraVec, Vector3f CameraPos, Ve
     glm::vec3 GLMCameraPos = glm::vec3(CameraPos.x, CameraPos.y, CameraPos.z);
     glm::mat4 ViewMatrix = glm::lookAt(GLMCameraPos, GLMCameraPos + glm::vec3(CameraFront.x, CameraFront.y, CameraFront.z), UpVec);
     glm::vec4 WorldRay = inverse(ViewMatrix) * glm::vec4(CameraVec.x, CameraVec.y, CameraVec.z, CameraVec.w);
-    return Vector3f(WorldRay.x, WorldRay.y, WorldRay.z).ReturnNormalise();
+    return Vector3f(WorldRay.x, WorldRay.y, WorldRay.z).Normalise();
 }
 
 // Attempts to return a ray near which user clicks

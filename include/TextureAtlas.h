@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./Vector.h"
 #include "./Block.h"
 #include "./Matrix.h"
 #include "./Cube.h"

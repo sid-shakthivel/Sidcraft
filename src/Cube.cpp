@@ -7,6 +7,7 @@
 #include <array>
 #include <string>
 
+#include "../include/Vector.h"
 #include "../include/Mesh.h"
 #include "../include/Matrix.h"
 

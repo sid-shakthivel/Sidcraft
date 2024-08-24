@@ -4,6 +4,7 @@
 #include "../include/stb_image.h"
 #include <vector>
 
+#include "../include/Vector.h"
 #include "../include/TextureAtlas.h"
 
 unsigned int LoadTexuresForCubemap(std::vector<const char *> ImagePaths)

@@ -8,6 +8,7 @@
 #include <random>
 #include <glm/gtc/noise.hpp>
 
+#include "../include/Vector.h"
 #include "../include/Matrix.h"
 #include "../include/Shader.h"
 #include "../include/Mesh.h"
@@ -194,7 +195,7 @@ bool Chunk::IsWithinChunk(Vector3f Vec) const
 void Chunk::SetChunk(Vector3f Position, Matrix4f Offset, int (&Heightmap)[WORLD_SIZE][WORLD_SIZE])
 {
 
-    Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
+    Vector3f RelativeVec = Position - Offset.ExtractTranslation();
     RelativeVec.RoundToNearestInt();
 
     // Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z] = Camera::GetInstance()->GetSelectedBlockType();
@@ -215,7 +216,7 @@ float Chunk::GetGradient(float X, float Z)
 
 void Chunk::ClearChunk(Vector3f Position, Matrix4f Offset)
 {
-    Vector3f RelativeVec = Position.Sub(Offset.ExtractTranslation());
+    Vector3f RelativeVec = Position - Offset.ExtractTranslation();
     RelativeVec.RoundToNearestInt();
 
     BlockType *CurrentBlock = &Blocks[(int)RelativeVec.x][(int)RelativeVec.y][(int)RelativeVec.z];
@@ -258,7 +259,7 @@ void Chunk::CreateMesh()
                             TerrainMesh->Indices->emplace_back(index + 4 * Indexer);
 
                         for (unsigned int i = 0; i < FlowerVertices.size(); i++)
-                            TerrainMesh->Vertices->emplace_back(Vertex(Position.Add(FlowerVertices[i]), FlowerNormals[i], Cube::TextureCoordinatesList[i], TextureIndex));
+                            TerrainMesh->Vertices->emplace_back(Vertex(Position + FlowerVertices[i], FlowerNormals[i], Cube::TextureCoordinatesList[i], TextureIndex));
 
                         Indexer += 1;
                     }
@@ -266,7 +267,7 @@ void Chunk::CreateMesh()
 
                 for (Vector3f Direction : Cube::DirectionList)
                 {
-                    Vector3f PositionToCheck = Position.Add(Direction);
+                    Vector3f PositionToCheck = Position + Direction;
 
                     BlockType BlockAtPos = Blocks[(int)PositionToCheck.x][(int)PositionToCheck.y][(int)PositionToCheck.z];
 
@@ -296,7 +297,7 @@ void Chunk::CreateMesh()
 
                                 // Sort out vertices
                                 for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                    WaterMesh->Vertices->emplace_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, Cube::TextureCoordinatesList[i], TextureIndex));
+                                    WaterMesh->Vertices->emplace_back(Vertex(PositionToCheck + CubeFaceVertices[i], Normal, Cube::TextureCoordinatesList[i], TextureIndex));
 
                                 WaterIndexer += 1;
                             }
@@ -309,7 +310,7 @@ void Chunk::CreateMesh()
 
                             // Sort out vertices
                             for (unsigned int i = 0; i < CubeFaceVertices.size(); i++)
-                                TerrainMesh->Vertices->emplace_back(Vertex(PositionToCheck.Add(CubeFaceVertices[i]), Normal, Cube::TextureCoordinatesList[i], TextureIndex));
+                                TerrainMesh->Vertices->emplace_back(Vertex(PositionToCheck + CubeFaceVertices[i], Normal, Cube::TextureCoordinatesList[i], TextureIndex));
 
                             Indexer += 1;
                         }

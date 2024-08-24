@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
+#include "Vector.h"
 #include "Shader.h"
 
 const Vector3f UP = Vector3f(0.0f, 1.0f, 0.0f);
